@@ -9,12 +9,13 @@ import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
 import { QRCodeDisplay } from '@/components/QRCodeDisplay';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
+import { HostAuth } from '@/components/HostAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import type { Performance } from '@/types/karaoke';
 import { useToast } from '@/hooks/use-toast';
 
-export default function Host() {
+function HostContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { performance, setPerformance } = useActivePerformance();
@@ -295,5 +296,13 @@ export default function Host() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function Host() {
+  return (
+    <HostAuth>
+      <HostContent />
+    </HostAuth>
   );
 }
