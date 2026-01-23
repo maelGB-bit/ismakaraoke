@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useWaitlist } from '@/hooks/useWaitlist';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface YouTubeVideo {
   id: string;
@@ -21,6 +22,7 @@ interface YouTubeVideo {
 export default function Inscricao() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { addToWaitlist } = useWaitlist();
   
   const [singerName, setSingerName] = useState('');
@@ -33,7 +35,7 @@ export default function Inscricao() {
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast({
-        title: 'Bitte Lied eingeben',
+        title: t('signup.enterSong'),
         variant: 'destructive',
       });
       return;
@@ -55,15 +57,15 @@ export default function Inscricao() {
 
       if (data.videos?.length === 0) {
         toast({
-          title: 'Kein Video gefunden',
-          description: 'Versuche es mit anderen Suchbegriffen',
+          title: t('signup.noVideoFound'),
+          description: t('signup.tryOtherTerms'),
         });
       }
     } catch (error) {
       console.error('Error searching YouTube:', error);
       toast({
-        title: 'Suchfehler',
-        description: 'Videos konnten nicht gesucht werden',
+        title: t('signup.searchError'),
+        description: t('signup.cantSearchVideos'),
         variant: 'destructive',
       });
     } finally {
@@ -90,7 +92,7 @@ export default function Inscricao() {
   const handleSubmit = async () => {
     if (!singerName.trim()) {
       toast({
-        title: 'Bitte Namen eingeben',
+        title: t('signup.enterName'),
         variant: 'destructive',
       });
       return;
@@ -98,7 +100,7 @@ export default function Inscricao() {
 
     if (!selectedVideo) {
       toast({
-        title: 'Bitte Lied auswählen',
+        title: t('signup.selectSong'),
         variant: 'destructive',
       });
       return;
@@ -135,11 +137,11 @@ export default function Inscricao() {
           <div className="flex items-center justify-center gap-3">
             <Music className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-display font-bold text-gradient">
-              Anmeldung
+              {t('signup.title')}
             </h1>
           </div>
           <p className="text-muted-foreground">
-            Wähle dein Lied und stelle dich in die Warteschlange!
+            {t('signup.subtitle')}
           </p>
         </div>
 
@@ -149,13 +151,13 @@ export default function Inscricao() {
           <div className="space-y-2">
             <Label htmlFor="singer-name" className="text-lg flex items-center gap-2">
               <Mic className="h-4 w-4" />
-              Dein Name
+              {t('signup.yourName')}
             </Label>
             <Input
               id="singer-name"
               value={singerName}
               onChange={(e) => setSingerName(e.target.value)}
-              placeholder="Gib deinen Namen ein..."
+              placeholder={t('signup.namePlaceholder')}
               className="text-lg"
             />
           </div>
@@ -164,14 +166,14 @@ export default function Inscricao() {
           <div className="space-y-2">
             <Label className="text-lg flex items-center gap-2">
               <Search className="h-4 w-4" />
-              Lied suchen
+              {t('signup.searchSong')}
             </Label>
             <div className="flex gap-2">
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Gib den Liedtitel ein..."
+                placeholder={t('signup.songPlaceholder')}
                 className="flex-1"
                 disabled={isSearching}
               />
@@ -183,7 +185,7 @@ export default function Inscricao() {
                 {isSearching ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  'Suchen'
+                  t('signup.search')
                 )}
               </Button>
             </div>
@@ -196,7 +198,7 @@ export default function Inscricao() {
               animate={{ opacity: 1, scale: 1 }}
               className="p-3 rounded-lg bg-primary/10 border border-primary/30"
             >
-              <p className="text-sm text-muted-foreground mb-1">Ausgewähltes Lied:</p>
+              <p className="text-sm text-muted-foreground mb-1">{t('signup.selectedSong')}</p>
               <div className="flex items-center gap-3">
                 <img
                   src={selectedVideo.thumbnail}
@@ -260,7 +262,7 @@ export default function Inscricao() {
             ) : (
               <Mic className="mr-2 h-5 w-5" />
             )}
-            Ich will singen!
+            {t('signup.wantToSing')}
           </Button>
         </div>
 
@@ -272,14 +274,14 @@ export default function Inscricao() {
             className="flex-1"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Zur Abstimmung
+            {t('signup.goToVoting')}
           </Button>
           <Button
             onClick={() => navigate('/ranking')}
             variant="outline"
             className="flex-1"
           >
-            Rangliste anzeigen
+            {t('signup.showRanking')}
           </Button>
         </div>
       </motion.div>

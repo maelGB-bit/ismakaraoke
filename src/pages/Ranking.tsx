@@ -4,9 +4,11 @@ import { Trophy, Vote, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RankingCard } from '@/components/RankingCard';
 import { useRanking } from '@/hooks/usePerformance';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Ranking() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { performances, loading } = useRanking();
 
   return (
@@ -26,10 +28,10 @@ export default function Ranking() {
             <Trophy className="w-16 h-16 mx-auto text-accent mb-4" />
           </motion.div>
           <h1 className="text-4xl lg:text-5xl font-black font-display neon-text-gold">
-            RANGLISTE DES ABENDS
+            {t('ranking.title')}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Die besten Karaoke-Auftritte
+            {t('ranking.subtitle')}
           </p>
         </header>
 
@@ -38,7 +40,7 @@ export default function Ranking() {
           {loading ? (
             <div className="glass-card p-8 text-center">
               <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Rangliste laden...</p>
+              <p className="text-muted-foreground">{t('ranking.loading')}</p>
             </div>
           ) : performances.length === 0 ? (
             <motion.div
@@ -47,10 +49,10 @@ export default function Ranking() {
               className="glass-card p-8 text-center"
             >
               <p className="text-muted-foreground text-lg">
-                Noch keine Auftritte beendet.
+                {t('ranking.noPerformances')}
               </p>
               <p className="text-muted-foreground mt-2">
-                Auftritte werden hier angezeigt, wenn Runden beendet werden.
+                {t('ranking.performancesWillShow')}
               </p>
             </motion.div>
           ) : (
@@ -73,7 +75,7 @@ export default function Ranking() {
             className="w-full max-w-md"
           >
             <Vote className="mr-2 h-5 w-5" />
-            Zur Abstimmung
+            {t('ranking.goToVoting')}
           </Button>
         </div>
       </motion.div>
