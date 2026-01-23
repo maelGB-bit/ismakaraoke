@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Play, Square, SkipForward, Trophy, Video, Mic2, LogOut, Menu, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Square, SkipForward, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +12,7 @@ import { QRCodeDisplay } from '@/components/QRCodeDisplay';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
 import { HostWaitlistPanel } from '@/components/HostWaitlistPanel';
 import { HostAuth, useHostAuth } from '@/components/HostAuth';
+import { TVModeView } from '@/components/TVModeView';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -62,7 +63,7 @@ function HostContent() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [lastHighScore, setLastHighScore] = useState(0);
   const [currentWaitlistEntryId, setCurrentWaitlistEntryId] = useState<string | null>(null);
-
+  const [showTVMode, setShowTVMode] = useState(false);
   const highestScore = ranking.length > 0 ? Math.max(...ranking.map(p => Number(p.nota_media))) : 0;
 
   useEffect(() => {
@@ -170,26 +171,49 @@ function HostContent() {
   };
 
   const isRoundActive = performance?.status === 'ativa';
+  const nextInQueue = getNextInQueue();
 
   return (
     <div className="min-h-screen gradient-bg p-4 lg:p-8">
+      {/* TV Mode Overlay */}
+      <AnimatePresence>
+        {showTVMode && (
+          <TVModeView
+            performance={performance}
+            nextInQueue={nextInQueue}
+            onExit={() => setShowTVMode(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <ConfettiEffect trigger={showConfetti} />
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="max-w-7xl mx-auto">
         <header className="text-center mb-6 relative">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="absolute right-0 top-0 text-muted-foreground hover:text-foreground">
-                <Menu className="mr-2 h-4 w-4" />{t('host.menu')}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate('/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setShowResetDialog(true)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t('host.resetEvent')}</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout}><LogOut className="mr-2 h-4 w-4" />{t('host.logout')}</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="absolute right-0 top-0 flex gap-2">
+            <Button
+              onClick={() => setShowTVMode(true)}
+              variant="outline"
+              size="sm"
+              className="text-primary border-primary/50 hover:bg-primary/10"
+            >
+              <Monitor className="mr-2 h-4 w-4" />
+              {t('tv.modeButton')}
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <Menu className="mr-2 h-4 w-4" />{t('host.menu')}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate('/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowResetDialog(true)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t('host.resetEvent')}</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}><LogOut className="mr-2 h-4 w-4" />{t('host.logout')}</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center justify-center gap-3"><Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />{t('host.title')}</h1>
           <p className="text-muted-foreground text-sm">{t('host.subtitle')}</p>
         </header>
