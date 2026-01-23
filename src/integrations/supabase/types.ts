@@ -105,6 +105,7 @@ export type Database = {
           created_at: string
           id: string
           priority: number
+          registered_by: string | null
           singer_name: string
           song_title: string
           status: string
@@ -115,6 +116,7 @@ export type Database = {
           created_at?: string
           id?: string
           priority?: number
+          registered_by?: string | null
           singer_name: string
           song_title: string
           status?: string
@@ -125,6 +127,7 @@ export type Database = {
           created_at?: string
           id?: string
           priority?: number
+          registered_by?: string | null
           singer_name?: string
           song_title?: string
           status?: string

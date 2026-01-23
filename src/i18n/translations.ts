@@ -113,6 +113,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.signupConfirmed': '🎤 Inscrição confirmada!',
     'signup.addedToQueue': 'Você foi adicionado à fila de espera',
     'signup.cantAddToList': 'Não foi possível adicionar à lista',
+    'signup.welcomeBack': 'Bem-vindo de volta',
+    'signup.registerOther': 'Inscrever outra pessoa para cantar',
+    'signup.registerOtherHint': 'O nome da pessoa será inscrito, mas você será notificado quando for a vez dela.',
     
     // Ranking page
     'ranking.title': 'RANKING DA NOITE',
@@ -140,6 +143,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.queueTab': 'Fila',
     'waitlist.historyTab': 'Histórico',
     'waitlist.noHistory': 'Ainda não há músicas cantadas',
+    'waitlist.peopleAhead': 'pessoa(s) na sua frente',
+    'waitlist.registeredBy': 'inscrito por',
     
     // Score display
     'score.nowSinging': 'Cantando agora',
@@ -195,6 +200,18 @@ export const translations: Record<Language, Record<string, string>> = {
     'notFound.title': '404',
     'notFound.message': 'Ops! Página não encontrada',
     'notFound.backHome': 'Voltar para início',
+    
+    // Registration modal
+    'registration.title': 'Cadastro Rápido',
+    'registration.subtitle': 'Precisamos de algumas informações para você participar',
+    'registration.name': 'Seu nome',
+    'registration.namePlaceholder': 'Digite seu nome...',
+    'registration.phone': 'Telefone (opcional)',
+    'registration.phonePlaceholder': '(11) 99999-9999',
+    'registration.email': 'E-mail (opcional)',
+    'registration.emailPlaceholder': 'seu@email.com',
+    'registration.continue': 'Continuar',
+    'registration.privacyNote': 'Seus dados são salvos apenas no seu dispositivo.',
     
     // Language selector
     'language.select': 'Selecione seu idioma',
@@ -359,6 +376,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.signupConfirmed': '🎤 Anmeldung bestätigt!',
     'signup.addedToQueue': 'Du wurdest zur Warteschlange hinzugefügt',
     'signup.cantAddToList': 'Konnte nicht zur Liste hinzugefügt werden',
+    'signup.welcomeBack': 'Willkommen zurück',
+    'signup.registerOther': 'Jemand anderen zum Singen anmelden',
+    'signup.registerOtherHint': 'Der Name der Person wird eingetragen, aber du wirst benachrichtigt, wenn sie dran ist.',
     
     // Ranking page
     'ranking.title': 'RANGLISTE DES ABENDS',
@@ -386,6 +406,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.queueTab': 'Warteschlange',
     'waitlist.historyTab': 'Verlauf',
     'waitlist.noHistory': 'Noch keine gesungenen Lieder',
+    'waitlist.peopleAhead': 'Person(en) vor dir',
+    'waitlist.registeredBy': 'angemeldet von',
     
     // Score display
     'score.nowSinging': 'Singt gerade',
@@ -441,6 +463,18 @@ export const translations: Record<Language, Record<string, string>> = {
     'notFound.title': '404',
     'notFound.message': 'Oops! Seite nicht gefunden',
     'notFound.backHome': 'Zurück zur Startseite',
+    
+    // Registration modal
+    'registration.title': 'Schnelle Registrierung',
+    'registration.subtitle': 'Wir brauchen einige Informationen für deine Teilnahme',
+    'registration.name': 'Dein Name',
+    'registration.namePlaceholder': 'Gib deinen Namen ein...',
+    'registration.phone': 'Telefon (optional)',
+    'registration.phonePlaceholder': '+49 123 456789',
+    'registration.email': 'E-Mail (optional)',
+    'registration.emailPlaceholder': 'deine@email.de',
+    'registration.continue': 'Weiter',
+    'registration.privacyNote': 'Deine Daten werden nur auf deinem Gerät gespeichert.',
     
     // Language selector
     'language.select': 'Wähle deine Sprache',
@@ -605,6 +639,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.signupConfirmed': '🎤 Sign up confirmed!',
     'signup.addedToQueue': 'You have been added to the queue',
     'signup.cantAddToList': 'Could not add to the list',
+    'signup.welcomeBack': 'Welcome back',
+    'signup.registerOther': 'Register someone else to sing',
+    'signup.registerOtherHint': 'Their name will be registered, but you will be notified when it\'s their turn.',
     
     // Ranking page
     'ranking.title': 'TONIGHT\'S RANKING',
@@ -632,6 +669,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.queueTab': 'Queue',
     'waitlist.historyTab': 'History',
     'waitlist.noHistory': 'No songs sung yet',
+    'waitlist.peopleAhead': 'person(s) ahead of you',
+    'waitlist.registeredBy': 'registered by',
     
     // Score display
     'score.nowSinging': 'Now singing',
@@ -687,6 +726,18 @@ export const translations: Record<Language, Record<string, string>> = {
     'notFound.title': '404',
     'notFound.message': 'Oops! Page not found',
     'notFound.backHome': 'Back to home',
+    
+    // Registration modal
+    'registration.title': 'Quick Registration',
+    'registration.subtitle': 'We need some info for you to participate',
+    'registration.name': 'Your name',
+    'registration.namePlaceholder': 'Enter your name...',
+    'registration.phone': 'Phone (optional)',
+    'registration.phonePlaceholder': '+1 234 567 8900',
+    'registration.email': 'Email (optional)',
+    'registration.emailPlaceholder': 'your@email.com',
+    'registration.continue': 'Continue',
+    'registration.privacyNote': 'Your data is saved only on your device.',
     
     // Language selector
     'language.select': 'Select your language',
@@ -851,6 +902,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.signupConfirmed': '🎤 ¡Inscripción confirmada!',
     'signup.addedToQueue': 'Has sido añadido a la cola de espera',
     'signup.cantAddToList': 'No se pudo añadir a la lista',
+    'signup.welcomeBack': 'Bienvenido de nuevo',
+    'signup.registerOther': 'Inscribir a otra persona para cantar',
+    'signup.registerOtherHint': 'Su nombre será inscrito, pero tú serás notificado cuando sea su turno.',
     
     // Ranking page
     'ranking.title': 'RANKING DE LA NOCHE',
@@ -878,6 +932,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.queueTab': 'Cola',
     'waitlist.historyTab': 'Historial',
     'waitlist.noHistory': 'Aún no hay canciones cantadas',
+    'waitlist.peopleAhead': 'persona(s) delante de ti',
+    'waitlist.registeredBy': 'inscrito por',
     'score.nowSinging': 'Cantando ahora',
     'score.waiting': 'Esperando...',
     'score.noSong': 'Sin canción',
@@ -931,6 +987,18 @@ export const translations: Record<Language, Record<string, string>> = {
     'notFound.title': '404',
     'notFound.message': '¡Oops! Página no encontrada',
     'notFound.backHome': 'Volver al inicio',
+    
+    // Registration modal
+    'registration.title': 'Registro Rápido',
+    'registration.subtitle': 'Necesitamos algunos datos para que participes',
+    'registration.name': 'Tu nombre',
+    'registration.namePlaceholder': 'Escribe tu nombre...',
+    'registration.phone': 'Teléfono (opcional)',
+    'registration.phonePlaceholder': '+34 123 456 789',
+    'registration.email': 'Email (opcional)',
+    'registration.emailPlaceholder': 'tu@email.com',
+    'registration.continue': 'Continuar',
+    'registration.privacyNote': 'Tus datos se guardan solo en tu dispositivo.',
     
     // Language selector
     'language.select': 'Selecciona tu idioma',
@@ -1095,6 +1163,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.signupConfirmed': '🎤 Kayıt onaylandı!',
     'signup.addedToQueue': 'Bekleme listesine eklendiniz',
     'signup.cantAddToList': 'Listeye eklenemedi',
+    'signup.welcomeBack': 'Tekrar hoş geldin',
+    'signup.registerOther': 'Başka birini şarkı söylemesi için kaydet',
+    'signup.registerOtherHint': 'İsimleri kaydedilecek, ama sırası geldiğinde sen bilgilendirileceksin.',
     
     // Ranking page
     'ranking.title': 'GECENİN SIRALAMASI',
@@ -1122,6 +1193,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.queueTab': 'Sıra',
     'waitlist.historyTab': 'Geçmiş',
     'waitlist.noHistory': 'Henüz söylenen şarkı yok',
+    'waitlist.peopleAhead': 'kişi önünde',
+    'waitlist.registeredBy': 'kayıt eden',
     'score.nowSinging': 'Şu anda söylüyor',
     'score.waiting': 'Bekleniyor...',
     'score.noSong': 'Şarkı yok',
@@ -1175,6 +1248,18 @@ export const translations: Record<Language, Record<string, string>> = {
     'notFound.title': '404',
     'notFound.message': 'Oops! Sayfa bulunamadı',
     'notFound.backHome': 'Ana sayfaya dön',
+    
+    // Registration modal
+    'registration.title': 'Hızlı Kayıt',
+    'registration.subtitle': 'Katılabilmeniz için bazı bilgilere ihtiyacımız var',
+    'registration.name': 'Adınız',
+    'registration.namePlaceholder': 'Adınızı girin...',
+    'registration.phone': 'Telefon (isteğe bağlı)',
+    'registration.phonePlaceholder': '+90 555 123 4567',
+    'registration.email': 'E-posta (isteğe bağlı)',
+    'registration.emailPlaceholder': 'sizin@email.com',
+    'registration.continue': 'Devam',
+    'registration.privacyNote': 'Verileriniz yalnızca cihazınızda saklanır.',
     
     // Language selector
     'language.select': 'Dilinizi seçin',

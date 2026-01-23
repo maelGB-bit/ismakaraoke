@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic, Search, Loader2, Play, ArrowLeft, Music } from 'lucide-react';
+import { Mic, Search, Loader2, Play, ArrowLeft, Music, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
+import { UserRegistrationModal } from '@/components/UserRegistrationModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useWaitlist } from '@/hooks/useWaitlist';
 import { useActivePerformance } from '@/hooks/usePerformance';
+import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 interface YouTubeVideo {
@@ -27,6 +30,7 @@ export default function Inscricao() {
   const { t } = useLanguage();
   const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist();
   const { performance } = useActivePerformance();
+  const { profile, loading: profileLoading, saveProfile } = useUserProfile();
   
   const [singerName, setSingerName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,6 +38,37 @@ export default function Inscricao() {
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [registerForOther, setRegisterForOther] = useState(false);
+
+  // Set singer name from profile when loaded
+  useEffect(() => {
+    if (profile && !registerForOther) {
+      setSingerName(profile.name);
+    }
+  }, [profile, registerForOther]);
+
+  // Show registration if no profile
+  useEffect(() => {
+    if (!profileLoading && !profile) {
+      setShowRegistration(true);
+    }
+  }, [profileLoading, profile]);
+
+  const handleRegistrationComplete = (newProfile: UserProfile) => {
+    saveProfile(newProfile);
+    setSingerName(newProfile.name);
+    setShowRegistration(false);
+  };
+
+  const handleRegisterForOtherChange = (checked: boolean) => {
+    setRegisterForOther(checked);
+    if (checked) {
+      setSingerName('');
+    } else if (profile) {
+      setSingerName(profile.name);
+    }
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -111,25 +146,45 @@ export default function Inscricao() {
 
     setIsSubmitting(true);
 
+    // If registering for someone else, pass the current user's name as registeredBy
+    const registeredBy = registerForOther && profile ? profile.name : undefined;
+
     const success = await addToWaitlist(
       singerName.trim(),
       selectedVideo.url,
-      decodeHtmlEntities(selectedVideo.title)
+      decodeHtmlEntities(selectedVideo.title),
+      registeredBy
     );
 
     setIsSubmitting(false);
 
     if (success) {
       // Reset form
-      setSingerName('');
+      if (registerForOther) {
+        setSingerName('');
+        setRegisterForOther(false);
+        if (profile) setSingerName(profile.name);
+      }
       setSearchQuery('');
       setVideos([]);
       setSelectedVideo(null);
     }
   };
 
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen gradient-bg p-4">
+      {showRegistration && (
+        <UserRegistrationModal onComplete={handleRegistrationComplete} />
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -146,6 +201,11 @@ export default function Inscricao() {
           <p className="text-muted-foreground">
             {t('signup.subtitle')}
           </p>
+          {profile && (
+            <p className="text-sm text-primary">
+              {t('signup.welcomeBack')}, {profile.name}!
+            </p>
+          )}
         </div>
 
         {/* Form */}
@@ -162,8 +222,35 @@ export default function Inscricao() {
               onChange={(e) => setSingerName(e.target.value)}
               placeholder={t('signup.namePlaceholder')}
               className="text-lg"
+              disabled={!registerForOther && !!profile}
             />
           </div>
+
+          {/* Register for another person */}
+          <div className="flex items-center space-x-2 p-3 rounded-lg bg-accent/20 border border-accent/30">
+            <Checkbox
+              id="register-other"
+              checked={registerForOther}
+              onCheckedChange={handleRegisterForOtherChange}
+            />
+            <Label 
+              htmlFor="register-other" 
+              className="flex items-center gap-2 cursor-pointer text-sm"
+            >
+              <UserPlus className="h-4 w-4" />
+              {t('signup.registerOther')}
+            </Label>
+          </div>
+
+          {registerForOther && (
+            <motion.p
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xs text-muted-foreground"
+            >
+              {t('signup.registerOtherHint')}
+            </motion.p>
+          )}
 
           {/* Song Search */}
           <div className="space-y-2">
@@ -274,7 +361,7 @@ export default function Inscricao() {
           entries={waitlistEntries} 
           loading={waitlistLoading}
           currentSingerName={performance?.cantor}
-          highlightName={singerName}
+          userProfile={profile}
         />
 
         {/* Navigation */}
