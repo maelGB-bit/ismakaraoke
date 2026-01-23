@@ -173,6 +173,61 @@ function HostContent() {
   const isRoundActive = performance?.status === 'ativa';
   const nextInQueue = getNextInQueue();
 
+  const handleEnterTVMode = async () => {
+    // If there's a singer loaded but round not started, auto-start
+    if (cantor.trim() && musica.trim() && !isRoundActive) {
+      setIsCreating(true);
+      try {
+        await supabase.from('performances').update({ status: 'encerrada' }).eq('status', 'ativa');
+        const { data, error } = await supabase.from('performances').insert({ 
+          cantor: cantor.trim(), 
+          musica: musica.trim(), 
+          youtube_url: loadedUrl, 
+          status: 'ativa' 
+        }).select().single();
+        if (error) throw error;
+        setPerformance(data as Performance);
+        setLastHighScore(0);
+        toast({ title: t('host.roundStarted'), description: t('host.votingOpen') });
+      } catch (error) {
+        console.error('Error starting round:', error);
+        toast({ title: t('host.error'), description: t('host.cantStartRound'), variant: 'destructive' });
+      } finally {
+        setIsCreating(false);
+      }
+    }
+    setShowTVMode(true);
+  };
+
+  const handleTVSelectNext = () => {
+    const next = getNextInQueue();
+    if (next) {
+      // End current round if active
+      if (isRoundActive && performance) {
+        handleEndRound();
+      }
+      // Load next singer
+      handleSelectFromWaitlist(next);
+      // Auto-start after a short delay to allow state updates
+      setTimeout(async () => {
+        try {
+          await supabase.from('performances').update({ status: 'encerrada' }).eq('status', 'ativa');
+          const { data, error } = await supabase.from('performances').insert({ 
+            cantor: next.singer_name, 
+            musica: next.song_title, 
+            youtube_url: next.youtube_url, 
+            status: 'ativa' 
+          }).select().single();
+          if (error) throw error;
+          setPerformance(data as Performance);
+          setLastHighScore(0);
+        } catch (error) {
+          console.error('Error starting next round:', error);
+        }
+      }, 100);
+    }
+  };
+
   return (
     <div className="min-h-screen gradient-bg p-4 lg:p-8">
       {/* TV Mode Overlay */}
@@ -181,7 +236,9 @@ function HostContent() {
           <TVModeView
             performance={performance}
             nextInQueue={nextInQueue}
+            youtubeUrl={loadedUrl}
             onExit={() => setShowTVMode(false)}
+            onSelectNext={handleTVSelectNext}
           />
         )}
       </AnimatePresence>
@@ -191,7 +248,7 @@ function HostContent() {
         <header className="text-center mb-6 relative">
           <div className="absolute right-0 top-0 flex gap-2">
             <Button
-              onClick={() => setShowTVMode(true)}
+              onClick={handleEnterTVMode}
               variant="outline"
               size="sm"
               className="text-primary border-primary/50 hover:bg-primary/10"
