@@ -1,56 +1,13 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
+import { Trophy, Vote, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RankingCard } from '@/components/RankingCard';
 import { useRanking } from '@/hooks/usePerformance';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 
 export default function Ranking() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { performances, loading } = useRanking();
-  const [isResetting, setIsResetting] = useState(false);
-
-  const handleReset = async () => {
-    setIsResetting(true);
-    try {
-      // Delete all votes first (due to FK constraint)
-      await supabase.from('votes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      
-      // Delete all performances
-      await supabase.from('performances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-
-      toast({
-        title: '🆕 Novo evento iniciado!',
-        description: 'Todos os dados foram limpos',
-      });
-
-      navigate('/host');
-    } catch (error) {
-      console.error('Error resetting:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível resetar os dados',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsResetting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen gradient-bg p-4 lg:p-8">
@@ -108,55 +65,16 @@ export default function Ranking() {
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-3">
+        {/* Action Button */}
+        <div className="flex justify-center">
           <Button
-            onClick={() => navigate('/host')}
-            variant="outline"
+            onClick={() => navigate('/vote')}
             size="lg"
-            className="flex-1"
+            className="w-full max-w-md"
           >
-            <ArrowLeft className="mr-2 h-5 w-5" />
-            Voltar ao Host
+            <Vote className="mr-2 h-5 w-5" />
+            Ir para Votação
           </Button>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="destructive"
-                size="lg"
-                className="flex-1"
-                disabled={isResetting || performances.length === 0}
-              >
-                {isResetting ? (
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                ) : (
-                  <Trash2 className="mr-2 h-5 w-5" />
-                )}
-                Novo Evento / Reset
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="glass-card border-destructive">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="font-display">
-                  Iniciar Novo Evento?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta ação irá apagar todas as apresentações e votos da noite.
-                  Esta ação não pode ser desfeita.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleReset}
-                  className="bg-destructive hover:bg-destructive/90"
-                >
-                  Sim, resetar tudo
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </div>
       </motion.div>
     </div>
