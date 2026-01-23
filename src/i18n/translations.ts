@@ -276,6 +276,18 @@ export const translations: Record<Language, Record<string, string>> = {
     // Menu option
     'menu.guide': 'Guia do Evento',
     'menu.guide.desc': 'Veja como funciona e imprima QR codes para as mesas',
+    
+    // Leave button
+    'leave.button': 'Vou embora',
+    'leave.title': 'Sair do evento?',
+    'leave.description': 'Isso vai remover todas as suas músicas da fila de espera. Tem certeza?',
+    'leave.alsoDeleteRegistered': 'Também deletar as músicas das pessoas que eu inscrevi',
+    'leave.confirm': 'Sim, vou embora',
+    'leave.success': '👋 Até a próxima!',
+    'leave.deletedWithOthers': 'Suas músicas e as que você inscreveu foram removidas',
+    'leave.deletedOnlyMine': 'Suas músicas foram removidas da fila',
+    'leave.errorDeleting': 'Não foi possível remover as músicas',
+    'leave.noProfile': 'Você ainda não está cadastrado',
   },
   
   de: {
@@ -479,6 +491,18 @@ export const translations: Record<Language, Record<string, string>> = {
     // Language selector
     'language.select': 'Wähle deine Sprache',
     'language.continue': 'Weiter',
+    
+    // Leave button
+    'leave.button': 'Ich gehe',
+    'leave.title': 'Event verlassen?',
+    'leave.description': 'Dadurch werden alle deine Lieder aus der Warteschlange entfernt. Bist du sicher?',
+    'leave.alsoDeleteRegistered': 'Auch die Lieder löschen, die ich für andere angemeldet habe',
+    'leave.confirm': 'Ja, ich gehe',
+    'leave.success': '👋 Bis zum nächsten Mal!',
+    'leave.deletedWithOthers': 'Deine Lieder und die, die du angemeldet hast, wurden entfernt',
+    'leave.deletedOnlyMine': 'Deine Lieder wurden aus der Warteschlange entfernt',
+    'leave.errorDeleting': 'Lieder konnten nicht entfernt werden',
+    'leave.noProfile': 'Du bist noch nicht registriert',
     
     // Event Guide page
     'guide.title': 'Event-Leitfaden',
@@ -802,6 +826,18 @@ export const translations: Record<Language, Record<string, string>> = {
     // Menu option
     'menu.guide': 'Event Guide',
     'menu.guide.desc': 'See how it works and print QR codes for tables',
+    
+    // Leave button
+    'leave.button': 'I\'m leaving',
+    'leave.title': 'Leave the event?',
+    'leave.description': 'This will remove all your songs from the queue. Are you sure?',
+    'leave.alsoDeleteRegistered': 'Also delete songs I registered for others',
+    'leave.confirm': 'Yes, I\'m leaving',
+    'leave.success': '👋 See you next time!',
+    'leave.deletedWithOthers': 'Your songs and those you registered have been removed',
+    'leave.deletedOnlyMine': 'Your songs have been removed from the queue',
+    'leave.errorDeleting': 'Could not remove songs',
+    'leave.noProfile': 'You are not registered yet',
   },
   
   es: {
@@ -1063,6 +1099,18 @@ export const translations: Record<Language, Record<string, string>> = {
     // Menu option
     'menu.guide': 'Guía del Evento',
     'menu.guide.desc': 'Mira cómo funciona e imprime códigos QR para las mesas',
+    
+    // Leave button
+    'leave.button': 'Me voy',
+    'leave.title': '¿Salir del evento?',
+    'leave.description': 'Esto eliminará todas tus canciones de la cola. ¿Estás seguro?',
+    'leave.alsoDeleteRegistered': 'También eliminar las canciones que inscribí para otros',
+    'leave.confirm': 'Sí, me voy',
+    'leave.success': '👋 ¡Hasta la próxima!',
+    'leave.deletedWithOthers': 'Tus canciones y las que inscribiste han sido eliminadas',
+    'leave.deletedOnlyMine': 'Tus canciones han sido eliminadas de la cola',
+    'leave.errorDeleting': 'No se pudieron eliminar las canciones',
+    'leave.noProfile': 'Aún no estás registrado',
   },
   
   tr: {
@@ -1324,5 +1372,17 @@ export const translations: Record<Language, Record<string, string>> = {
     // Menu option
     'menu.guide': 'Etkinlik Rehberi',
     'menu.guide.desc': 'Nasıl çalıştığını görün ve masalar için QR kodları yazdırın',
+    
+    // Leave button
+    'leave.button': 'Gidiyorum',
+    'leave.title': 'Etkinlikten ayrıl?',
+    'leave.description': 'Bu, tüm şarkılarınızı sıradan kaldıracak. Emin misiniz?',
+    'leave.alsoDeleteRegistered': 'Başkaları için kaydettiğim şarkıları da sil',
+    'leave.confirm': 'Evet, gidiyorum',
+    'leave.success': '👋 Bir dahaki sefere görüşürüz!',
+    'leave.deletedWithOthers': 'Şarkılarınız ve kaydettiğiniz şarkılar kaldırıldı',
+    'leave.deletedOnlyMine': 'Şarkılarınız sıradan kaldırıldı',
+    'leave.errorDeleting': 'Şarkılar kaldırılamadı',
+    'leave.noProfile': 'Henüz kayıtlı değilsiniz',
   },
 };

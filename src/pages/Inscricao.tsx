@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { UserRegistrationModal } from '@/components/UserRegistrationModal';
+import { LeaveButton } from '@/components/LeaveButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -365,22 +366,27 @@ export default function Inscricao() {
         />
 
         {/* Navigation */}
-        <div className="flex gap-3">
-          <Button
-            onClick={() => navigate('/vote')}
-            variant="outline"
-            className="flex-1"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t('signup.goToVoting')}
-          </Button>
-          <Button
-            onClick={() => navigate('/ranking')}
-            variant="outline"
-            className="flex-1"
-          >
-            {t('signup.showRanking')}
-          </Button>
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-3">
+            <Button
+              onClick={() => navigate('/vote')}
+              variant="outline"
+              className="flex-1"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t('signup.goToVoting')}
+            </Button>
+            <Button
+              onClick={() => navigate('/ranking')}
+              variant="outline"
+              className="flex-1"
+            >
+              {t('signup.showRanking')}
+            </Button>
+          </div>
+          
+          {/* Leave Button */}
+          <LeaveButton />
         </div>
       </motion.div>
     </div>

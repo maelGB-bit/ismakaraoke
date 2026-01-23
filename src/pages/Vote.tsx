@@ -5,6 +5,7 @@ import { Mic2, CheckCircle, Trophy, AlertCircle, Clock, Music } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { VoteSlider } from '@/components/VoteSlider';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
+import { LeaveButton } from '@/components/LeaveButton';
 import { useActivePerformance } from '@/hooks/usePerformance';
 import { useDeviceId } from '@/hooks/useDeviceId';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -137,6 +138,7 @@ export default function Vote() {
               <Trophy className="mr-2 h-4 w-4" />
               {t('vote.showRanking')}
             </Button>
+            <LeaveButton />
           </div>
           
           {/* Waitlist when no active performance */}
@@ -258,6 +260,7 @@ export default function Vote() {
                   <Trophy className="mr-2 h-4 w-4" />
                   {t('vote.showNightRanking')}
                 </Button>
+                <LeaveButton />
               </div>
             </motion.div>
           ) : (
