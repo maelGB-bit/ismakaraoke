@@ -1,49 +1,49 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, CheckCircle, Trophy, AlertCircle } from 'lucide-react';
+import { Mic2, CheckCircle, Trophy, AlertCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VoteSlider } from '@/components/VoteSlider';
-import { usePerformanceById } from '@/hooks/usePerformance';
+import { useActivePerformance } from '@/hooks/usePerformance';
 import { useDeviceId } from '@/hooks/useDeviceId';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Vote() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const rodadaId = searchParams.get('rodada');
-  const { performance, loading } = usePerformanceById(rodadaId);
+  const { performance, loading } = useActivePerformance();
   const deviceId = useDeviceId();
 
   const [hasVoted, setHasVoted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingVote, setCheckingVote] = useState(true);
 
-  // Check if user already voted
+  // Check if user already voted for current performance
   useEffect(() => {
-    if (!rodadaId || !deviceId) return;
+    if (!performance?.id || !deviceId) {
+      setCheckingVote(false);
+      return;
+    }
 
     const checkExistingVote = async () => {
       const { data } = await supabase
         .from('votes')
         .select('id')
-        .eq('performance_id', rodadaId)
+        .eq('performance_id', performance.id)
         .eq('device_id', deviceId)
         .maybeSingle();
 
-      if (data) {
-        setHasVoted(true);
-      }
+      setHasVoted(!!data);
       setCheckingVote(false);
     };
 
+    setCheckingVote(true);
     checkExistingVote();
-  }, [rodadaId, deviceId]);
+  }, [performance?.id, deviceId]);
 
   const handleSubmitVote = async (nota: number) => {
-    if (!rodadaId || !deviceId || !performance) return;
+    if (!performance?.id || !deviceId) return;
 
     if (performance.status !== 'ativa') {
       toast({
@@ -58,7 +58,7 @@ export default function Vote() {
 
     try {
       const { error } = await supabase.from('votes').insert({
-        performance_id: rodadaId,
+        performance_id: performance.id,
         nota,
         device_id: deviceId,
       });
@@ -107,40 +107,25 @@ export default function Vote() {
     );
   }
 
-  // No round ID provided
-  if (!rodadaId) {
-    return (
-      <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
-        <div className="glass-card p-8 text-center max-w-md">
-          <AlertCircle className="w-16 h-16 mx-auto text-destructive mb-4" />
-          <h1 className="text-2xl font-bold font-display mb-2">Link inválido</h1>
-          <p className="text-muted-foreground mb-6">
-            Escaneie o QR Code exibido no telão para votar.
-          </p>
-          <Button onClick={() => navigate('/ranking')} variant="outline">
-            <Trophy className="mr-2 h-4 w-4" />
-            Ver Ranking
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Performance not found
+  // No active performance
   if (!performance) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
-        <div className="glass-card p-8 text-center max-w-md">
-          <AlertCircle className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h1 className="text-2xl font-bold font-display mb-2">Rodada não encontrada</h1>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass-card p-8 text-center max-w-md"
+        >
+          <Clock className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+          <h1 className="text-2xl font-bold font-display mb-2">Aguardando...</h1>
           <p className="text-muted-foreground mb-6">
-            Esta rodada pode ter sido removida ou o link está incorreto.
+            Nenhuma votação ativa no momento. Aguarde o organizador iniciar uma rodada.
           </p>
           <Button onClick={() => navigate('/ranking')} variant="outline">
             <Trophy className="mr-2 h-4 w-4" />
             Ver Ranking
           </Button>
-        </div>
+        </motion.div>
       </div>
     );
   }
