@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { QRCodeDisplay } from '@/components/QRCodeDisplay';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { Performance } from '@/types/karaoke';
 import type { WaitlistEntry } from '@/hooks/useWaitlist';
@@ -179,15 +178,6 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
           )}
         </motion.button>
 
-        {/* QR Codes - Minimal */}
-        <motion.div
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="ml-auto"
-        >
-          <QRCodeDisplay compact />
-        </motion.div>
       </div>
 
       {/* Video Area - Full Space */}

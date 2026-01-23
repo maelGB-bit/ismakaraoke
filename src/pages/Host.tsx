@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, SkipForward, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor } from 'lucide-react';
+import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -322,9 +322,8 @@ function HostContent() {
             </motion.div>
             <div className="min-h-[300px]"><YouTubePlayer url={loadedUrl} /></div>
             <div className="flex flex-wrap gap-2">
-              <Button onClick={handleStartRound} disabled={isRoundActive || isCreating} size="sm" className="flex-1 bg-neon-green hover:bg-neon-green/90 text-background font-bold"><Play className="mr-1 h-4 w-4" />{t('host.start')}</Button>
-              <Button onClick={handleEndRound} disabled={!isRoundActive} size="sm" variant="destructive" className="flex-1 font-bold"><Square className="mr-1 h-4 w-4" />{t('host.end')}</Button>
-              <Button onClick={handleNextRound} disabled={isRoundActive} size="sm" variant="outline" className="flex-1 font-bold"><SkipForward className="mr-1 h-4 w-4" />{t('host.next')}</Button>
+              <Button onClick={handleStartRound} disabled={isRoundActive || isCreating} size="sm" className="flex-1 bg-neon-green hover:bg-neon-green/90 text-background font-bold"><Play className="mr-1 h-4 w-4" />{t('host.startVoting')}</Button>
+              <Button onClick={handleEndRound} disabled={!isRoundActive} size="sm" variant="destructive" className="flex-1 font-bold"><Square className="mr-1 h-4 w-4" />{t('host.endVoting')}</Button>
             </div>
           </div>
           <div className="lg:col-span-4 flex flex-col gap-4">
