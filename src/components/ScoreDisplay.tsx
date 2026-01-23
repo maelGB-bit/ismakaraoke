@@ -12,31 +12,31 @@ export function ScoreDisplay({ score, totalVotes, cantor, musica }: ScoreDisplay
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="glass-card p-8 text-center"
+      className="glass-card p-4 text-center"
     >
-      <div className="mb-4">
-        <p className="text-muted-foreground text-sm uppercase tracking-widest mb-1">Cantando agora</p>
-        <h2 className="text-3xl font-bold font-display neon-text-cyan">{cantor || 'Aguardando...'}</h2>
-        <p className="text-xl text-foreground/80 mt-1">{musica || 'Sem música'}</p>
+      <div className="mb-2">
+        <p className="text-muted-foreground text-xs uppercase tracking-widest mb-1">Cantando agora</p>
+        <h2 className="text-xl font-bold font-display neon-text-cyan truncate">{cantor || 'Aguardando...'}</h2>
+        <p className="text-sm text-foreground/80 truncate">{musica || 'Sem música'}</p>
       </div>
 
-      <div className="my-8">
-        <p className="text-muted-foreground text-sm uppercase tracking-widest mb-2">Nota Média</p>
+      <div className="my-4">
+        <p className="text-muted-foreground text-xs uppercase tracking-widest mb-1">Nota Média</p>
         <motion.div
           key={score}
           initial={{ scale: 1.2 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 300 }}
-          className="score-display"
+          className="text-5xl font-black font-display neon-text-pink"
         >
           {score.toFixed(1)}
         </motion.div>
       </div>
 
-      <div className="flex justify-center gap-8">
+      <div className="flex justify-center">
         <div className="text-center">
-          <p className="text-4xl font-bold font-display neon-text-gold">{totalVotes}</p>
-          <p className="text-muted-foreground text-sm uppercase tracking-widest">Votos</p>
+          <p className="text-2xl font-bold font-display neon-text-gold">{totalVotes}</p>
+          <p className="text-muted-foreground text-xs uppercase tracking-widest">Votos</p>
         </div>
       </div>
     </motion.div>
