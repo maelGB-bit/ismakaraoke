@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic2, Users, Trophy, ArrowRight } from 'lucide-react';
+import { Mic2, Users, Trophy, ArrowRight, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Index() {
@@ -14,6 +14,14 @@ export default function Index() {
       path: '/host',
       color: 'text-primary',
       glow: 'neon-glow-pink',
+    },
+    {
+      icon: Music,
+      title: 'Inscrição',
+      description: 'Escolha sua música e entre na fila para cantar',
+      path: '/inscricao',
+      color: 'text-neon-green',
+      glow: '',
     },
     {
       icon: Users,
@@ -65,7 +73,7 @@ export default function Index() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl w-full"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl w-full"
       >
         {features.map((feature, index) => (
           <motion.div

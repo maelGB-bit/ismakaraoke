@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, CheckCircle, Trophy, AlertCircle, Clock } from 'lucide-react';
+import { Mic2, CheckCircle, Trophy, AlertCircle, Clock, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VoteSlider } from '@/components/VoteSlider';
 import { useActivePerformance } from '@/hooks/usePerformance';
@@ -121,10 +121,16 @@ export default function Vote() {
           <p className="text-muted-foreground mb-6">
             Nenhuma votação ativa no momento. Aguarde o organizador iniciar uma rodada.
           </p>
-          <Button onClick={() => navigate('/ranking')} variant="outline">
-            <Trophy className="mr-2 h-4 w-4" />
-            Ver Ranking
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => navigate('/inscricao')} className="w-full">
+              <Music className="mr-2 h-4 w-4" />
+              Quero Cantar
+            </Button>
+            <Button onClick={() => navigate('/ranking')} variant="outline" className="w-full">
+              <Trophy className="mr-2 h-4 w-4" />
+              Ver Ranking
+            </Button>
+          </div>
         </motion.div>
       </div>
     );
@@ -213,14 +219,23 @@ export default function Vote() {
               <p className="text-muted-foreground mb-6">
                 Obrigado por participar 🎉
               </p>
-              <Button
-                onClick={() => navigate('/ranking')}
-                variant="outline"
-                className="w-full"
-              >
-                <Trophy className="mr-2 h-4 w-4" />
-                Ver Ranking da Noite
-              </Button>
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={() => navigate('/inscricao')}
+                  className="w-full"
+                >
+                  <Music className="mr-2 h-4 w-4" />
+                  Quero Cantar
+                </Button>
+                <Button
+                  onClick={() => navigate('/ranking')}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Trophy className="mr-2 h-4 w-4" />
+                  Ver Ranking da Noite
+                </Button>
+              </div>
             </motion.div>
           ) : (
             <motion.div

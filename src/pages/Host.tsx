@@ -10,9 +10,11 @@ import { YouTubeSearch } from '@/components/YouTubeSearch';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
 import { QRCodeDisplay } from '@/components/QRCodeDisplay';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
+import { WaitlistPanel } from '@/components/WaitlistPanel';
 import { HostAuth, useHostAuth } from '@/components/HostAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
+import { useWaitlist } from '@/hooks/useWaitlist';
 import type { Performance } from '@/types/karaoke';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -32,12 +34,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
 function HostContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { logout } = useHostAuth();
   const { performance, setPerformance } = useActivePerformance();
   const { performances: ranking } = useRanking();
+  const { entries: waitlistEntries, loading: waitlistLoading, markAsDone, removeFromWaitlist, getNextInQueue } = useWaitlist();
 
   const [cantor, setCantor] = useState('');
   const [musica, setMusica] = useState('');
@@ -46,6 +50,7 @@ function HostContent() {
   const [isCreating, setIsCreating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [lastHighScore, setLastHighScore] = useState(0);
+  const [currentWaitlistEntryId, setCurrentWaitlistEntryId] = useState<string | null>(null);
 
   // Track highest score of the night
   const highestScore = ranking.length > 0 ? Math.max(...ranking.map(p => Number(p.nota_media))) : 0;
@@ -134,12 +139,27 @@ function HostContent() {
         setTimeout(() => setShowConfetti(false), 100);
       }
 
+      // Mark waitlist entry as done if there was one
+      if (currentWaitlistEntryId && performance.cantor) {
+        await markAsDone(currentWaitlistEntryId, performance.cantor);
+        setCurrentWaitlistEntryId(null);
+      }
+
       toast({
         title: '✅ Rodada encerrada!',
         description: `Nota final: ${finalScore.toFixed(1)}`,
       });
 
       setPerformance({ ...performance, status: 'encerrada' });
+
+      // Show next in queue notification
+      const nextInQueue = getNextInQueue();
+      if (nextInQueue) {
+        toast({
+          title: '🎤 Próximo na fila:',
+          description: `${nextInQueue.singer_name} - ${nextInQueue.song_title}`,
+        });
+      }
     } catch (error) {
       console.error('Error ending round:', error);
       toast({
@@ -157,6 +177,20 @@ function HostContent() {
     setLoadedUrl(null);
     setPerformance(null);
     setLastHighScore(0);
+    setCurrentWaitlistEntryId(null);
+  };
+
+  const handleSelectFromWaitlist = (entry: { id: string; singer_name: string; youtube_url: string; song_title: string }) => {
+    setCantor(entry.singer_name);
+    setMusica(entry.song_title);
+    setYoutubeUrl(entry.youtube_url);
+    setLoadedUrl(entry.youtube_url);
+    setCurrentWaitlistEntryId(entry.id);
+    
+    toast({
+      title: '🎤 Cantor selecionado',
+      description: `${entry.singer_name} - ${entry.song_title}`,
+    });
   };
 
   const [showResetDialog, setShowResetDialog] = useState(false);
@@ -167,6 +201,8 @@ function HostContent() {
       await supabase.from('votes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       // Delete all performances
       await supabase.from('performances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      // Delete all waitlist entries
+      await supabase.from('waitlist').delete().neq('id', '00000000-0000-0000-0000-000000000000');
       
       setPerformance(null);
       setCantor('');
@@ -174,6 +210,7 @@ function HostContent() {
       setYoutubeUrl('');
       setLoadedUrl(null);
       setLastHighScore(0);
+      setCurrentWaitlistEntryId(null);
       
       toast({
         title: '🗑️ Evento resetado!',
@@ -384,13 +421,21 @@ function HostContent() {
             </div>
           </div>
 
-          {/* Right Column - Score & QR Code */}
+          {/* Right Column - Score, Waitlist & QR Code */}
           <div className="lg:col-span-4 flex flex-col gap-4">
             <ScoreDisplay
               score={performance ? Number(performance.nota_media) : 0}
               totalVotes={performance?.total_votos || 0}
               cantor={performance?.cantor || cantor}
               musica={performance?.musica || musica}
+            />
+
+            <WaitlistPanel
+              entries={waitlistEntries}
+              loading={waitlistLoading}
+              onSelectEntry={handleSelectFromWaitlist}
+              onRemoveEntry={removeFromWaitlist}
+              currentSinger={isRoundActive ? performance?.cantor : null}
             />
 
             <QRCodeDisplay />
