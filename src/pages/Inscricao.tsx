@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useWaitlist } from '@/hooks/useWaitlist';
+import { useActivePerformance } from '@/hooks/usePerformance';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 interface YouTubeVideo {
@@ -23,7 +25,8 @@ export default function Inscricao() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const { addToWaitlist } = useWaitlist();
+  const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist();
+  const { performance } = useActivePerformance();
   
   const [singerName, setSingerName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -265,6 +268,14 @@ export default function Inscricao() {
             {t('signup.wantToSing')}
           </Button>
         </div>
+
+        {/* Waitlist */}
+        <ParticipantWaitlist 
+          entries={waitlistEntries} 
+          loading={waitlistLoading}
+          currentSingerName={performance?.cantor}
+          highlightName={singerName}
+        />
 
         {/* Navigation */}
         <div className="flex gap-3">

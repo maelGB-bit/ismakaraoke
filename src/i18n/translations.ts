@@ -131,6 +131,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.noSignups': 'Ainda não há inscrições',
     'waitlist.select': 'Selecionar',
     'waitlist.remove': 'Remover',
+    'waitlist.moveUp': 'Mover para cima',
+    'waitlist.moveDown': 'Mover para baixo',
+    'waitlist.yourTurn': '🎉 É a sua vez!',
+    'waitlist.goToStage': 'Suba ao palco e arrase!',
+    'waitlist.youAreNext': '⏰ Você é o próximo!',
+    'waitlist.prepareYourself': 'Prepare-se para subir ao palco',
     
     // Score display
     'score.nowSinging': 'Cantando agora',
@@ -368,6 +374,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.noSignups': 'Noch keine Anmeldungen',
     'waitlist.select': 'Auswählen',
     'waitlist.remove': 'Entfernen',
+    'waitlist.moveUp': 'Nach oben',
+    'waitlist.moveDown': 'Nach unten',
+    'waitlist.yourTurn': '🎉 Du bist dran!',
+    'waitlist.goToStage': 'Geh auf die Bühne und rock!',
+    'waitlist.youAreNext': '⏰ Du bist der Nächste!',
+    'waitlist.prepareYourself': 'Mach dich bereit für deinen Auftritt',
     
     // Score display
     'score.nowSinging': 'Singt gerade',
@@ -605,6 +617,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.noSignups': 'No sign-ups yet',
     'waitlist.select': 'Select',
     'waitlist.remove': 'Remove',
+    'waitlist.moveUp': 'Move up',
+    'waitlist.moveDown': 'Move down',
+    'waitlist.yourTurn': "🎉 It's your turn!",
+    'waitlist.goToStage': 'Go to the stage and rock it!',
+    'waitlist.youAreNext': "⏰ You're next!",
+    'waitlist.prepareYourself': 'Get ready for your performance',
     
     // Score display
     'score.nowSinging': 'Now singing',
@@ -842,8 +860,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.noSignups': 'Aún no hay inscripciones',
     'waitlist.select': 'Seleccionar',
     'waitlist.remove': 'Eliminar',
-    
-    // Score display
+    'waitlist.moveUp': 'Subir',
+    'waitlist.moveDown': 'Bajar',
+    'waitlist.yourTurn': '🎉 ¡Es tu turno!',
+    'waitlist.goToStage': '¡Sube al escenario y brilla!',
+    'waitlist.youAreNext': '⏰ ¡Eres el siguiente!',
+    'waitlist.prepareYourself': 'Prepárate para tu actuación',
     'score.nowSinging': 'Cantando ahora',
     'score.waiting': 'Esperando...',
     'score.noSong': 'Sin canción',
@@ -1079,8 +1101,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.noSignups': 'Henüz kayıt yok',
     'waitlist.select': 'Seç',
     'waitlist.remove': 'Kaldır',
-    
-    // Score display
+    'waitlist.moveUp': 'Yukarı taşı',
+    'waitlist.moveDown': 'Aşağı taşı',
+    'waitlist.yourTurn': '🎉 Sıra sende!',
+    'waitlist.goToStage': 'Sahneye çık ve parla!',
+    'waitlist.youAreNext': '⏰ Sen sıradasın!',
+    'waitlist.prepareYourself': 'Performansına hazırlan',
     'score.nowSinging': 'Şu anda söylüyor',
     'score.waiting': 'Bekleniyor...',
     'score.noSong': 'Şarkı yok',

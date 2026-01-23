@@ -10,7 +10,7 @@ import { YouTubeSearch } from '@/components/YouTubeSearch';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
 import { QRCodeDisplay } from '@/components/QRCodeDisplay';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
-import { WaitlistPanel } from '@/components/WaitlistPanel';
+import { HostWaitlistPanel } from '@/components/HostWaitlistPanel';
 import { HostAuth, useHostAuth } from '@/components/HostAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
@@ -43,7 +43,7 @@ function HostContent() {
   const { logout } = useHostAuth();
   const { performance, setPerformance } = useActivePerformance();
   const { performances: ranking } = useRanking();
-  const { entries: waitlistEntries, loading: waitlistLoading, markAsDone, removeFromWaitlist, getNextInQueue } = useWaitlist();
+  const { entries: waitlistEntries, loading: waitlistLoading, markAsDone, removeFromWaitlist, movePriority, getNextInQueue } = useWaitlist();
 
   const [cantor, setCantor] = useState('');
   const [musica, setMusica] = useState('');
@@ -233,7 +233,7 @@ function HostContent() {
           </div>
           <div className="lg:col-span-4 flex flex-col gap-4">
             <ScoreDisplay score={performance ? Number(performance.nota_media) : 0} totalVotes={performance?.total_votos || 0} cantor={performance?.cantor || cantor} musica={performance?.musica || musica} />
-            <WaitlistPanel entries={waitlistEntries} loading={waitlistLoading} onSelectEntry={handleSelectFromWaitlist} onRemoveEntry={removeFromWaitlist} currentSinger={isRoundActive ? performance?.cantor : null} />
+            <HostWaitlistPanel entries={waitlistEntries} loading={waitlistLoading} onSelectEntry={handleSelectFromWaitlist} onRemoveEntry={removeFromWaitlist} onMovePriority={movePriority} currentSinger={isRoundActive ? performance?.cantor : null} />
             <QRCodeDisplay />
             {!isRoundActive && (
               <div className="glass-card p-4 text-center">

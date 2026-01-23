@@ -104,6 +104,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          priority: number
           singer_name: string
           song_title: string
           status: string
@@ -113,6 +114,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          priority?: number
           singer_name: string
           song_title: string
           status?: string
@@ -122,6 +124,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          priority?: number
           singer_name?: string
           song_title?: string
           status?: string
