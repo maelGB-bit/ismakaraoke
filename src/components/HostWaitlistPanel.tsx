@@ -39,15 +39,19 @@ export function HostWaitlistPanel({
       </div>
 
       {nextInQueue && !currentSinger && (
-        <motion.div
+        <motion.button
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-3 rounded-lg bg-primary/20 border border-primary/30"
+          onClick={() => onSelectEntry(nextInQueue)}
+          className="w-full p-3 rounded-lg bg-primary/20 border border-primary/30 hover:bg-primary/30 transition-colors text-left group"
         >
-          <p className="text-xs text-primary font-medium mb-1">{t('waitlist.next')}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-primary font-medium mb-1">{t('waitlist.next')}</p>
+            <Play className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
           <p className="font-bold text-lg">{nextInQueue.singer_name}</p>
           <p className="text-sm text-muted-foreground truncate">{nextInQueue.song_title}</p>
-        </motion.div>
+        </motion.button>
       )}
 
       <Tabs defaultValue="queue" className="w-full">

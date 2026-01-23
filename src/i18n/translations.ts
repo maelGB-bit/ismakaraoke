@@ -196,6 +196,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.sessionEnded': 'Sessão encerrada',
     'auth.leftHostArea': 'Você saiu da área do organizador',
     
+    // QR Code
+    'qr.scanToVote': 'Escaneie para votar',
+    
     // Not found page
     'notFound.title': '404',
     'notFound.message': 'Ops! Página não encontrada',
@@ -479,6 +482,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.errorCheckingPassword': 'Fehler bei der Passwortüberprüfung',
     'auth.sessionEnded': 'Sitzung beendet',
     'auth.leftHostArea': 'Du hast den Organisator-Bereich verlassen',
+    
+    // QR Code
+    'qr.scanToVote': 'Scannen zum Abstimmen',
     
     // Not found page
     'notFound.title': '404',
@@ -764,6 +770,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.sessionEnded': 'Session ended',
     'auth.leftHostArea': 'You have left the host area',
     
+    // QR Code
+    'qr.scanToVote': 'Scan to vote',
+    
     // Not found page
     'notFound.title': '404',
     'notFound.message': 'Oops! Page not found',
@@ -1046,6 +1055,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.sessionEnded': 'Sesión terminada',
     'auth.leftHostArea': 'Has salido del área del organizador',
     
+    // QR Code
+    'qr.scanToVote': 'Escanea para votar',
+    
     // Not found page
     'notFound.title': '404',
     'notFound.message': '¡Oops! Página no encontrada',
@@ -1327,6 +1339,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'auth.errorCheckingPassword': 'Şifre kontrol edilemedi',
     'auth.sessionEnded': 'Oturum sona erdi',
     'auth.leftHostArea': 'Sunucu alanından çıktınız',
+    
+    // QR Code
+    'qr.scanToVote': 'Oy vermek için tarayın',
     
     // Not found page
     'notFound.title': '404',

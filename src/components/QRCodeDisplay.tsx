@@ -1,9 +1,33 @@
 import { QRCodeSVG } from 'qrcode.react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/i18n/LanguageContext';
 
-export function QRCodeDisplay() {
+interface QRCodeDisplayProps {
+  compact?: boolean;
+}
+
+export function QRCodeDisplay({ compact = false }: QRCodeDisplayProps) {
+  const { t } = useLanguage();
   const baseUrl = window.location.origin;
   const voteUrl = `${baseUrl}/vote`;
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2 px-2 py-1 glass-card">
+        <div className="bg-white p-1 rounded">
+          <QRCodeSVG
+            value={voteUrl}
+            size={40}
+            level="L"
+            includeMargin={false}
+          />
+        </div>
+        <div className="text-xs">
+          <p className="text-muted-foreground">{t('qr.scanToVote')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -12,7 +36,7 @@ export function QRCodeDisplay() {
       className="glass-card p-4 text-center"
     >
       <p className="text-muted-foreground text-xs uppercase tracking-widest mb-2">
-        Escaneie para votar
+        {t('qr.scanToVote')}
       </p>
       
       <div className="bg-white p-3 rounded-xl inline-block neon-glow-pink">

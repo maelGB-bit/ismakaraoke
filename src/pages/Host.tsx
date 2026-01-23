@@ -237,7 +237,13 @@ function HostContent() {
             performance={performance}
             nextInQueue={nextInQueue}
             youtubeUrl={loadedUrl}
-            onExit={() => setShowTVMode(false)}
+            onExit={async () => {
+              // End voting when exiting TV mode
+              if (isRoundActive && performance) {
+                await handleEndRound();
+              }
+              setShowTVMode(false);
+            }}
             onSelectNext={handleTVSelectNext}
           />
         )}
