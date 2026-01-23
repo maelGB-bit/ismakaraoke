@@ -82,16 +82,16 @@ export function useWaitlist() {
       if (error) throw error;
 
       toast({
-        title: '🎤 Inscrição confirmada!',
-        description: 'Você foi adicionado à lista de espera',
+        title: '🎤 Anmeldung bestätigt!',
+        description: 'Du wurdest zur Warteschlange hinzugefügt',
       });
 
       return true;
     } catch (error) {
       console.error('Error adding to waitlist:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível adicionar à lista',
+        title: 'Fehler',
+        description: 'Konnte nicht zur Liste hinzugefügt werden',
         variant: 'destructive',
       });
       return false;

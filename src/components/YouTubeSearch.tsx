@@ -28,7 +28,7 @@ export function YouTubeSearch({ onSelectVideo, disabled }: YouTubeSearchProps) {
   const handleSearch = async () => {
     if (!query.trim()) {
       toast({
-        title: 'Digite algo para buscar',
+        title: 'Bitte etwas eingeben',
         variant: 'destructive',
       });
       return;
@@ -54,15 +54,15 @@ export function YouTubeSearch({ onSelectVideo, disabled }: YouTubeSearchProps) {
 
       if (data.videos?.length === 0) {
         toast({
-          title: 'Nenhum vídeo encontrado',
-          description: 'Tente buscar com outros termos',
+          title: 'Kein Video gefunden',
+          description: 'Versuche es mit anderen Suchbegriffen',
         });
       }
     } catch (error) {
       console.error('Error searching YouTube:', error);
       toast({
-        title: 'Erro na busca',
-        description: 'Não foi possível buscar vídeos. Verifique a configuração da API.',
+        title: 'Suchfehler',
+        description: 'Videos konnten nicht gesucht werden. Überprüfe die API-Konfiguration.',
         variant: 'destructive',
       });
     } finally {
@@ -91,7 +91,7 @@ export function YouTubeSearch({ onSelectVideo, disabled }: YouTubeSearchProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Buscar música no YouTube..."
+            placeholder="Lied auf YouTube suchen..."
             className="pl-10"
             disabled={disabled || isLoading}
           />
@@ -104,7 +104,7 @@ export function YouTubeSearch({ onSelectVideo, disabled }: YouTubeSearchProps) {
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            'Buscar'
+            'Suchen'
           )}
         </Button>
       </div>

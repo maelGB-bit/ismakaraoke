@@ -74,8 +74,8 @@ function HostContent() {
   const handleStartRound = async () => {
     if (!cantor.trim() || !musica.trim()) {
       toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha o nome do cantor e da música',
+        title: 'Pflichtfelder',
+        description: 'Bitte Sängername und Lied ausfüllen',
         variant: 'destructive',
       });
       return;
@@ -107,14 +107,14 @@ function HostContent() {
       setPerformance(data as Performance);
       setLastHighScore(0);
       toast({
-        title: '🎤 Rodada iniciada!',
-        description: 'A votação está aberta',
+        title: '🎤 Runde gestartet!',
+        description: 'Die Abstimmung ist offen',
       });
     } catch (error) {
       console.error('Error starting round:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível iniciar a rodada',
+        title: 'Fehler',
+        description: 'Runde konnte nicht gestartet werden',
         variant: 'destructive',
       });
     } finally {
@@ -146,8 +146,8 @@ function HostContent() {
       }
 
       toast({
-        title: '✅ Rodada encerrada!',
-        description: `Nota final: ${finalScore.toFixed(1)}`,
+        title: '✅ Runde beendet!',
+        description: `Endnote: ${finalScore.toFixed(1)}`,
       });
 
       setPerformance({ ...performance, status: 'encerrada' });
@@ -156,15 +156,15 @@ function HostContent() {
       const nextInQueue = getNextInQueue();
       if (nextInQueue) {
         toast({
-          title: '🎤 Próximo na fila:',
+          title: '🎤 Nächster in der Schlange:',
           description: `${nextInQueue.singer_name} - ${nextInQueue.song_title}`,
         });
       }
     } catch (error) {
       console.error('Error ending round:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível encerrar a rodada',
+        title: 'Fehler',
+        description: 'Runde konnte nicht beendet werden',
         variant: 'destructive',
       });
     }
@@ -188,7 +188,7 @@ function HostContent() {
     setCurrentWaitlistEntryId(entry.id);
     
     toast({
-      title: '🎤 Cantor selecionado',
+      title: '🎤 Sänger ausgewählt',
       description: `${entry.singer_name} - ${entry.song_title}`,
     });
   };
@@ -213,14 +213,14 @@ function HostContent() {
       setCurrentWaitlistEntryId(null);
       
       toast({
-        title: '🗑️ Evento resetado!',
-        description: 'Todos os dados foram apagados',
+        title: '🗑️ Event zurückgesetzt!',
+        description: 'Alle Daten wurden gelöscht',
       });
     } catch (error) {
       console.error('Error resetting event:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível resetar o evento',
+        title: 'Fehler',
+        description: 'Event konnte nicht zurückgesetzt werden',
         variant: 'destructive',
       });
     }
@@ -248,13 +248,13 @@ function HostContent() {
                 className="absolute right-0 top-0 text-muted-foreground hover:text-foreground"
               >
                 <Menu className="mr-2 h-4 w-4" />
-                Menu
+                Menü
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => navigate('/ranking')}>
                 <Trophy className="mr-2 h-4 w-4" />
-                Ver Ranking
+                Rangliste anzeigen
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
@@ -262,36 +262,36 @@ function HostContent() {
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Resetar Evento
+                Event zurücksetzen
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Sair
+                Abmelden
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center justify-center gap-3">
             <Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />
-            KARAOKÊ VOTING
+            KARAOKE VOTING
           </h1>
-          <p className="text-muted-foreground text-sm">Painel do Organizador</p>
+          <p className="text-muted-foreground text-sm">Organisator-Bereich</p>
         </header>
 
         {/* Reset Confirmation Dialog */}
         <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Resetar Evento</AlertDialogTitle>
+              <AlertDialogTitle>Event zurücksetzen</AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja apagar TODOS os dados do evento? Esta ação não pode ser desfeita.
-                Todas as performances e votos serão permanentemente deletados.
+                Bist du sicher, dass du ALLE Eventdaten löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.
+                Alle Auftritte und Stimmen werden dauerhaft gelöscht.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogCancel>Abbrechen</AlertDialogCancel>
               <AlertDialogAction onClick={handleResetEvent} className="bg-destructive hover:bg-destructive/90">
-                Sim, Resetar Tudo
+                Ja, alles zurücksetzen
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -309,28 +309,28 @@ function HostContent() {
             >
               <h2 className="text-lg font-bold font-display mb-3 flex items-center gap-2">
                 <Video className="w-4 h-4 text-secondary" />
-                Configurar Rodada
+                Runde konfigurieren
               </h2>
 
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
-                  <Label htmlFor="cantor" className="text-xs">Nome do Cantor</Label>
+                  <Label htmlFor="cantor" className="text-xs">Sängername</Label>
                   <Input
                     id="cantor"
                     value={cantor}
                     onChange={(e) => setCantor(e.target.value)}
-                    placeholder="Ex: João Silva"
+                    placeholder="z.B. Max Müller"
                     disabled={isRoundActive}
                     className="mt-1 h-8 text-sm"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="musica" className="text-xs">Música</Label>
+                  <Label htmlFor="musica" className="text-xs">Lied</Label>
                   <Input
                     id="musica"
                     value={musica}
                     onChange={(e) => setMusica(e.target.value)}
-                    placeholder="Ex: Evidências"
+                    placeholder="z.B. Atemlos"
                     disabled={isRoundActive}
                     className="mt-1 h-8 text-sm"
                   />
@@ -339,7 +339,7 @@ function HostContent() {
 
               {/* YouTube Search */}
               <div className="space-y-2">
-                <Label className="text-xs">Buscar Vídeo no YouTube</Label>
+                <Label className="text-xs">Video auf YouTube suchen</Label>
                 <YouTubeSearch
                   onSelectVideo={(url, title) => {
                     setYoutubeUrl(url);
@@ -360,7 +360,7 @@ function HostContent() {
               {/* Manual URL input */}
               <div className="flex gap-2 mt-2">
                 <div className="flex-1">
-                  <Label htmlFor="youtube" className="text-xs">Ou cole a URL diretamente</Label>
+                  <Label htmlFor="youtube" className="text-xs">Oder URL direkt einfügen</Label>
                   <Input
                     id="youtube"
                     value={youtubeUrl}
@@ -375,7 +375,7 @@ function HostContent() {
                   size="sm"
                   className="mt-5"
                 >
-                  Carregar
+                  Laden
                 </Button>
               </div>
             </motion.div>
@@ -394,7 +394,7 @@ function HostContent() {
                 className="flex-1 bg-neon-green hover:bg-neon-green/90 text-background font-bold"
               >
                 <Play className="mr-1 h-4 w-4" />
-                Iniciar
+                Starten
               </Button>
 
               <Button
@@ -405,7 +405,7 @@ function HostContent() {
                 className="flex-1 font-bold"
               >
                 <Square className="mr-1 h-4 w-4" />
-                Encerrar
+                Beenden
               </Button>
 
               <Button
@@ -416,7 +416,7 @@ function HostContent() {
                 className="flex-1 font-bold"
               >
                 <SkipForward className="mr-1 h-4 w-4" />
-                Próxima
+                Nächste
               </Button>
             </div>
           </div>
@@ -444,8 +444,8 @@ function HostContent() {
               <div className="glass-card p-4 text-center">
                 <p className="text-muted-foreground text-sm">
                   {performance?.status === 'encerrada'
-                    ? '✅ Rodada encerrada'
-                    : '⏳ Inicie uma rodada para liberar a votação'}
+                    ? '✅ Runde beendet'
+                    : '⏳ Starte eine Runde, um die Abstimmung freizugeben'}
                 </p>
               </div>
             )}

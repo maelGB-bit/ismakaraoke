@@ -25,9 +25,9 @@ export function WaitlistPanel({
     <div className="glass-card p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Users className="h-5 w-5 text-primary" />
-        <h3 className="font-display font-semibold">Lista de Espera</h3>
+        <h3 className="font-display font-semibold">Warteschlange</h3>
         <span className="ml-auto text-sm text-muted-foreground">
-          {entries.length} na fila
+          {entries.length} in der Schlange
         </span>
       </div>
 
@@ -38,7 +38,7 @@ export function WaitlistPanel({
           animate={{ opacity: 1, y: 0 }}
           className="p-3 rounded-lg bg-primary/20 border border-primary/30"
         >
-          <p className="text-xs text-primary font-medium mb-1">🎤 Próximo:</p>
+          <p className="text-xs text-primary font-medium mb-1">🎤 Nächster:</p>
           <p className="font-bold text-lg">{nextInQueue.singer_name}</p>
           <p className="text-sm text-muted-foreground truncate">
             {nextInQueue.song_title}
@@ -48,12 +48,12 @@ export function WaitlistPanel({
 
       {loading ? (
         <div className="text-center py-4 text-muted-foreground">
-          Carregando...
+          Laden...
         </div>
       ) : entries.length === 0 ? (
         <div className="text-center py-4 text-muted-foreground">
           <Music className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p>Nenhuma inscrição ainda</p>
+          <p>Noch keine Anmeldungen</p>
         </div>
       ) : (
         <ScrollArea className="h-[200px]">
@@ -90,7 +90,7 @@ export function WaitlistPanel({
                       variant="ghost"
                       className="h-7 w-7"
                       onClick={() => onSelectEntry(entry)}
-                      title="Selecionar"
+                      title="Auswählen"
                     >
                       <Play className="h-3 w-3" />
                     </Button>
@@ -99,7 +99,7 @@ export function WaitlistPanel({
                       variant="ghost"
                       className="h-7 w-7 text-destructive hover:text-destructive"
                       onClick={() => onRemoveEntry(entry.id)}
-                      title="Remover"
+                      title="Entfernen"
                     >
                       <X className="h-3 w-3" />
                     </Button>

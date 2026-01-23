@@ -80,8 +80,8 @@ export function HostAuth({ children }: HostAuthProps) {
     
     if (password.length < 4) {
       toast({
-        title: 'Senha muito curta',
-        description: 'A senha deve ter pelo menos 4 caracteres',
+        title: 'Passwort zu kurz',
+        description: 'Das Passwort muss mindestens 4 Zeichen haben',
         variant: 'destructive',
       });
       return;
@@ -89,8 +89,8 @@ export function HostAuth({ children }: HostAuthProps) {
 
     if (password !== confirmPassword) {
       toast({
-        title: 'Senhas não conferem',
-        description: 'Digite a mesma senha nos dois campos',
+        title: 'Passwörter stimmen nicht überein',
+        description: 'Gib in beiden Feldern das gleiche Passwort ein',
         variant: 'destructive',
       });
       return;
@@ -110,14 +110,14 @@ export function HostAuth({ children }: HostAuthProps) {
       sessionStorage.setItem(AUTH_KEY, 'true');
       setIsAuthenticated(true);
       toast({
-        title: '🎤 Senha configurada!',
-        description: 'Bem-vindo ao painel do organizador',
+        title: '🎤 Passwort eingerichtet!',
+        description: 'Willkommen im Organisator-Bereich',
       });
     } catch (error) {
       console.error('Error setting password:', error);
       toast({
-        title: 'Erro ao salvar senha',
-        description: 'Tente novamente',
+        title: 'Fehler beim Speichern des Passworts',
+        description: 'Bitte erneut versuchen',
         variant: 'destructive',
       });
     } finally {
@@ -144,13 +144,13 @@ export function HostAuth({ children }: HostAuthProps) {
         sessionStorage.setItem(AUTH_KEY, 'true');
         setIsAuthenticated(true);
         toast({
-          title: '🎤 Acesso liberado!',
-          description: 'Bem-vindo ao painel do organizador',
+          title: '🎤 Zugang gewährt!',
+          description: 'Willkommen im Organisator-Bereich',
         });
       } else {
         toast({
-          title: 'Senha incorreta',
-          description: 'Tente novamente',
+          title: 'Falsches Passwort',
+          description: 'Bitte erneut versuchen',
           variant: 'destructive',
         });
         setPassword('');
@@ -158,8 +158,8 @@ export function HostAuth({ children }: HostAuthProps) {
     } catch (error) {
       console.error('Error logging in:', error);
       toast({
-        title: 'Erro ao verificar senha',
-        description: 'Tente novamente',
+        title: 'Fehler bei der Passwortüberprüfung',
+        description: 'Bitte erneut versuchen',
         variant: 'destructive',
       });
     } finally {
@@ -173,8 +173,8 @@ export function HostAuth({ children }: HostAuthProps) {
     setPassword('');
     setConfirmPassword('');
     toast({
-      title: 'Sessão encerrada',
-      description: 'Você saiu do painel do organizador',
+      title: 'Sitzung beendet',
+      description: 'Du hast den Organisator-Bereich verlassen',
     });
   };
 
@@ -219,23 +219,23 @@ export function HostAuth({ children }: HostAuthProps) {
             </motion.div>
             
             <h1 className="text-3xl font-black font-display neon-text-cyan mb-2">
-              Configurar Senha
+              Passwort einrichten
             </h1>
             <p className="text-muted-foreground">
-              Crie uma senha para proteger o painel do organizador
+              Erstelle ein Passwort, um den Organisator-Bereich zu schützen
             </p>
           </div>
 
           <form onSubmit={handleSetupPassword} className="space-y-6">
             <div>
-              <Label htmlFor="password">Nova Senha</Label>
+              <Label htmlFor="password">Neues Passwort</Label>
               <div className="relative mt-1">
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Crie uma senha..."
+                  placeholder="Passwort erstellen..."
                   className="pr-10"
                   autoFocus
                   disabled={isSubmitting}
@@ -255,13 +255,13 @@ export function HostAuth({ children }: HostAuthProps) {
             </div>
 
             <div>
-              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+              <Label htmlFor="confirmPassword">Passwort bestätigen</Label>
               <Input
                 id="confirmPassword"
                 type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirme a senha..."
+                placeholder="Passwort bestätigen..."
                 className="mt-1"
                 disabled={isSubmitting}
               />
@@ -274,12 +274,12 @@ export function HostAuth({ children }: HostAuthProps) {
               disabled={isSubmitting}
             >
               <KeyRound className="mr-2 h-4 w-4" />
-              {isSubmitting ? 'Salvando...' : 'Criar Senha'}
+              {isSubmitting ? 'Speichern...' : 'Passwort erstellen'}
             </Button>
           </form>
 
           <p className="text-center text-xs text-muted-foreground mt-6">
-            Esta senha será usada para acessar o painel do organizador
+            Dieses Passwort wird verwendet, um den Organisator-Bereich zu schützen
           </p>
         </motion.div>
       </div>
@@ -308,23 +308,23 @@ export function HostAuth({ children }: HostAuthProps) {
           </motion.div>
           
           <h1 className="text-3xl font-black font-display neon-text-pink mb-2">
-            Área do Organizador
+            Organisator-Bereich
           </h1>
           <p className="text-muted-foreground">
-            Digite a senha para acessar o painel de controle
+            Gib das Passwort ein, um das Kontrollpanel zu öffnen
           </p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <Label htmlFor="password">Senha do Host</Label>
+            <Label htmlFor="password">Host-Passwort</Label>
             <div className="relative mt-1">
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Digite a senha..."
+                placeholder="Passwort eingeben..."
                 className="pr-10"
                 autoFocus
                 disabled={isSubmitting}
@@ -350,7 +350,7 @@ export function HostAuth({ children }: HostAuthProps) {
             disabled={isSubmitting}
           >
             <Lock className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Verificando...' : 'Acessar Painel'}
+            {isSubmitting ? 'Überprüfen...' : 'Zugang öffnen'}
           </Button>
         </form>
       </motion.div>
