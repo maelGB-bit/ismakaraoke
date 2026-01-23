@@ -2,23 +2,49 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Music, Star, Clock } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WaitlistEntry } from '@/hooks/useWaitlist';
+import { UserProfile } from '@/hooks/useUserProfile';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 interface ParticipantWaitlistProps {
   entries: WaitlistEntry[];
   loading: boolean;
   currentSingerName?: string | null;
-  highlightName?: string;
+  userProfile?: UserProfile | null;
+  highlightName?: string; // Keep for backwards compatibility
 }
 
-export function ParticipantWaitlist({ entries, loading, currentSingerName, highlightName }: ParticipantWaitlistProps) {
+export function ParticipantWaitlist({ entries, loading, currentSingerName, userProfile, highlightName }: ParticipantWaitlistProps) {
   const { t } = useLanguage();
 
-  // Find if highlighted user is next or currently singing
-  const normalizedHighlight = highlightName?.toLowerCase().trim();
-  const isCurrentlySinging = currentSingerName?.toLowerCase().trim() === normalizedHighlight;
-  const userPosition = entries.findIndex(e => e.singer_name.toLowerCase().trim() === normalizedHighlight);
-  const isNext = userPosition === 0 && !currentSingerName;
+  // Normalize user's name for comparison
+  const normalizedUserName = userProfile?.name?.toLowerCase().trim();
+  
+  // Function to check if an entry belongs to the user (either as singer or registered by user)
+  const isUserEntry = (entry: WaitlistEntry) => {
+    const singerName = entry.singer_name.toLowerCase().trim();
+    const registeredBy = entry.registered_by?.toLowerCase().trim();
+    
+    return singerName === normalizedUserName || registeredBy === normalizedUserName;
+  };
+
+  // Find if user is currently singing or next
+  const isCurrentlySinging = currentSingerName?.toLowerCase().trim() === normalizedUserName;
+  
+  // Check if someone the user registered is currently singing
+  const registeredPersonSinging = currentSingerName && entries.some(e => 
+    e.singer_name.toLowerCase().trim() === currentSingerName.toLowerCase().trim() && 
+    e.registered_by?.toLowerCase().trim() === normalizedUserName
+  );
+
+  // Find user's position in queue (either as singer or registered someone)
+  const userEntryIndex = entries.findIndex(e => isUserEntry(e));
+  const isNext = userEntryIndex === 0 && !currentSingerName;
+  
+  // Count how many people are ahead of the user's first entry
+  const peopleAhead = userEntryIndex > 0 ? userEntryIndex : 0;
+
+  // For backwards compatibility with highlightName prop
+  const effectiveHighlightName = highlightName?.toLowerCase().trim();
 
   return (
     <div className="glass-card p-4 space-y-3">
@@ -30,7 +56,7 @@ export function ParticipantWaitlist({ entries, loading, currentSingerName, highl
 
       {/* Notification if user is up next or currently singing */}
       <AnimatePresence>
-        {isCurrentlySinging && (
+        {(isCurrentlySinging || registeredPersonSinging) && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -42,7 +68,7 @@ export function ParticipantWaitlist({ entries, loading, currentSingerName, highl
             <p className="text-sm text-muted-foreground">{t('waitlist.goToStage')}</p>
           </motion.div>
         )}
-        {isNext && !isCurrentlySinging && (
+        {isNext && !isCurrentlySinging && !registeredPersonSinging && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -52,6 +78,18 @@ export function ParticipantWaitlist({ entries, loading, currentSingerName, highl
             <Clock className="h-8 w-8 mx-auto text-accent mb-2" />
             <p className="font-bold text-lg neon-text-cyan">{t('waitlist.youAreNext')}</p>
             <p className="text-sm text-muted-foreground">{t('waitlist.prepareYourself')}</p>
+          </motion.div>
+        )}
+        {userEntryIndex > 0 && normalizedUserName && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-3 rounded-lg bg-primary/10 border border-primary/30 text-center"
+          >
+            <p className="text-sm">
+              <span className="font-bold text-primary">{peopleAhead}</span>
+              {' '}{t('waitlist.peopleAhead')}
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -67,7 +105,11 @@ export function ParticipantWaitlist({ entries, loading, currentSingerName, highl
         <ScrollArea className="h-[200px]">
           <div className="space-y-2 pr-2">
             {entries.map((entry, index) => {
-              const isHighlighted = entry.singer_name.toLowerCase().trim() === normalizedHighlight;
+              const isUserHighlighted = normalizedUserName && isUserEntry(entry);
+              const isLegacyHighlighted = effectiveHighlightName && 
+                entry.singer_name.toLowerCase().trim() === effectiveHighlightName;
+              const isHighlighted = isUserHighlighted || isLegacyHighlighted;
+              
               return (
                 <motion.div
                   key={entry.id}
@@ -89,6 +131,11 @@ export function ParticipantWaitlist({ entries, loading, currentSingerName, highl
                     <p className={`font-medium text-sm truncate ${isHighlighted ? 'text-primary' : ''}`}>
                       {entry.singer_name}
                       {isHighlighted && <span className="ml-1">⭐</span>}
+                      {entry.registered_by && (
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          ({t('waitlist.registeredBy')} {entry.registered_by})
+                        </span>
+                      )}
                       {entry.times_sung > 0 && (
                         <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
                       )}

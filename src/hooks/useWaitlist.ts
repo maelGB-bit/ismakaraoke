@@ -12,6 +12,7 @@ export interface WaitlistEntry {
   status: string;
   created_at: string;
   priority: number;
+  registered_by?: string;
 }
 
 function normalizeSingerName(name: string) {
@@ -157,7 +158,7 @@ export function useWaitlist() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const addToWaitlist = async (singerName: string, youtubeUrl: string, songTitle: string) => {
+  const addToWaitlist = async (singerName: string, youtubeUrl: string, songTitle: string, registeredBy?: string) => {
     try {
       // Get how many times this singer has sung before
       const { data: previousEntries } = await supabase
@@ -177,6 +178,7 @@ export function useWaitlist() {
         // priority will be rebalanced to a fair order right after insert
         priority: 999999,
         status: 'waiting',
+        registered_by: registeredBy?.trim() || null,
       });
 
       if (error) throw error;

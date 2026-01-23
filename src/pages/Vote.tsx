@@ -8,6 +8,7 @@ import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { useActivePerformance } from '@/hooks/usePerformance';
 import { useDeviceId } from '@/hooks/useDeviceId';
 import { useWaitlist } from '@/hooks/useWaitlist';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +19,7 @@ export default function Vote() {
   const { t } = useLanguage();
   const { performance, loading } = useActivePerformance();
   const { entries: waitlistEntries, loading: waitlistLoading } = useWaitlist();
+  const { profile: userProfile } = useUserProfile();
   const deviceId = useDeviceId();
 
   const [hasVoted, setHasVoted] = useState(false);
@@ -142,6 +144,7 @@ export default function Vote() {
             entries={waitlistEntries} 
             loading={waitlistLoading}
             currentSingerName={null}
+            userProfile={userProfile}
           />
         </motion.div>
       </div>
@@ -178,6 +181,7 @@ export default function Vote() {
             entries={waitlistEntries} 
             loading={waitlistLoading}
             currentSingerName={null}
+            userProfile={userProfile}
           />
         </motion.div>
       </div>
@@ -279,6 +283,7 @@ export default function Vote() {
             entries={waitlistEntries} 
             loading={waitlistLoading}
             currentSingerName={performance?.cantor}
+            userProfile={userProfile}
           />
         </motion.div>
       </div>
