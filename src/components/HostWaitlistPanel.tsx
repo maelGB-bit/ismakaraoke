@@ -81,14 +81,14 @@ export function HostWaitlistPanel({
                         {index + 1}
                       </div>
 
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 max-w-[140px]">
                         <p className="font-medium text-sm truncate">
                           {entry.singer_name}
                           {entry.times_sung > 0 && (
                             <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
                           )}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2 break-words">{entry.song_title}</p>
                       </div>
 
                       <div className="flex items-center gap-1 shrink-0">
