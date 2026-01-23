@@ -137,6 +137,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.goToStage': 'Suba ao palco e arrase!',
     'waitlist.youAreNext': '⏰ Você é o próximo!',
     'waitlist.prepareYourself': 'Prepare-se para subir ao palco',
+    'waitlist.queueTab': 'Fila',
+    'waitlist.historyTab': 'Histórico',
+    'waitlist.noHistory': 'Ainda não há músicas cantadas',
     
     // Score display
     'score.nowSinging': 'Cantando agora',
@@ -380,6 +383,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.goToStage': 'Geh auf die Bühne und rock!',
     'waitlist.youAreNext': '⏰ Du bist der Nächste!',
     'waitlist.prepareYourself': 'Mach dich bereit für deinen Auftritt',
+    'waitlist.queueTab': 'Warteschlange',
+    'waitlist.historyTab': 'Verlauf',
+    'waitlist.noHistory': 'Noch keine gesungenen Lieder',
     
     // Score display
     'score.nowSinging': 'Singt gerade',
@@ -623,6 +629,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.goToStage': 'Go to the stage and rock it!',
     'waitlist.youAreNext': "⏰ You're next!",
     'waitlist.prepareYourself': 'Get ready for your performance',
+    'waitlist.queueTab': 'Queue',
+    'waitlist.historyTab': 'History',
+    'waitlist.noHistory': 'No songs sung yet',
     
     // Score display
     'score.nowSinging': 'Now singing',
@@ -866,6 +875,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.goToStage': '¡Sube al escenario y brilla!',
     'waitlist.youAreNext': '⏰ ¡Eres el siguiente!',
     'waitlist.prepareYourself': 'Prepárate para tu actuación',
+    'waitlist.queueTab': 'Cola',
+    'waitlist.historyTab': 'Historial',
+    'waitlist.noHistory': 'Aún no hay canciones cantadas',
     'score.nowSinging': 'Cantando ahora',
     'score.waiting': 'Esperando...',
     'score.noSong': 'Sin canción',
@@ -1107,6 +1119,9 @@ export const translations: Record<Language, Record<string, string>> = {
     'waitlist.goToStage': 'Sahneye çık ve parla!',
     'waitlist.youAreNext': '⏰ Sen sıradasın!',
     'waitlist.prepareYourself': 'Performansına hazırlan',
+    'waitlist.queueTab': 'Sıra',
+    'waitlist.historyTab': 'Geçmiş',
+    'waitlist.noHistory': 'Henüz söylenen şarkı yok',
     'score.nowSinging': 'Şu anda söylüyor',
     'score.waiting': 'Bekleniyor...',
     'score.noSong': 'Şarkı yok',
