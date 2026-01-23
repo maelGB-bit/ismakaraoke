@@ -26,7 +26,7 @@ export function VoteSlider({ onSubmit, isSubmitting }: VoteSliderProps) {
     >
       <div className="glass-card p-6 mb-6">
         <p className="text-center text-muted-foreground text-sm uppercase tracking-widest mb-6">
-          Sua Nota
+          Deine Note
         </p>
 
         <div className="flex justify-center items-center gap-2 mb-8">
@@ -65,7 +65,7 @@ export function VoteSlider({ onSubmit, isSubmitting }: VoteSliderProps) {
         className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 neon-glow-pink"
       >
         <Send className="mr-2 h-5 w-5" />
-        {isSubmitting ? 'Enviando...' : 'Enviar Meu Voto'}
+        {isSubmitting ? 'Senden...' : 'Meine Stimme abgeben'}
       </Button>
     </motion.div>
   );

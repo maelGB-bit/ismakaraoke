@@ -26,10 +26,10 @@ export default function Ranking() {
             <Trophy className="w-16 h-16 mx-auto text-accent mb-4" />
           </motion.div>
           <h1 className="text-4xl lg:text-5xl font-black font-display neon-text-gold">
-            RANKING DA NOITE
+            RANGLISTE DES ABENDS
           </h1>
           <p className="text-muted-foreground mt-2">
-            As melhores performances do karaokê
+            Die besten Karaoke-Auftritte
           </p>
         </header>
 
@@ -38,7 +38,7 @@ export default function Ranking() {
           {loading ? (
             <div className="glass-card p-8 text-center">
               <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Carregando ranking...</p>
+              <p className="text-muted-foreground">Rangliste laden...</p>
             </div>
           ) : performances.length === 0 ? (
             <motion.div
@@ -47,10 +47,10 @@ export default function Ranking() {
               className="glass-card p-8 text-center"
             >
               <p className="text-muted-foreground text-lg">
-                Nenhuma apresentação encerrada ainda.
+                Noch keine Auftritte beendet.
               </p>
               <p className="text-muted-foreground mt-2">
-                As apresentações aparecerão aqui quando as rodadas forem finalizadas.
+                Auftritte werden hier angezeigt, wenn Runden beendet werden.
               </p>
             </motion.div>
           ) : (
@@ -73,7 +73,7 @@ export default function Ranking() {
             className="w-full max-w-md"
           >
             <Vote className="mr-2 h-5 w-5" />
-            Ir para Votação
+            Zur Abstimmung
           </Button>
         </div>
       </motion.div>

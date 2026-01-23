@@ -33,7 +33,7 @@ export default function Inscricao() {
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast({
-        title: 'Digite o nome da música',
+        title: 'Bitte Lied eingeben',
         variant: 'destructive',
       });
       return;
@@ -55,15 +55,15 @@ export default function Inscricao() {
 
       if (data.videos?.length === 0) {
         toast({
-          title: 'Nenhum vídeo encontrado',
-          description: 'Tente buscar com outros termos',
+          title: 'Kein Video gefunden',
+          description: 'Versuche es mit anderen Suchbegriffen',
         });
       }
     } catch (error) {
       console.error('Error searching YouTube:', error);
       toast({
-        title: 'Erro na busca',
-        description: 'Não foi possível buscar vídeos',
+        title: 'Suchfehler',
+        description: 'Videos konnten nicht gesucht werden',
         variant: 'destructive',
       });
     } finally {
@@ -90,7 +90,7 @@ export default function Inscricao() {
   const handleSubmit = async () => {
     if (!singerName.trim()) {
       toast({
-        title: 'Digite seu nome',
+        title: 'Bitte Namen eingeben',
         variant: 'destructive',
       });
       return;
@@ -98,7 +98,7 @@ export default function Inscricao() {
 
     if (!selectedVideo) {
       toast({
-        title: 'Selecione uma música',
+        title: 'Bitte Lied auswählen',
         variant: 'destructive',
       });
       return;
@@ -135,11 +135,11 @@ export default function Inscricao() {
           <div className="flex items-center justify-center gap-3">
             <Music className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-display font-bold text-gradient">
-              Inscrição
+              Anmeldung
             </h1>
           </div>
           <p className="text-muted-foreground">
-            Escolha sua música e entre na fila!
+            Wähle dein Lied und stelle dich in die Warteschlange!
           </p>
         </div>
 
@@ -149,13 +149,13 @@ export default function Inscricao() {
           <div className="space-y-2">
             <Label htmlFor="singer-name" className="text-lg flex items-center gap-2">
               <Mic className="h-4 w-4" />
-              Seu Nome
+              Dein Name
             </Label>
             <Input
               id="singer-name"
               value={singerName}
               onChange={(e) => setSingerName(e.target.value)}
-              placeholder="Digite seu nome..."
+              placeholder="Gib deinen Namen ein..."
               className="text-lg"
             />
           </div>
@@ -164,14 +164,14 @@ export default function Inscricao() {
           <div className="space-y-2">
             <Label className="text-lg flex items-center gap-2">
               <Search className="h-4 w-4" />
-              Buscar Música
+              Lied suchen
             </Label>
             <div className="flex gap-2">
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Digite o nome da música..."
+                placeholder="Gib den Liedtitel ein..."
                 className="flex-1"
                 disabled={isSearching}
               />
@@ -183,7 +183,7 @@ export default function Inscricao() {
                 {isSearching ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  'Buscar'
+                  'Suchen'
                 )}
               </Button>
             </div>
@@ -196,7 +196,7 @@ export default function Inscricao() {
               animate={{ opacity: 1, scale: 1 }}
               className="p-3 rounded-lg bg-primary/10 border border-primary/30"
             >
-              <p className="text-sm text-muted-foreground mb-1">Música selecionada:</p>
+              <p className="text-sm text-muted-foreground mb-1">Ausgewähltes Lied:</p>
               <div className="flex items-center gap-3">
                 <img
                   src={selectedVideo.thumbnail}
@@ -260,7 +260,7 @@ export default function Inscricao() {
             ) : (
               <Mic className="mr-2 h-5 w-5" />
             )}
-            Quero Cantar!
+            Ich will singen!
           </Button>
         </div>
 
@@ -272,14 +272,14 @@ export default function Inscricao() {
             className="flex-1"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Ir para Votação
+            Zur Abstimmung
           </Button>
           <Button
             onClick={() => navigate('/ranking')}
             variant="outline"
             className="flex-1"
           >
-            Ver Ranking
+            Rangliste anzeigen
           </Button>
         </div>
       </motion.div>

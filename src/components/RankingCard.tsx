@@ -41,7 +41,7 @@ export function RankingCard({ performance, position, isFirst }: RankingCardProps
             </div>
           ) : (
             <span className="text-3xl font-bold font-display text-muted-foreground">
-              {position}º
+              {position}.
             </span>
           )}
         </div>
@@ -49,7 +49,7 @@ export function RankingCard({ performance, position, isFirst }: RankingCardProps
         <div className="flex-1 min-w-0">
           {isFirst && (
             <p className="text-accent text-xs uppercase tracking-widest font-bold mb-1">
-              👑 Rei/Rainha do Karaokê
+              👑 König/Königin des Karaoke
             </p>
           )}
           <div className="flex items-center gap-2 mb-1">
@@ -70,7 +70,7 @@ export function RankingCard({ performance, position, isFirst }: RankingCardProps
           </p>
           <div className="flex items-center justify-end gap-1 text-muted-foreground text-sm">
             <ThumbsUp className="w-3 h-3" />
-            <span>{performance.total_votos} votos</span>
+            <span>{performance.total_votos} Stimmen</span>
           </div>
         </div>
       </div>

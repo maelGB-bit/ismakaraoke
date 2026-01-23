@@ -10,31 +10,31 @@ export default function Index() {
     {
       icon: Mic2,
       title: 'Host',
-      description: 'Controle a apresentação, exiba o vídeo e acompanhe as notas',
+      description: 'Steuere die Präsentation, zeige das Video und verfolge die Noten',
       path: '/host',
       color: 'text-primary',
       glow: 'neon-glow-pink',
     },
     {
       icon: Music,
-      title: 'Inscrição',
-      description: 'Escolha sua música e entre na fila para cantar',
+      title: 'Anmeldung',
+      description: 'Wähle dein Lied und stelle dich in die Warteschlange',
       path: '/inscricao',
       color: 'text-neon-green',
       glow: '',
     },
     {
       icon: Users,
-      title: 'Votar',
-      description: 'Acesse via QR Code para dar sua nota',
+      title: 'Abstimmen',
+      description: 'Scanne den QR-Code, um deine Note abzugeben',
       path: '/vote',
       color: 'text-secondary',
       glow: '',
     },
     {
       icon: Trophy,
-      title: 'Ranking',
-      description: 'Veja o ranking das melhores performances da noite',
+      title: 'Rangliste',
+      description: 'Sieh die Rangliste der besten Auftritte des Abends',
       path: '/ranking',
       color: 'text-accent',
       glow: 'neon-glow-gold',
@@ -61,11 +61,11 @@ export default function Index() {
         </motion.div>
 
         <h1 className="text-5xl md:text-7xl font-black font-display mb-4">
-          <span className="neon-text-pink">KARAOKÊ</span>{' '}
+          <span className="neon-text-pink">KARAOKE</span>{' '}
           <span className="neon-text-cyan">VOTING</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-md mx-auto">
-          Sistema de votação ao vivo para suas noites de karaokê
+          Live-Abstimmungssystem für deine Karaoke-Nächte
         </p>
       </motion.div>
 
@@ -108,7 +108,7 @@ export default function Index() {
         transition={{ delay: 0.8 }}
         className="mt-12 text-sm text-muted-foreground"
       >
-        Feito com 🎤 para animar suas festas
+        Mit 🎤 für deine Partys gemacht
       </motion.p>
     </div>
   );
