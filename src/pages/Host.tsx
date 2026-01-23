@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Square, SkipForward, Trophy, Video, Mic2 } from 'lucide-react';
+import { Play, Square, SkipForward, Trophy, Video, Mic2, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,7 @@ import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
 import { QRCodeDisplay } from '@/components/QRCodeDisplay';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
-import { HostAuth } from '@/components/HostAuth';
+import { HostAuth, useHostAuth } from '@/components/HostAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import type { Performance } from '@/types/karaoke';
@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 function HostContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { logout } = useHostAuth();
   const { performance, setPerformance } = useActivePerformance();
   const { performances: ranking } = useRanking();
 
@@ -153,7 +154,16 @@ function HostContent() {
         className="max-w-7xl mx-auto"
       >
         {/* Header */}
-        <header className="text-center mb-8">
+        <header className="text-center mb-8 relative">
+          <Button
+            onClick={logout}
+            variant="ghost"
+            size="sm"
+            className="absolute right-0 top-0 text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sair
+          </Button>
           <h1 className="text-4xl lg:text-5xl font-black font-display neon-text-pink flex items-center justify-center gap-3">
             <Mic2 className="w-10 h-10 lg:w-12 lg:h-12" />
             KARAOKÊ VOTING
