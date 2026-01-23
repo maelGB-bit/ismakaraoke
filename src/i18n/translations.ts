@@ -288,6 +288,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'leave.deletedOnlyMine': 'Suas músicas foram removidas da fila',
     'leave.errorDeleting': 'Não foi possível remover as músicas',
     'leave.noProfile': 'Você ainda não está cadastrado',
+    
+    // TV Mode
+    'tv.modeButton': 'Modo TV',
+    'tv.nowSinging': 'Cantando agora',
+    'tv.waiting': 'Aguardando...',
+    'tv.waitingPerformance': 'Aguardando apresentação...',
+    'tv.nextUp': 'Próximo',
+    'tv.noOneWaiting': 'Ninguém na fila',
+    'tv.exitHint': 'Clique no X para sair do modo TV',
   },
   
   de: {
@@ -503,6 +512,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'leave.deletedOnlyMine': 'Deine Lieder wurden aus der Warteschlange entfernt',
     'leave.errorDeleting': 'Lieder konnten nicht entfernt werden',
     'leave.noProfile': 'Du bist noch nicht registriert',
+    
+    // TV Mode
+    'tv.modeButton': 'TV-Modus',
+    'tv.nowSinging': 'Singt gerade',
+    'tv.waiting': 'Warten...',
+    'tv.waitingPerformance': 'Warten auf Auftritt...',
+    'tv.nextUp': 'Nächster',
+    'tv.noOneWaiting': 'Niemand in der Schlange',
+    'tv.exitHint': 'Klicke auf X, um den TV-Modus zu verlassen',
     
     // Event Guide page
     'guide.title': 'Event-Leitfaden',
@@ -838,6 +856,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'leave.deletedOnlyMine': 'Your songs have been removed from the queue',
     'leave.errorDeleting': 'Could not remove songs',
     'leave.noProfile': 'You are not registered yet',
+    
+    // TV Mode
+    'tv.modeButton': 'TV Mode',
+    'tv.nowSinging': 'Now singing',
+    'tv.waiting': 'Waiting...',
+    'tv.waitingPerformance': 'Waiting for performance...',
+    'tv.nextUp': 'Up next',
+    'tv.noOneWaiting': 'No one in queue',
+    'tv.exitHint': 'Click X to exit TV mode',
   },
   
   es: {
@@ -1111,6 +1138,15 @@ export const translations: Record<Language, Record<string, string>> = {
     'leave.deletedOnlyMine': 'Tus canciones han sido eliminadas de la cola',
     'leave.errorDeleting': 'No se pudieron eliminar las canciones',
     'leave.noProfile': 'Aún no estás registrado',
+    
+    // TV Mode
+    'tv.modeButton': 'Modo TV',
+    'tv.nowSinging': 'Cantando ahora',
+    'tv.waiting': 'Esperando...',
+    'tv.waitingPerformance': 'Esperando actuación...',
+    'tv.nextUp': 'Siguiente',
+    'tv.noOneWaiting': 'Nadie en cola',
+    'tv.exitHint': 'Haz clic en X para salir del modo TV',
   },
   
   tr: {
@@ -1384,5 +1420,14 @@ export const translations: Record<Language, Record<string, string>> = {
     'leave.deletedOnlyMine': 'Şarkılarınız sıradan kaldırıldı',
     'leave.errorDeleting': 'Şarkılar kaldırılamadı',
     'leave.noProfile': 'Henüz kayıtlı değilsiniz',
+    
+    // TV Mode
+    'tv.modeButton': 'TV Modu',
+    'tv.nowSinging': 'Şu anda söylüyor',
+    'tv.waiting': 'Bekleniyor...',
+    'tv.waitingPerformance': 'Performans bekleniyor...',
+    'tv.nextUp': 'Sıradaki',
+    'tv.noOneWaiting': 'Sırada kimse yok',
+    'tv.exitHint': 'TV modundan çıkmak için X\'e tıklayın',
   },
 };
