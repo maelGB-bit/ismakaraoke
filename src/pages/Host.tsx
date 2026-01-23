@@ -43,7 +43,16 @@ function HostContent() {
   const { logout } = useHostAuth();
   const { performance, setPerformance } = useActivePerformance();
   const { performances: ranking } = useRanking();
-  const { entries: waitlistEntries, loading: waitlistLoading, markAsDone, removeFromWaitlist, movePriority, getNextInQueue } = useWaitlist();
+  const {
+    entries: waitlistEntries,
+    historyEntries,
+    loading: waitlistLoading,
+    historyLoading,
+    markAsDone,
+    removeFromWaitlist,
+    movePriority,
+    getNextInQueue,
+  } = useWaitlist();
 
   const [cantor, setCantor] = useState('');
   const [musica, setMusica] = useState('');
@@ -233,7 +242,16 @@ function HostContent() {
           </div>
           <div className="lg:col-span-4 flex flex-col gap-4">
             <ScoreDisplay score={performance ? Number(performance.nota_media) : 0} totalVotes={performance?.total_votos || 0} cantor={performance?.cantor || cantor} musica={performance?.musica || musica} />
-            <HostWaitlistPanel entries={waitlistEntries} loading={waitlistLoading} onSelectEntry={handleSelectFromWaitlist} onRemoveEntry={removeFromWaitlist} onMovePriority={movePriority} currentSinger={isRoundActive ? performance?.cantor : null} />
+            <HostWaitlistPanel
+              entries={waitlistEntries}
+              loading={waitlistLoading}
+              historyEntries={historyEntries}
+              historyLoading={historyLoading}
+              onSelectEntry={handleSelectFromWaitlist}
+              onRemoveEntry={removeFromWaitlist}
+              onMovePriority={movePriority}
+              currentSinger={isRoundActive ? performance?.cantor : null}
+            />
             <QRCodeDisplay />
             {!isRoundActive && (
               <div className="glass-card p-4 text-center">
