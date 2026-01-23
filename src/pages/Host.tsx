@@ -171,7 +171,19 @@ function HostContent() {
   };
 
   const isRoundActive = performance?.status === 'ativa';
-  const nextInQueue = getNextInQueue();
+  
+  // Get the TRUE next in queue - skip current singer if one is loaded
+  const getTrueNextInQueue = () => {
+    const allWaiting = waitlistEntries.filter(e => e.status === 'waiting');
+    if (currentWaitlistEntryId) {
+      // Skip current entry being performed
+      const filtered = allWaiting.filter(e => e.id !== currentWaitlistEntryId);
+      return filtered[0] || null;
+    }
+    return allWaiting[0] || null;
+  };
+  
+  const trueNextInQueue = getTrueNextInQueue();
 
   const handleEnterTVMode = async () => {
     // If there's a singer loaded but round not started, auto-start
@@ -199,32 +211,42 @@ function HostContent() {
     setShowTVMode(true);
   };
 
-  const handleTVSelectNext = () => {
-    const next = getNextInQueue();
-    if (next) {
-      // End current round if active
-      if (isRoundActive && performance) {
-        handleEndRound();
-      }
-      // Load next singer
-      handleSelectFromWaitlist(next);
-      // Auto-start after a short delay to allow state updates
-      setTimeout(async () => {
-        try {
-          await supabase.from('performances').update({ status: 'encerrada' }).eq('status', 'ativa');
-          const { data, error } = await supabase.from('performances').insert({ 
-            cantor: next.singer_name, 
-            musica: next.song_title, 
-            youtube_url: next.youtube_url, 
-            status: 'ativa' 
-          }).select().single();
-          if (error) throw error;
-          setPerformance(data as Performance);
-          setLastHighScore(0);
-        } catch (error) {
-          console.error('Error starting next round:', error);
+  const handleTVSelectNext = async () => {
+    const next = getTrueNextInQueue();
+    if (!next) return;
+    
+    // End current round if active
+    if (isRoundActive && performance) {
+      try {
+        await supabase.from('performances').update({ status: 'encerrada' }).eq('id', performance.id);
+        if (currentWaitlistEntryId && performance.cantor) {
+          await markAsDone(currentWaitlistEntryId, performance.cantor);
         }
-      }, 100);
+      } catch (error) {
+        console.error('Error ending round:', error);
+      }
+    }
+    
+    // Load and start next singer
+    setCantor(next.singer_name);
+    setMusica(next.song_title);
+    setYoutubeUrl(next.youtube_url);
+    setLoadedUrl(next.youtube_url);
+    setCurrentWaitlistEntryId(next.id);
+    
+    try {
+      const { data, error } = await supabase.from('performances').insert({ 
+        cantor: next.singer_name, 
+        musica: next.song_title, 
+        youtube_url: next.youtube_url, 
+        status: 'ativa' 
+      }).select().single();
+      if (error) throw error;
+      setPerformance(data as Performance);
+      setLastHighScore(0);
+      toast({ title: t('host.singerSelected'), description: `${next.singer_name} - ${next.song_title}` });
+    } catch (error) {
+      console.error('Error starting next round:', error);
     }
   };
 
@@ -235,7 +257,7 @@ function HostContent() {
         {showTVMode && (
           <TVModeView
             performance={performance}
-            nextInQueue={nextInQueue}
+            nextInQueue={trueNextInQueue}
             youtubeUrl={loadedUrl}
             onExit={async () => {
               // End voting when exiting TV mode
