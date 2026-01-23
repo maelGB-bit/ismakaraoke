@@ -80,7 +80,17 @@ export function useWaitlist() {
   const { toast } = useToast();
   const { t } = useLanguage();
 
-  const applyFairOrderIfNeeded = async (waitingEntries: WaitlistEntry[]) => {
+  const applyFairOrderIfNeeded = async (waitingEntries: WaitlistEntry[], forceRebalance = false) => {
+    // Check if host has manually set priorities (non-default values that are sequential from 0)
+    // If priorities are already sequential 0,1,2,3... and not high like 999999, skip rebalance
+    const hasManualOrder = waitingEntries.length > 0 && 
+      waitingEntries.every((e, idx) => e.priority === idx);
+    
+    if (hasManualOrder && !forceRebalance) {
+      // Host has already set the order, respect it
+      return waitingEntries;
+    }
+
     const fair = buildFairOrder(waitingEntries);
     const needsUpdate = fair.some((e, idx) => e.priority !== idx);
     if (!needsUpdate) return fair;
@@ -94,7 +104,7 @@ export function useWaitlist() {
     return fair.map((e, idx) => ({ ...e, priority: idx }));
   };
 
-  const fetchWaitingEntries = async () => {
+  const fetchWaitingEntries = async (forceRebalance = false) => {
     try {
       const { data, error } = await supabase
         .from('waitlist')
@@ -105,7 +115,7 @@ export function useWaitlist() {
 
       if (error) throw error;
       const waiting = (data as WaitlistEntry[]) || [];
-      const fair = await applyFairOrderIfNeeded(waiting);
+      const fair = await applyFairOrderIfNeeded(waiting, forceRebalance);
       setEntries(fair);
     } catch (error) {
       console.error('Error fetching waitlist:', error);
@@ -172,8 +182,8 @@ export function useWaitlist() {
       if (error) throw error;
       toast({ title: t('signup.signupConfirmed'), description: t('signup.addedToQueue') });
 
-      // Rebalance after every insert to keep fairness even with multiple songs per singer.
-      await fetchWaitingEntries();
+      // Rebalance after every insert to keep fairness (force rebalance because new entry was added)
+      await fetchWaitingEntries(true);
       return true;
     } catch (error) {
       console.error('Error adding to waitlist:', error);
@@ -207,13 +217,14 @@ export function useWaitlist() {
         for (const entry of waitingEntries) {
           await supabase.from('waitlist').update({ 
             times_sung: entry.times_sung + 1,
-            priority: entry.priority + 1 // Also increase priority so they go further back
+            priority: 999999 // Reset to high value to trigger rebalance
           }).eq('id', entry.id);
         }
       }
 
-      // Rebalance: after someone sings, everyone who never sang should be prioritized.
-      await fetchEntries();
+      // Force rebalance after someone sings to reapply fair order
+      await fetchWaitingEntries(true);
+      await fetchHistory();
     } catch (error) {
       console.error('Error marking as done:', error);
     }

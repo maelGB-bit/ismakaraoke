@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Play, X, Music, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
+import { Users, Play, X, Music, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -77,8 +77,7 @@ export function HostWaitlistPanel({
                       transition={{ delay: index * 0.05 }}
                       className="flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors group"
                     >
-                      <GripVertical className="h-4 w-4 text-muted-foreground/50" />
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold shrink-0">
                         {index + 1}
                       </div>
 
@@ -92,47 +91,44 @@ export function HostWaitlistPanel({
                         <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
                       </div>
 
-                      <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 shrink-0">
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-5 w-5"
+                          className="h-6 w-6"
                           onClick={() => onMovePriority(entry.id, 'up')}
                           disabled={index === 0}
                           title={t('waitlist.moveUp')}
                         >
-                          <ChevronUp className="h-3 w-3" />
+                          <ChevronUp className="h-4 w-4" />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-5 w-5"
+                          className="h-6 w-6"
                           onClick={() => onMovePriority(entry.id, 'down')}
                           disabled={index === entries.length - 1}
                           title={t('waitlist.moveDown')}
                         >
-                          <ChevronDown className="h-3 w-3" />
+                          <ChevronDown className="h-4 w-4" />
                         </Button>
-                      </div>
-
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-7 w-7"
+                          className="h-6 w-6 text-primary hover:text-primary"
                           onClick={() => onSelectEntry(entry)}
                           title={t('waitlist.select')}
                         >
-                          <Play className="h-3 w-3" />
+                          <Play className="h-4 w-4" />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          className="h-6 w-6 text-destructive hover:text-destructive"
                           onClick={() => onRemoveEntry(entry.id)}
                           title={t('waitlist.remove')}
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
                     </motion.div>
