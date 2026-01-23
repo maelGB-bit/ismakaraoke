@@ -15,6 +15,7 @@ import { HostAuth, useHostAuth } from '@/components/HostAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
+import { useLanguage } from '@/i18n/LanguageContext';
 import type { Performance } from '@/types/karaoke';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -38,6 +39,7 @@ import {
 function HostContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { logout } = useHostAuth();
   const { performance, setPerformance } = useActivePerformance();
   const { performances: ranking } = useRanking();
@@ -52,10 +54,8 @@ function HostContent() {
   const [lastHighScore, setLastHighScore] = useState(0);
   const [currentWaitlistEntryId, setCurrentWaitlistEntryId] = useState<string | null>(null);
 
-  // Track highest score of the night
   const highestScore = ranking.length > 0 ? Math.max(...ranking.map(p => Number(p.nota_media))) : 0;
 
-  // Check for confetti trigger
   useEffect(() => {
     if (performance && performance.status === 'ativa') {
       const currentScore = Number(performance.nota_media);
@@ -73,50 +73,21 @@ function HostContent() {
 
   const handleStartRound = async () => {
     if (!cantor.trim() || !musica.trim()) {
-      toast({
-        title: 'Pflichtfelder',
-        description: 'Bitte Sängername und Lied ausfüllen',
-        variant: 'destructive',
-      });
+      toast({ title: t('host.requiredFields'), description: t('host.fillFields'), variant: 'destructive' });
       return;
     }
 
     setIsCreating(true);
-
     try {
-      // Close any active performance first
-      await supabase
-        .from('performances')
-        .update({ status: 'encerrada' })
-        .eq('status', 'ativa');
-
-      // Create new performance
-      const { data, error } = await supabase
-        .from('performances')
-        .insert({
-          cantor: cantor.trim(),
-          musica: musica.trim(),
-          youtube_url: loadedUrl,
-          status: 'ativa',
-        })
-        .select()
-        .single();
-
+      await supabase.from('performances').update({ status: 'encerrada' }).eq('status', 'ativa');
+      const { data, error } = await supabase.from('performances').insert({ cantor: cantor.trim(), musica: musica.trim(), youtube_url: loadedUrl, status: 'ativa' }).select().single();
       if (error) throw error;
-
       setPerformance(data as Performance);
       setLastHighScore(0);
-      toast({
-        title: '🎤 Runde gestartet!',
-        description: 'Die Abstimmung ist offen',
-      });
+      toast({ title: t('host.roundStarted'), description: t('host.votingOpen') });
     } catch (error) {
       console.error('Error starting round:', error);
-      toast({
-        title: 'Fehler',
-        description: 'Runde konnte nicht gestartet werden',
-        variant: 'destructive',
-      });
+      toast({ title: t('host.error'), description: t('host.cantStartRound'), variant: 'destructive' });
     } finally {
       setIsCreating(false);
     }
@@ -124,49 +95,27 @@ function HostContent() {
 
   const handleEndRound = async () => {
     if (!performance) return;
-
     try {
-      const { error } = await supabase
-        .from('performances')
-        .update({ status: 'encerrada' })
-        .eq('id', performance.id);
-
+      const { error } = await supabase.from('performances').update({ status: 'encerrada' }).eq('id', performance.id);
       if (error) throw error;
-
       const finalScore = Number(performance.nota_media);
       if (finalScore >= 9.0) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 100);
       }
-
-      // Mark waitlist entry as done if there was one
       if (currentWaitlistEntryId && performance.cantor) {
         await markAsDone(currentWaitlistEntryId, performance.cantor);
         setCurrentWaitlistEntryId(null);
       }
-
-      toast({
-        title: '✅ Runde beendet!',
-        description: `Endnote: ${finalScore.toFixed(1)}`,
-      });
-
+      toast({ title: t('host.roundEndedMsg'), description: `${t('host.finalScore')}: ${finalScore.toFixed(1)}` });
       setPerformance({ ...performance, status: 'encerrada' });
-
-      // Show next in queue notification
       const nextInQueue = getNextInQueue();
       if (nextInQueue) {
-        toast({
-          title: '🎤 Nächster in der Schlange:',
-          description: `${nextInQueue.singer_name} - ${nextInQueue.song_title}`,
-        });
+        toast({ title: t('host.nextInQueue'), description: `${nextInQueue.singer_name} - ${nextInQueue.song_title}` });
       }
     } catch (error) {
       console.error('Error ending round:', error);
-      toast({
-        title: 'Fehler',
-        description: 'Runde konnte nicht beendet werden',
-        variant: 'destructive',
-      });
+      toast({ title: t('host.error'), description: t('host.cantEndRound'), variant: 'destructive' });
     }
   };
 
@@ -186,24 +135,16 @@ function HostContent() {
     setYoutubeUrl(entry.youtube_url);
     setLoadedUrl(entry.youtube_url);
     setCurrentWaitlistEntryId(entry.id);
-    
-    toast({
-      title: '🎤 Sänger ausgewählt',
-      description: `${entry.singer_name} - ${entry.song_title}`,
-    });
+    toast({ title: t('host.singerSelected'), description: `${entry.singer_name} - ${entry.song_title}` });
   };
 
   const [showResetDialog, setShowResetDialog] = useState(false);
 
   const handleResetEvent = async () => {
     try {
-      // Delete all votes first
       await supabase.from('votes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      // Delete all performances
       await supabase.from('performances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      // Delete all waitlist entries
       await supabase.from('waitlist').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      
       setPerformance(null);
       setCantor('');
       setMusica('');
@@ -211,18 +152,10 @@ function HostContent() {
       setLoadedUrl(null);
       setLastHighScore(0);
       setCurrentWaitlistEntryId(null);
-      
-      toast({
-        title: '🗑️ Event zurückgesetzt!',
-        description: 'Alle Daten wurden gelöscht',
-      });
+      toast({ title: t('host.eventReset'), description: t('host.allDataDeleted') });
     } catch (error) {
       console.error('Error resetting event:', error);
-      toast({
-        title: 'Fehler',
-        description: 'Event konnte nicht zurückgesetzt werden',
-        variant: 'destructive',
-      });
+      toast({ title: t('host.error'), description: t('host.cantResetEvent'), variant: 'destructive' });
     }
     setShowResetDialog(false);
   };
@@ -232,221 +165,79 @@ function HostContent() {
   return (
     <div className="min-h-screen gradient-bg p-4 lg:p-8">
       <ConfettiEffect trigger={showConfetti} />
-
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-7xl mx-auto"
-      >
-        {/* Header */}
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="max-w-7xl mx-auto">
         <header className="text-center mb-6 relative">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 text-muted-foreground hover:text-foreground"
-              >
-                <Menu className="mr-2 h-4 w-4" />
-                Menü
+              <Button variant="ghost" size="sm" className="absolute right-0 top-0 text-muted-foreground hover:text-foreground">
+                <Menu className="mr-2 h-4 w-4" />{t('host.menu')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate('/ranking')}>
-                <Trophy className="mr-2 h-4 w-4" />
-                Rangliste anzeigen
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => setShowResetDialog(true)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Event zurücksetzen
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowResetDialog(true)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t('host.resetEvent')}</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={logout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Abmelden
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}><LogOut className="mr-2 h-4 w-4" />{t('host.logout')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center justify-center gap-3">
-            <Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />
-            KARAOKE VOTING
-          </h1>
-          <p className="text-muted-foreground text-sm">Organisator-Bereich</p>
+          <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center justify-center gap-3"><Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />{t('host.title')}</h1>
+          <p className="text-muted-foreground text-sm">{t('host.subtitle')}</p>
         </header>
 
-        {/* Reset Confirmation Dialog */}
         <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Event zurücksetzen</AlertDialogTitle>
-              <AlertDialogDescription>
-                Bist du sicher, dass du ALLE Eventdaten löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.
-                Alle Auftritte und Stimmen werden dauerhaft gelöscht.
-              </AlertDialogDescription>
+              <AlertDialogTitle>{t('host.resetEventTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('host.resetEventDesc')}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-              <AlertDialogAction onClick={handleResetEvent} className="bg-destructive hover:bg-destructive/90">
-                Ja, alles zurücksetzen
-              </AlertDialogAction>
+              <AlertDialogCancel>{t('host.cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleResetEvent} className="bg-destructive hover:bg-destructive/90">{t('host.yesReset')}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Main Content - Video with Side Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Left Column - Config & Video */}
           <div className="lg:col-span-8 flex flex-col gap-4">
-            {/* Configuration - Compact */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="glass-card p-4"
-            >
-              <h2 className="text-lg font-bold font-display mb-3 flex items-center gap-2">
-                <Video className="w-4 h-4 text-secondary" />
-                Runde konfigurieren
-              </h2>
-
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="glass-card p-4">
+              <h2 className="text-lg font-bold font-display mb-3 flex items-center gap-2"><Video className="w-4 h-4 text-secondary" />{t('host.configureRound')}</h2>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
-                  <Label htmlFor="cantor" className="text-xs">Sängername</Label>
-                  <Input
-                    id="cantor"
-                    value={cantor}
-                    onChange={(e) => setCantor(e.target.value)}
-                    placeholder="z.B. Max Müller"
-                    disabled={isRoundActive}
-                    className="mt-1 h-8 text-sm"
-                  />
+                  <Label htmlFor="cantor" className="text-xs">{t('host.singerName')}</Label>
+                  <Input id="cantor" value={cantor} onChange={(e) => setCantor(e.target.value)} placeholder={t('host.singerPlaceholder')} disabled={isRoundActive} className="mt-1 h-8 text-sm" />
                 </div>
                 <div>
-                  <Label htmlFor="musica" className="text-xs">Lied</Label>
-                  <Input
-                    id="musica"
-                    value={musica}
-                    onChange={(e) => setMusica(e.target.value)}
-                    placeholder="z.B. Atemlos"
-                    disabled={isRoundActive}
-                    className="mt-1 h-8 text-sm"
-                  />
+                  <Label htmlFor="musica" className="text-xs">{t('host.song')}</Label>
+                  <Input id="musica" value={musica} onChange={(e) => setMusica(e.target.value)} placeholder={t('host.songPlaceholder')} disabled={isRoundActive} className="mt-1 h-8 text-sm" />
                 </div>
               </div>
-
-              {/* YouTube Search */}
               <div className="space-y-2">
-                <Label className="text-xs">Video auf YouTube suchen</Label>
-                <YouTubeSearch
-                  onSelectVideo={(url, title) => {
-                    setYoutubeUrl(url);
-                    setLoadedUrl(url);
-                    if (title && !musica) {
-                      const cleanTitle = title
-                        .replace(/\(.*?(karaoke|versão|version|lyrics|lyric|instrumental).*?\)/gi, '')
-                        .replace(/\[.*?(karaoke|versão|version|lyrics|lyric|instrumental).*?\]/gi, '')
-                        .replace(/karaoke|versão karaokê/gi, '')
-                        .trim();
-                      setMusica(cleanTitle.substring(0, 50));
-                    }
-                  }}
-                  disabled={isRoundActive}
-                />
+                <Label className="text-xs">{t('host.searchYoutube')}</Label>
+                <YouTubeSearch onSelectVideo={(url, title) => { setYoutubeUrl(url); setLoadedUrl(url); if (title && !musica) { const cleanTitle = title.replace(/\(.*?(karaoke|versão|version|lyrics|lyric|instrumental).*?\)/gi, '').replace(/\[.*?(karaoke|versão|version|lyrics|lyric|instrumental).*?\]/gi, '').replace(/karaoke|versão karaokê/gi, '').trim(); setMusica(cleanTitle.substring(0, 50)); } }} disabled={isRoundActive} />
               </div>
-
-              {/* Manual URL input */}
               <div className="flex gap-2 mt-2">
                 <div className="flex-1">
-                  <Label htmlFor="youtube" className="text-xs">Oder URL direkt einfügen</Label>
-                  <Input
-                    id="youtube"
-                    value={youtubeUrl}
-                    onChange={(e) => setYoutubeUrl(e.target.value)}
-                    placeholder="https://youtube.com/watch?v=..."
-                    className="mt-1 h-8 text-sm"
-                  />
+                  <Label htmlFor="youtube" className="text-xs">{t('host.pasteUrl')}</Label>
+                  <Input id="youtube" value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="mt-1 h-8 text-sm" />
                 </div>
-                <Button
-                  onClick={handleLoadVideo}
-                  variant="secondary"
-                  size="sm"
-                  className="mt-5"
-                >
-                  Laden
-                </Button>
+                <Button onClick={handleLoadVideo} variant="secondary" size="sm" className="mt-5">{t('host.load')}</Button>
               </div>
             </motion.div>
-
-            {/* YouTube Player */}
-            <div className="min-h-[300px]">
-              <YouTubePlayer url={loadedUrl} />
-            </div>
-
-            {/* Control Buttons - Compact */}
+            <div className="min-h-[300px]"><YouTubePlayer url={loadedUrl} /></div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={handleStartRound}
-                disabled={isRoundActive || isCreating}
-                size="sm"
-                className="flex-1 bg-neon-green hover:bg-neon-green/90 text-background font-bold"
-              >
-                <Play className="mr-1 h-4 w-4" />
-                Starten
-              </Button>
-
-              <Button
-                onClick={handleEndRound}
-                disabled={!isRoundActive}
-                size="sm"
-                variant="destructive"
-                className="flex-1 font-bold"
-              >
-                <Square className="mr-1 h-4 w-4" />
-                Beenden
-              </Button>
-
-              <Button
-                onClick={handleNextRound}
-                disabled={isRoundActive}
-                size="sm"
-                variant="outline"
-                className="flex-1 font-bold"
-              >
-                <SkipForward className="mr-1 h-4 w-4" />
-                Nächste
-              </Button>
+              <Button onClick={handleStartRound} disabled={isRoundActive || isCreating} size="sm" className="flex-1 bg-neon-green hover:bg-neon-green/90 text-background font-bold"><Play className="mr-1 h-4 w-4" />{t('host.start')}</Button>
+              <Button onClick={handleEndRound} disabled={!isRoundActive} size="sm" variant="destructive" className="flex-1 font-bold"><Square className="mr-1 h-4 w-4" />{t('host.end')}</Button>
+              <Button onClick={handleNextRound} disabled={isRoundActive} size="sm" variant="outline" className="flex-1 font-bold"><SkipForward className="mr-1 h-4 w-4" />{t('host.next')}</Button>
             </div>
           </div>
-
-          {/* Right Column - Score, Waitlist & QR Code */}
           <div className="lg:col-span-4 flex flex-col gap-4">
-            <ScoreDisplay
-              score={performance ? Number(performance.nota_media) : 0}
-              totalVotes={performance?.total_votos || 0}
-              cantor={performance?.cantor || cantor}
-              musica={performance?.musica || musica}
-            />
-
-            <WaitlistPanel
-              entries={waitlistEntries}
-              loading={waitlistLoading}
-              onSelectEntry={handleSelectFromWaitlist}
-              onRemoveEntry={removeFromWaitlist}
-              currentSinger={isRoundActive ? performance?.cantor : null}
-            />
-
+            <ScoreDisplay score={performance ? Number(performance.nota_media) : 0} totalVotes={performance?.total_votos || 0} cantor={performance?.cantor || cantor} musica={performance?.musica || musica} />
+            <WaitlistPanel entries={waitlistEntries} loading={waitlistLoading} onSelectEntry={handleSelectFromWaitlist} onRemoveEntry={removeFromWaitlist} currentSinger={isRoundActive ? performance?.cantor : null} />
             <QRCodeDisplay />
-
             {!isRoundActive && (
               <div className="glass-card p-4 text-center">
-                <p className="text-muted-foreground text-sm">
-                  {performance?.status === 'encerrada'
-                    ? '✅ Runde beendet'
-                    : '⏳ Starte eine Runde, um die Abstimmung freizugeben'}
-                </p>
+                <p className="text-muted-foreground text-sm">{performance?.status === 'encerrada' ? t('host.roundEnded') : t('host.waitingStart')}</p>
               </div>
             )}
           </div>
@@ -457,9 +248,5 @@ function HostContent() {
 }
 
 export default function Host() {
-  return (
-    <HostAuth>
-      <HostContent />
-    </HostAuth>
-  );
+  return <HostAuth><HostContent /></HostAuth>;
 }

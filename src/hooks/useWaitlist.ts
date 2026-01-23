@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export interface WaitlistEntry {
   id: string;
@@ -16,6 +17,7 @@ export function useWaitlist() {
   const [entries, setEntries] = useState<WaitlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const fetchEntries = async () => {
     try {
@@ -38,30 +40,16 @@ export function useWaitlist() {
   useEffect(() => {
     fetchEntries();
 
-    // Subscribe to realtime changes
     const channel = supabase
       .channel('waitlist-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'waitlist',
-        },
-        () => {
-          fetchEntries();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'waitlist' }, () => { fetchEntries(); })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const addToWaitlist = async (singerName: string, youtubeUrl: string, songTitle: string) => {
     try {
-      // Check if this singer has sung before
       const { data: previousEntries } = await supabase
         .from('waitlist')
         .select('times_sung')
@@ -80,31 +68,18 @@ export function useWaitlist() {
       });
 
       if (error) throw error;
-
-      toast({
-        title: '🎤 Anmeldung bestätigt!',
-        description: 'Du wurdest zur Warteschlange hinzugefügt',
-      });
-
+      toast({ title: t('signup.signupConfirmed'), description: t('signup.addedToQueue') });
       return true;
     } catch (error) {
       console.error('Error adding to waitlist:', error);
-      toast({
-        title: 'Fehler',
-        description: 'Konnte nicht zur Liste hinzugefügt werden',
-        variant: 'destructive',
-      });
+      toast({ title: t('host.error'), description: t('signup.cantAddToList'), variant: 'destructive' });
       return false;
     }
   };
 
   const markAsSinging = async (entryId: string) => {
     try {
-      const { error } = await supabase
-        .from('waitlist')
-        .update({ status: 'singing' })
-        .eq('id', entryId);
-
+      const { error } = await supabase.from('waitlist').update({ status: 'singing' }).eq('id', entryId);
       if (error) throw error;
     } catch (error) {
       console.error('Error updating waitlist entry:', error);
@@ -113,15 +88,9 @@ export function useWaitlist() {
 
   const markAsDone = async (entryId: string, singerName: string) => {
     try {
-      // Update the current entry to done
-      const { error: updateError } = await supabase
-        .from('waitlist')
-        .update({ status: 'done' })
-        .eq('id', entryId);
-
+      const { error: updateError } = await supabase.from('waitlist').update({ status: 'done' }).eq('id', entryId);
       if (updateError) throw updateError;
 
-      // Increment times_sung for all waiting entries with the same singer name
       const { data: waitingEntries } = await supabase
         .from('waitlist')
         .select('id, times_sung')
@@ -130,10 +99,7 @@ export function useWaitlist() {
 
       if (waitingEntries && waitingEntries.length > 0) {
         for (const entry of waitingEntries) {
-          await supabase
-            .from('waitlist')
-            .update({ times_sung: entry.times_sung + 1 })
-            .eq('id', entry.id);
+          await supabase.from('waitlist').update({ times_sung: entry.times_sung + 1 }).eq('id', entry.id);
         }
       }
     } catch (error) {
@@ -143,11 +109,7 @@ export function useWaitlist() {
 
   const removeFromWaitlist = async (entryId: string) => {
     try {
-      const { error } = await supabase
-        .from('waitlist')
-        .delete()
-        .eq('id', entryId);
-
+      const { error } = await supabase.from('waitlist').delete().eq('id', entryId);
       if (error) throw error;
     } catch (error) {
       console.error('Error removing from waitlist:', error);
@@ -158,14 +120,5 @@ export function useWaitlist() {
     return entries.length > 0 ? entries[0] : null;
   };
 
-  return {
-    entries,
-    loading,
-    addToWaitlist,
-    markAsSinging,
-    markAsDone,
-    removeFromWaitlist,
-    getNextInQueue,
-    refetch: fetchEntries,
-  };
+  return { entries, loading, addToWaitlist, markAsSinging, markAsDone, removeFromWaitlist, getNextInQueue, refetch: fetchEntries };
 }
