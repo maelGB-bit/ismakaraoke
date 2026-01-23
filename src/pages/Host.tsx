@@ -261,9 +261,9 @@ function HostContent() {
         </AlertDialog>
 
         {/* Main Content - Video with Side Panel */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-140px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Left Column - Config & Video */}
-          <div className="lg:col-span-8 flex flex-col gap-4 overflow-hidden">
+          <div className="lg:col-span-8 flex flex-col gap-4">
             {/* Configuration - Compact */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -343,8 +343,8 @@ function HostContent() {
               </div>
             </motion.div>
 
-            {/* YouTube Player - Flexible Height */}
-            <div className="flex-1 min-h-0">
+            {/* YouTube Player */}
+            <div className="min-h-[300px]">
               <YouTubePlayer url={loadedUrl} />
             </div>
 
@@ -384,8 +384,8 @@ function HostContent() {
             </div>
           </div>
 
-          {/* Right Column - Score & QR Code - Compact */}
-          <div className="lg:col-span-4 flex flex-col gap-4 overflow-auto">
+          {/* Right Column - Score & QR Code */}
+          <div className="lg:col-span-4 flex flex-col gap-4">
             <ScoreDisplay
               score={performance ? Number(performance.nota_media) : 0}
               totalVotes={performance?.total_votos || 0}
