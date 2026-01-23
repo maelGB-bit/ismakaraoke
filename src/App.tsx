@@ -10,6 +10,7 @@ import Host from "./pages/Host";
 import Vote from "./pages/Vote";
 import Ranking from "./pages/Ranking";
 import Inscricao from "./pages/Inscricao";
+import EventGuide from "./pages/EventGuide";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ function AppContent() {
         <Route path="/vote" element={<Vote />} />
         <Route path="/ranking" element={<Ranking />} />
         <Route path="/inscricao" element={<Inscricao />} />
+        <Route path="/guia" element={<EventGuide />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic2, Users, Trophy, ArrowRight, Music, Globe } from 'lucide-react';
+import { Mic2, Users, Trophy, ArrowRight, Music, Globe, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { languages } from '@/i18n/translations';
@@ -19,6 +19,14 @@ export default function Index() {
 
   const features = [
     {
+      icon: BookOpen,
+      title: t('menu.guide'),
+      description: t('menu.guide.desc'),
+      path: '/guia',
+      color: 'text-neon-green',
+      glow: '',
+    },
+    {
       icon: Mic2,
       title: t('menu.host'),
       description: t('menu.host.desc'),
@@ -31,8 +39,8 @@ export default function Index() {
       title: t('menu.signup'),
       description: t('menu.signup.desc'),
       path: '/inscricao',
-      color: 'text-neon-green',
-      glow: '',
+      color: 'text-accent',
+      glow: 'neon-glow-cyan',
     },
     {
       icon: Users,
@@ -47,7 +55,7 @@ export default function Index() {
       title: t('menu.ranking'),
       description: t('menu.ranking.desc'),
       path: '/ranking',
-      color: 'text-accent',
+      color: 'text-yellow-400',
       glow: 'neon-glow-gold',
     },
   ];
@@ -108,7 +116,7 @@ export default function Index() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl w-full"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl w-full"
       >
         {features.map((feature, index) => (
           <motion.div
