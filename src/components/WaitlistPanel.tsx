@@ -3,6 +3,7 @@ import { Users, Play, X, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WaitlistEntry } from '@/hooks/useWaitlist';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface WaitlistPanelProps {
   entries: WaitlistEntry[];
@@ -12,97 +13,45 @@ interface WaitlistPanelProps {
   currentSinger?: string | null;
 }
 
-export function WaitlistPanel({
-  entries,
-  loading,
-  onSelectEntry,
-  onRemoveEntry,
-  currentSinger,
-}: WaitlistPanelProps) {
+export function WaitlistPanel({ entries, loading, onSelectEntry, onRemoveEntry, currentSinger }: WaitlistPanelProps) {
+  const { t } = useLanguage();
   const nextInQueue = entries.length > 0 ? entries[0] : null;
 
   return (
     <div className="glass-card p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Users className="h-5 w-5 text-primary" />
-        <h3 className="font-display font-semibold">Warteschlange</h3>
-        <span className="ml-auto text-sm text-muted-foreground">
-          {entries.length} in der Schlange
-        </span>
+        <h3 className="font-display font-semibold">{t('waitlist.title')}</h3>
+        <span className="ml-auto text-sm text-muted-foreground">{entries.length} {t('waitlist.inQueue')}</span>
       </div>
-
-      {/* Next singer highlight */}
       {nextInQueue && !currentSinger && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-3 rounded-lg bg-primary/20 border border-primary/30"
-        >
-          <p className="text-xs text-primary font-medium mb-1">🎤 Nächster:</p>
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-3 rounded-lg bg-primary/20 border border-primary/30">
+          <p className="text-xs text-primary font-medium mb-1">{t('waitlist.next')}</p>
           <p className="font-bold text-lg">{nextInQueue.singer_name}</p>
-          <p className="text-sm text-muted-foreground truncate">
-            {nextInQueue.song_title}
-          </p>
+          <p className="text-sm text-muted-foreground truncate">{nextInQueue.song_title}</p>
         </motion.div>
       )}
-
       {loading ? (
-        <div className="text-center py-4 text-muted-foreground">
-          Laden...
-        </div>
+        <div className="text-center py-4 text-muted-foreground">{t('waitlist.loading')}</div>
       ) : entries.length === 0 ? (
         <div className="text-center py-4 text-muted-foreground">
           <Music className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p>Noch keine Anmeldungen</p>
+          <p>{t('waitlist.noSignups')}</p>
         </div>
       ) : (
         <ScrollArea className="h-[200px]">
           <div className="space-y-2 pr-2">
             <AnimatePresence>
               {entries.map((entry, index) => (
-                <motion.div
-                  key={entry.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors group"
-                >
-                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold">
-                    {index + 1}
-                  </div>
+                <motion.div key={entry.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ delay: index * 0.05 }} className="flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors group">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold">{index + 1}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">
-                      {entry.singer_name}
-                      {entry.times_sung > 0 && (
-                        <span className="ml-1 text-xs text-muted-foreground">
-                          ({entry.times_sung}x)
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {entry.song_title}
-                    </p>
+                    <p className="font-medium text-sm truncate">{entry.singer_name}{entry.times_sung > 0 && <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>}</p>
+                    <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7"
-                      onClick={() => onSelectEntry(entry)}
-                      title="Auswählen"
-                    >
-                      <Play className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7 text-destructive hover:text-destructive"
-                      onClick={() => onRemoveEntry(entry.id)}
-                      title="Entfernen"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onSelectEntry(entry)} title={t('waitlist.select')}><Play className="h-3 w-3" /></Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => onRemoveEntry(entry.id)} title={t('waitlist.remove')}><X className="h-3 w-3" /></Button>
                   </div>
                 </motion.div>
               ))}

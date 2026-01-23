@@ -1,40 +1,51 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic2, Users, Trophy, ArrowRight, Music } from 'lucide-react';
+import { Mic2, Users, Trophy, ArrowRight, Music, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/i18n/LanguageContext';
+import { languages } from '@/i18n/translations';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function Index() {
   const navigate = useNavigate();
+  const { t, language, setLanguage } = useLanguage();
+
+  const currentLang = languages.find(l => l.code === language);
 
   const features = [
     {
       icon: Mic2,
-      title: 'Host',
-      description: 'Steuere die Präsentation, zeige das Video und verfolge die Noten',
+      title: t('menu.host'),
+      description: t('menu.host.desc'),
       path: '/host',
       color: 'text-primary',
       glow: 'neon-glow-pink',
     },
     {
       icon: Music,
-      title: 'Anmeldung',
-      description: 'Wähle dein Lied und stelle dich in die Warteschlange',
+      title: t('menu.signup'),
+      description: t('menu.signup.desc'),
       path: '/inscricao',
       color: 'text-neon-green',
       glow: '',
     },
     {
       icon: Users,
-      title: 'Abstimmen',
-      description: 'Scanne den QR-Code, um deine Note abzugeben',
+      title: t('menu.vote'),
+      description: t('menu.vote.desc'),
       path: '/vote',
       color: 'text-secondary',
       glow: '',
     },
     {
       icon: Trophy,
-      title: 'Rangliste',
-      description: 'Sieh die Rangliste der besten Auftritte des Abends',
+      title: t('menu.ranking'),
+      description: t('menu.ranking.desc'),
       path: '/ranking',
       color: 'text-accent',
       glow: 'neon-glow-gold',
@@ -42,7 +53,31 @@ export default function Index() {
   ];
 
   return (
-    <div className="min-h-screen gradient-bg flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen gradient-bg flex flex-col items-center justify-center p-4 relative">
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="gap-2">
+              <span className="text-xl">{currentLang?.flag}</span>
+              <Globe className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {languages.map((lang) => (
+              <DropdownMenuItem
+                key={lang.code}
+                onClick={() => setLanguage(lang.code)}
+                className={language === lang.code ? 'bg-primary/20' : ''}
+              >
+                <span className="mr-2 text-lg">{lang.flag}</span>
+                {lang.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -65,7 +100,7 @@ export default function Index() {
           <span className="neon-text-cyan">VOTING</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-md mx-auto">
-          Live-Abstimmungssystem für deine Karaoke-Nächte
+          {t('app.subtitle')}
         </p>
       </motion.div>
 
@@ -108,7 +143,7 @@ export default function Index() {
         transition={{ delay: 0.8 }}
         className="mt-12 text-sm text-muted-foreground"
       >
-        Mit 🎤 für deine Partys gemacht
+        {t('app.madeWith')}
       </motion.p>
     </div>
   );
