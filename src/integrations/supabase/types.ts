@@ -100,6 +100,36 @@ export type Database = {
           },
         ]
       }
+      waitlist: {
+        Row: {
+          created_at: string
+          id: string
+          singer_name: string
+          song_title: string
+          status: string
+          times_sung: number
+          youtube_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          singer_name: string
+          song_title: string
+          status?: string
+          times_sung?: number
+          youtube_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          singer_name?: string
+          song_title?: string
+          status?: string
+          times_sung?: number
+          youtube_url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

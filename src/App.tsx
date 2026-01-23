@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Host from "./pages/Host";
 import Vote from "./pages/Vote";
 import Ranking from "./pages/Ranking";
+import Inscricao from "./pages/Inscricao";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/host" element={<Host />} />
           <Route path="/vote" element={<Vote />} />
           <Route path="/ranking" element={<Ranking />} />
+          <Route path="/inscricao" element={<Inscricao />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
