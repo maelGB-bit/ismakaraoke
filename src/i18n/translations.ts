@@ -190,6 +190,66 @@ export const translations: Record<Language, Record<string, string>> = {
     // Language selector
     'language.select': 'Selecione seu idioma',
     'language.continue': 'Continuar',
+    
+    // Event Guide page
+    'guide.title': 'Guia do Evento',
+    'guide.subtitle': 'Tudo que você precisa saber para participar da noite de karaokê',
+    'guide.back': 'Voltar',
+    'guide.printQR': 'Imprimir QR Codes',
+    
+    'guide.hostSection': 'Área do Organizador (Host)',
+    'guide.hostExclusive': '🔒 Acesso exclusivo com senha',
+    'guide.hostDesc1': 'A área do Host é exclusiva para o organizador do evento. Apenas quem possui a senha pode acessar este painel.',
+    'guide.hostFeature1': 'Controlar as rodadas de karaokê - iniciar e encerrar apresentações',
+    'guide.hostFeature2': 'Gerenciar a fila de cantores inscritos',
+    'guide.hostFeature3': 'Acompanhar votos em tempo real e ver o ranking completo',
+    'guide.hostWarning': 'Importante: Não compartilhe a senha do Host com os participantes!',
+    
+    'guide.participantSection': 'Área dos Participantes',
+    'guide.participantOpen': '🎉 Acesso livre para todos os convidados',
+    'guide.participantDesc1': 'Os participantes do evento podem acessar livremente as seguintes áreas:',
+    
+    'guide.votingTitle': 'Votação',
+    'guide.votingStep1': 'Escaneie o QR Code ou acesse o link de votação',
+    'guide.votingStep2': 'Aguarde uma rodada ser iniciada pelo organizador',
+    'guide.votingStep3': 'Dê uma nota de 0 a 10 para o cantor',
+    'guide.votingStep4': 'Cada pessoa pode votar apenas uma vez por rodada',
+    
+    'guide.songTitle': 'Escolher Música',
+    'guide.songStep1': 'Escaneie o QR Code ou acesse o link de inscrição',
+    'guide.songStep2': 'Digite seu nome',
+    'guide.songStep3': 'Busque a música que deseja cantar',
+    'guide.songStep4': 'Confirme sua inscrição e aguarde sua vez na fila',
+    
+    'guide.rankingTitle': 'Ranking',
+    'guide.rankingStep1': 'Veja em tempo real quem está ganhando',
+    'guide.rankingStep2': 'O ranking atualiza automaticamente após cada rodada',
+    
+    'guide.qrSection': 'QR Codes para as Mesas',
+    'guide.qrDesc': 'Imprima e coloque nas mesas para fácil acesso dos convidados',
+    'guide.qrVote': 'Votar',
+    'guide.qrVoteDesc': 'Escaneie para dar sua nota',
+    'guide.qrSignup': 'Escolher Música',
+    'guide.qrSignupDesc': 'Escaneie para se inscrever',
+    'guide.qrTip': 'Dica: Imprima os QR Codes e cole nas mesas para facilitar o acesso dos convidados!',
+    'guide.scanToVote': 'Escaneie para votar',
+    'guide.scanToSing': 'Escaneie para cantar',
+    
+    'guide.howItWorks': 'Como Funciona',
+    'guide.step1Title': 'Inscreva-se',
+    'guide.step1Desc': 'Escolha sua música e entre na fila',
+    'guide.step2Title': 'Cante',
+    'guide.step2Desc': 'Quando for sua vez, suba no palco',
+    'guide.step3Title': 'Vote',
+    'guide.step3Desc': 'Dê notas para os outros cantores',
+    'guide.step4Title': 'Celebre',
+    'guide.step4Desc': 'Veja quem foi o rei/rainha do karaokê',
+    
+    'guide.goToHost': 'Ir para Painel do Host',
+    
+    // Menu option
+    'menu.guide': 'Guia do Evento',
+    'menu.guide.desc': 'Veja como funciona e imprima QR codes para as mesas',
   },
   
   de: {
@@ -367,6 +427,66 @@ export const translations: Record<Language, Record<string, string>> = {
     // Language selector
     'language.select': 'Wähle deine Sprache',
     'language.continue': 'Weiter',
+    
+    // Event Guide page
+    'guide.title': 'Event-Leitfaden',
+    'guide.subtitle': 'Alles, was du über die Karaoke-Nacht wissen musst',
+    'guide.back': 'Zurück',
+    'guide.printQR': 'QR-Codes drucken',
+    
+    'guide.hostSection': 'Organisator-Bereich (Host)',
+    'guide.hostExclusive': '🔒 Exklusiver Zugang mit Passwort',
+    'guide.hostDesc1': 'Der Host-Bereich ist exklusiv für den Veranstalter. Nur wer das Passwort kennt, kann auf dieses Panel zugreifen.',
+    'guide.hostFeature1': 'Karaoke-Runden kontrollieren - Auftritte starten und beenden',
+    'guide.hostFeature2': 'Die Warteschlange der Sänger verwalten',
+    'guide.hostFeature3': 'Stimmen in Echtzeit verfolgen und die komplette Rangliste sehen',
+    'guide.hostWarning': 'Wichtig: Teile das Host-Passwort nicht mit den Teilnehmern!',
+    
+    'guide.participantSection': 'Teilnehmer-Bereich',
+    'guide.participantOpen': '🎉 Freier Zugang für alle Gäste',
+    'guide.participantDesc1': 'Die Teilnehmer können frei auf folgende Bereiche zugreifen:',
+    
+    'guide.votingTitle': 'Abstimmung',
+    'guide.votingStep1': 'Scanne den QR-Code oder öffne den Abstimmungslink',
+    'guide.votingStep2': 'Warte, bis der Organisator eine Runde startet',
+    'guide.votingStep3': 'Gib eine Note von 0 bis 10 für den Sänger',
+    'guide.votingStep4': 'Jede Person kann nur einmal pro Runde abstimmen',
+    
+    'guide.songTitle': 'Lied wählen',
+    'guide.songStep1': 'Scanne den QR-Code oder öffne den Anmeldelink',
+    'guide.songStep2': 'Gib deinen Namen ein',
+    'guide.songStep3': 'Suche nach dem Lied, das du singen möchtest',
+    'guide.songStep4': 'Bestätige deine Anmeldung und warte auf deinen Platz in der Schlange',
+    
+    'guide.rankingTitle': 'Rangliste',
+    'guide.rankingStep1': 'Sieh in Echtzeit, wer gewinnt',
+    'guide.rankingStep2': 'Die Rangliste aktualisiert sich automatisch nach jeder Runde',
+    
+    'guide.qrSection': 'QR-Codes für die Tische',
+    'guide.qrDesc': 'Drucke sie aus und lege sie auf die Tische für einfachen Zugang',
+    'guide.qrVote': 'Abstimmen',
+    'guide.qrVoteDesc': 'Scannen um abzustimmen',
+    'guide.qrSignup': 'Lied wählen',
+    'guide.qrSignupDesc': 'Scannen um sich anzumelden',
+    'guide.qrTip': 'Tipp: Drucke die QR-Codes aus und lege sie auf die Tische, um den Gästen den Zugang zu erleichtern!',
+    'guide.scanToVote': 'Scannen zum Abstimmen',
+    'guide.scanToSing': 'Scannen zum Singen',
+    
+    'guide.howItWorks': 'So funktioniert es',
+    'guide.step1Title': 'Anmelden',
+    'guide.step1Desc': 'Wähle dein Lied und stelle dich in die Schlange',
+    'guide.step2Title': 'Singen',
+    'guide.step2Desc': 'Wenn du dran bist, geh auf die Bühne',
+    'guide.step3Title': 'Abstimmen',
+    'guide.step3Desc': 'Bewerte die anderen Sänger',
+    'guide.step4Title': 'Feiern',
+    'guide.step4Desc': 'Sieh, wer König/Königin des Karaoke wurde',
+    
+    'guide.goToHost': 'Zum Host-Panel gehen',
+    
+    // Menu option
+    'menu.guide': 'Event-Leitfaden',
+    'menu.guide.desc': 'Sieh wie es funktioniert und drucke QR-Codes für die Tische',
   },
   
   en: {
@@ -544,6 +664,66 @@ export const translations: Record<Language, Record<string, string>> = {
     // Language selector
     'language.select': 'Select your language',
     'language.continue': 'Continue',
+    
+    // Event Guide page
+    'guide.title': 'Event Guide',
+    'guide.subtitle': 'Everything you need to know to participate in the karaoke night',
+    'guide.back': 'Back',
+    'guide.printQR': 'Print QR Codes',
+    
+    'guide.hostSection': 'Host Area',
+    'guide.hostExclusive': '🔒 Password-protected access',
+    'guide.hostDesc1': 'The Host area is exclusive to the event organizer. Only those with the password can access this panel.',
+    'guide.hostFeature1': 'Control karaoke rounds - start and end performances',
+    'guide.hostFeature2': 'Manage the queue of registered singers',
+    'guide.hostFeature3': 'Track votes in real-time and view the complete ranking',
+    'guide.hostWarning': 'Important: Do not share the Host password with participants!',
+    
+    'guide.participantSection': 'Participant Area',
+    'guide.participantOpen': '🎉 Free access for all guests',
+    'guide.participantDesc1': 'Event participants can freely access the following areas:',
+    
+    'guide.votingTitle': 'Voting',
+    'guide.votingStep1': 'Scan the QR Code or access the voting link',
+    'guide.votingStep2': 'Wait for the organizer to start a round',
+    'guide.votingStep3': 'Give a score from 0 to 10 for the singer',
+    'guide.votingStep4': 'Each person can only vote once per round',
+    
+    'guide.songTitle': 'Choose Song',
+    'guide.songStep1': 'Scan the QR Code or access the sign-up link',
+    'guide.songStep2': 'Enter your name',
+    'guide.songStep3': 'Search for the song you want to sing',
+    'guide.songStep4': 'Confirm your sign-up and wait for your turn in the queue',
+    
+    'guide.rankingTitle': 'Ranking',
+    'guide.rankingStep1': 'See in real-time who is winning',
+    'guide.rankingStep2': 'The ranking updates automatically after each round',
+    
+    'guide.qrSection': 'QR Codes for Tables',
+    'guide.qrDesc': 'Print and place on tables for easy guest access',
+    'guide.qrVote': 'Vote',
+    'guide.qrVoteDesc': 'Scan to cast your vote',
+    'guide.qrSignup': 'Choose Song',
+    'guide.qrSignupDesc': 'Scan to sign up',
+    'guide.qrTip': 'Tip: Print the QR codes and place them on tables to make it easier for guests to access!',
+    'guide.scanToVote': 'Scan to vote',
+    'guide.scanToSing': 'Scan to sing',
+    
+    'guide.howItWorks': 'How It Works',
+    'guide.step1Title': 'Sign Up',
+    'guide.step1Desc': 'Choose your song and join the queue',
+    'guide.step2Title': 'Sing',
+    'guide.step2Desc': 'When it\'s your turn, take the stage',
+    'guide.step3Title': 'Vote',
+    'guide.step3Desc': 'Rate the other singers',
+    'guide.step4Title': 'Celebrate',
+    'guide.step4Desc': 'See who became the karaoke king/queen',
+    
+    'guide.goToHost': 'Go to Host Panel',
+    
+    // Menu option
+    'menu.guide': 'Event Guide',
+    'menu.guide.desc': 'See how it works and print QR codes for tables',
   },
   
   es: {
@@ -721,6 +901,66 @@ export const translations: Record<Language, Record<string, string>> = {
     // Language selector
     'language.select': 'Selecciona tu idioma',
     'language.continue': 'Continuar',
+    
+    // Event Guide page
+    'guide.title': 'Guía del Evento',
+    'guide.subtitle': 'Todo lo que necesitas saber para participar en la noche de karaoke',
+    'guide.back': 'Volver',
+    'guide.printQR': 'Imprimir QR Codes',
+    
+    'guide.hostSection': 'Área del Organizador (Host)',
+    'guide.hostExclusive': '🔒 Acceso exclusivo con contraseña',
+    'guide.hostDesc1': 'El área del Host es exclusiva para el organizador del evento. Solo quien tenga la contraseña puede acceder a este panel.',
+    'guide.hostFeature1': 'Controlar las rondas de karaoke - iniciar y terminar actuaciones',
+    'guide.hostFeature2': 'Gestionar la cola de cantantes inscritos',
+    'guide.hostFeature3': 'Seguir los votos en tiempo real y ver el ranking completo',
+    'guide.hostWarning': '¡Importante: No compartas la contraseña del Host con los participantes!',
+    
+    'guide.participantSection': 'Área de Participantes',
+    'guide.participantOpen': '🎉 Acceso libre para todos los invitados',
+    'guide.participantDesc1': 'Los participantes del evento pueden acceder libremente a las siguientes áreas:',
+    
+    'guide.votingTitle': 'Votación',
+    'guide.votingStep1': 'Escanea el código QR o accede al enlace de votación',
+    'guide.votingStep2': 'Espera a que el organizador inicie una ronda',
+    'guide.votingStep3': 'Da una puntuación de 0 a 10 al cantante',
+    'guide.votingStep4': 'Cada persona puede votar solo una vez por ronda',
+    
+    'guide.songTitle': 'Elegir Canción',
+    'guide.songStep1': 'Escanea el código QR o accede al enlace de inscripción',
+    'guide.songStep2': 'Ingresa tu nombre',
+    'guide.songStep3': 'Busca la canción que quieres cantar',
+    'guide.songStep4': 'Confirma tu inscripción y espera tu turno en la cola',
+    
+    'guide.rankingTitle': 'Ranking',
+    'guide.rankingStep1': 'Ve en tiempo real quién está ganando',
+    'guide.rankingStep2': 'El ranking se actualiza automáticamente después de cada ronda',
+    
+    'guide.qrSection': 'Códigos QR para las Mesas',
+    'guide.qrDesc': 'Imprímelos y colócalos en las mesas para fácil acceso',
+    'guide.qrVote': 'Votar',
+    'guide.qrVoteDesc': 'Escanea para votar',
+    'guide.qrSignup': 'Elegir Canción',
+    'guide.qrSignupDesc': 'Escanea para inscribirte',
+    'guide.qrTip': '¡Consejo: Imprime los códigos QR y colócalos en las mesas para facilitar el acceso a los invitados!',
+    'guide.scanToVote': 'Escanea para votar',
+    'guide.scanToSing': 'Escanea para cantar',
+    
+    'guide.howItWorks': 'Cómo Funciona',
+    'guide.step1Title': 'Inscríbete',
+    'guide.step1Desc': 'Elige tu canción y únete a la cola',
+    'guide.step2Title': 'Canta',
+    'guide.step2Desc': 'Cuando sea tu turno, sube al escenario',
+    'guide.step3Title': 'Vota',
+    'guide.step3Desc': 'Califica a los otros cantantes',
+    'guide.step4Title': 'Celebra',
+    'guide.step4Desc': 'Ve quién fue el rey/reina del karaoke',
+    
+    'guide.goToHost': 'Ir al Panel del Host',
+    
+    // Menu option
+    'menu.guide': 'Guía del Evento',
+    'menu.guide.desc': 'Mira cómo funciona e imprime códigos QR para las mesas',
   },
   
   tr: {
@@ -898,5 +1138,65 @@ export const translations: Record<Language, Record<string, string>> = {
     // Language selector
     'language.select': 'Dilinizi seçin',
     'language.continue': 'Devam',
+    
+    // Event Guide page
+    'guide.title': 'Etkinlik Rehberi',
+    'guide.subtitle': 'Karaoke gecesine katılmak için bilmeniz gereken her şey',
+    'guide.back': 'Geri',
+    'guide.printQR': 'QR Kodları Yazdır',
+    
+    'guide.hostSection': 'Sunucu Alanı (Host)',
+    'guide.hostExclusive': '🔒 Şifre korumalı erişim',
+    'guide.hostDesc1': 'Sunucu alanı etkinlik organizatörüne özeldir. Sadece şifreyi bilenler bu panele erişebilir.',
+    'guide.hostFeature1': 'Karaoke turlarını kontrol edin - performansları başlatın ve bitirin',
+    'guide.hostFeature2': 'Kayıtlı şarkıcıların sırasını yönetin',
+    'guide.hostFeature3': 'Oyları gerçek zamanlı takip edin ve tam sıralamayı görün',
+    'guide.hostWarning': 'Önemli: Sunucu şifresini katılımcılarla paylaşmayın!',
+    
+    'guide.participantSection': 'Katılımcı Alanı',
+    'guide.participantOpen': '🎉 Tüm misafirler için ücretsiz erişim',
+    'guide.participantDesc1': 'Etkinlik katılımcıları aşağıdaki alanlara serbestçe erişebilir:',
+    
+    'guide.votingTitle': 'Oylama',
+    'guide.votingStep1': 'QR kodunu tarayın veya oylama bağlantısına erişin',
+    'guide.votingStep2': 'Organizatörün bir tur başlatmasını bekleyin',
+    'guide.votingStep3': 'Şarkıcıya 0-10 arası bir puan verin',
+    'guide.votingStep4': 'Her kişi tur başına sadece bir kez oy verebilir',
+    
+    'guide.songTitle': 'Şarkı Seç',
+    'guide.songStep1': 'QR kodunu tarayın veya kayıt bağlantısına erişin',
+    'guide.songStep2': 'Adınızı girin',
+    'guide.songStep3': 'Söylemek istediğiniz şarkıyı arayın',
+    'guide.songStep4': 'Kaydınızı onaylayın ve sırada yerinizi bekleyin',
+    
+    'guide.rankingTitle': 'Sıralama',
+    'guide.rankingStep1': 'Kimin kazandığını gerçek zamanlı görün',
+    'guide.rankingStep2': 'Sıralama her turdan sonra otomatik güncellenir',
+    
+    'guide.qrSection': 'Masalar için QR Kodları',
+    'guide.qrDesc': 'Misafirlerin kolay erişimi için yazdırın ve masalara koyun',
+    'guide.qrVote': 'Oyla',
+    'guide.qrVoteDesc': 'Oy vermek için tarayın',
+    'guide.qrSignup': 'Şarkı Seç',
+    'guide.qrSignupDesc': 'Kayıt olmak için tarayın',
+    'guide.qrTip': 'İpucu: QR kodlarını yazdırın ve misafirlerin erişimini kolaylaştırmak için masalara koyun!',
+    'guide.scanToVote': 'Oy vermek için tarayın',
+    'guide.scanToSing': 'Şarkı söylemek için tarayın',
+    
+    'guide.howItWorks': 'Nasıl Çalışır',
+    'guide.step1Title': 'Kayıt Ol',
+    'guide.step1Desc': 'Şarkınızı seçin ve sıraya katılın',
+    'guide.step2Title': 'Söyle',
+    'guide.step2Desc': 'Sıra size geldiğinde sahneye çıkın',
+    'guide.step3Title': 'Oyla',
+    'guide.step3Desc': 'Diğer şarkıcıları değerlendirin',
+    'guide.step4Title': 'Kutla',
+    'guide.step4Desc': 'Karaoke kralı/kraliçesi kim oldu görün',
+    
+    'guide.goToHost': 'Sunucu Paneline Git',
+    
+    // Menu option
+    'menu.guide': 'Etkinlik Rehberi',
+    'menu.guide.desc': 'Nasıl çalıştığını görün ve masalar için QR kodları yazdırın',
   },
 };
