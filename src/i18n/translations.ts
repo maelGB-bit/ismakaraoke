@@ -69,6 +69,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'host.eventReset': '🗑️ Evento resetado!',
     'host.allDataDeleted': 'Todos os dados foram apagados',
     'host.cantResetEvent': 'Não foi possível resetar o evento',
+    'host.backToHome': 'Voltar ao início',
     
     // Vote page
     'vote.loading': 'Carregando...',
@@ -358,6 +359,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'host.eventReset': '🗑️ Event zurückgesetzt!',
     'host.allDataDeleted': 'Alle Daten wurden gelöscht',
     'host.cantResetEvent': 'Event konnte nicht zurückgesetzt werden',
+    'host.backToHome': 'Zurück zur Startseite',
     
     // Vote page
     'vote.loading': 'Laden...',
@@ -647,6 +649,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'host.eventReset': '🗑️ Event reset!',
     'host.allDataDeleted': 'All data has been deleted',
     'host.cantResetEvent': 'Could not reset event',
+    'host.backToHome': 'Back to home',
     
     // Vote page
     'vote.loading': 'Loading...',
@@ -936,6 +939,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'host.eventReset': '🗑️ ¡Evento reiniciado!',
     'host.allDataDeleted': 'Todos los datos han sido eliminados',
     'host.cantResetEvent': 'No se pudo reiniciar el evento',
+    'host.backToHome': 'Volver al inicio',
     
     // Vote page
     'vote.loading': 'Cargando...',
@@ -1223,6 +1227,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'host.eventReset': '🗑️ Etkinlik sıfırlandı!',
     'host.allDataDeleted': 'Tüm veriler silindi',
     'host.cantResetEvent': 'Etkinlik sıfırlanamadı',
+    'host.backToHome': 'Ana sayfaya dön',
     
     // Vote page
     'vote.loading': 'Yükleniyor...',
