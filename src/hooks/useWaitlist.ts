@@ -11,6 +11,7 @@ export interface WaitlistEntry {
   times_sung: number;
   status: string;
   created_at: string;
+  priority: number;
 }
 
 export function useWaitlist() {
@@ -25,11 +26,12 @@ export function useWaitlist() {
         .from('waitlist')
         .select('*')
         .eq('status', 'waiting')
+        .order('priority', { ascending: true })
         .order('times_sung', { ascending: true })
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setEntries(data || []);
+      setEntries((data as WaitlistEntry[]) || []);
     } catch (error) {
       console.error('Error fetching waitlist:', error);
     } finally {
@@ -50,20 +52,26 @@ export function useWaitlist() {
 
   const addToWaitlist = async (singerName: string, youtubeUrl: string, songTitle: string) => {
     try {
+      // Get how many times this singer has sung before
       const { data: previousEntries } = await supabase
         .from('waitlist')
         .select('times_sung')
-        .eq('singer_name', singerName.toLowerCase().trim())
+        .ilike('singer_name', singerName.trim())
         .order('times_sung', { ascending: false })
         .limit(1);
 
       const timesSung = previousEntries?.[0]?.times_sung || 0;
+
+      // Calculate priority: newcomers (times_sung=0) get priority 0, others get higher priority
+      // This ensures people who haven't sung yet go before those who have
+      const priority = timesSung;
 
       const { error } = await supabase.from('waitlist').insert({
         singer_name: singerName.trim(),
         youtube_url: youtubeUrl,
         song_title: songTitle,
         times_sung: timesSung,
+        priority: priority,
         status: 'waiting',
       });
 
@@ -91,15 +99,19 @@ export function useWaitlist() {
       const { error: updateError } = await supabase.from('waitlist').update({ status: 'done' }).eq('id', entryId);
       if (updateError) throw updateError;
 
+      // Increment times_sung for all waiting entries from this singer
       const { data: waitingEntries } = await supabase
         .from('waitlist')
-        .select('id, times_sung')
-        .eq('singer_name', singerName.toLowerCase().trim())
+        .select('id, times_sung, priority')
+        .ilike('singer_name', singerName.trim())
         .eq('status', 'waiting');
 
       if (waitingEntries && waitingEntries.length > 0) {
         for (const entry of waitingEntries) {
-          await supabase.from('waitlist').update({ times_sung: entry.times_sung + 1 }).eq('id', entry.id);
+          await supabase.from('waitlist').update({ 
+            times_sung: entry.times_sung + 1,
+            priority: entry.priority + 1 // Also increase priority so they go further back
+          }).eq('id', entry.id);
         }
       }
     } catch (error) {
@@ -116,9 +128,42 @@ export function useWaitlist() {
     }
   };
 
+  const movePriority = async (entryId: string, direction: 'up' | 'down') => {
+    try {
+      const currentIndex = entries.findIndex(e => e.id === entryId);
+      if (currentIndex === -1) return;
+
+      const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      if (targetIndex < 0 || targetIndex >= entries.length) return;
+
+      const currentEntry = entries[currentIndex];
+      const targetEntry = entries[targetIndex];
+
+      // Swap priorities
+      await Promise.all([
+        supabase.from('waitlist').update({ priority: targetEntry.priority }).eq('id', currentEntry.id),
+        supabase.from('waitlist').update({ priority: currentEntry.priority }).eq('id', targetEntry.id),
+      ]);
+
+      fetchEntries();
+    } catch (error) {
+      console.error('Error moving priority:', error);
+    }
+  };
+
   const getNextInQueue = (): WaitlistEntry | null => {
     return entries.length > 0 ? entries[0] : null;
   };
 
-  return { entries, loading, addToWaitlist, markAsSinging, markAsDone, removeFromWaitlist, getNextInQueue, refetch: fetchEntries };
+  return { 
+    entries, 
+    loading, 
+    addToWaitlist, 
+    markAsSinging, 
+    markAsDone, 
+    removeFromWaitlist, 
+    movePriority,
+    getNextInQueue, 
+    refetch: fetchEntries 
+  };
 }

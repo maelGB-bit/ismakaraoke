@@ -4,6 +4,7 @@ import { Mic2, Users, Trophy, ArrowRight, Music, Globe, BookOpen } from 'lucide-
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { languages } from '@/i18n/translations';
+import mammothLogo from '@/assets/mammoth-logo.png';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,14 +99,14 @@ export default function Index() {
           className="inline-block mb-6"
         >
           <div className="relative">
-            <Mic2 className="w-24 h-24 text-primary animate-float" />
-            <div className="absolute inset-0 w-24 h-24 bg-primary/20 blur-2xl rounded-full" />
+            <img src={mammothLogo} alt="Mamutts Karaoke" className="w-32 h-32 animate-float" />
+            <div className="absolute inset-0 w-32 h-32 bg-primary/20 blur-2xl rounded-full" />
           </div>
         </motion.div>
 
         <h1 className="text-5xl md:text-7xl font-black font-display mb-4">
-          <span className="neon-text-pink">KARAOKE</span>{' '}
-          <span className="neon-text-cyan">VOTING</span>
+          <span className="neon-text-pink">MAMUTTS</span>{' '}
+          <span className="neon-text-cyan">KARAOKE</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-md mx-auto">
           {t('app.subtitle')}

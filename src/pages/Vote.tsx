@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mic2, CheckCircle, Trophy, AlertCircle, Clock, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VoteSlider } from '@/components/VoteSlider';
+import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { useActivePerformance } from '@/hooks/usePerformance';
 import { useDeviceId } from '@/hooks/useDeviceId';
+import { useWaitlist } from '@/hooks/useWaitlist';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +17,7 @@ export default function Vote() {
   const { toast } = useToast();
   const { t } = useLanguage();
   const { performance, loading } = useActivePerformance();
+  const { entries: waitlistEntries, loading: waitlistLoading } = useWaitlist();
   const deviceId = useDeviceId();
 
   const [hasVoted, setHasVoted] = useState(false);
@@ -116,14 +119,14 @@ export default function Vote() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="glass-card p-8 text-center max-w-md"
+          className="glass-card p-8 text-center max-w-md w-full"
         >
           <Clock className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
           <h1 className="text-2xl font-bold font-display mb-2">{t('vote.waiting')}</h1>
           <p className="text-muted-foreground mb-6">
             {t('vote.noActiveVoting')}
           </p>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 mb-6">
             <Button onClick={() => navigate('/inscricao')} className="w-full">
               <Music className="mr-2 h-4 w-4" />
               {t('vote.wantToSing')}
@@ -133,6 +136,13 @@ export default function Vote() {
               {t('vote.showRanking')}
             </Button>
           </div>
+          
+          {/* Waitlist when no active performance */}
+          <ParticipantWaitlist 
+            entries={waitlistEntries} 
+            loading={waitlistLoading}
+            currentSingerName={null}
+          />
         </motion.div>
       </div>
     );
@@ -145,7 +155,7 @@ export default function Vote() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="glass-card p-8 text-center max-w-md"
+          className="glass-card p-8 text-center max-w-md w-full"
         >
           <AlertCircle className="w-16 h-16 mx-auto text-accent mb-4" />
           <h1 className="text-2xl font-bold font-display mb-2">{t('vote.votingEnded')}</h1>
@@ -158,10 +168,17 @@ export default function Vote() {
           <div className="text-4xl font-black font-display neon-text-gold mb-6">
             {t('vote.finalScore')}: {Number(performance.nota_media).toFixed(1)}
           </div>
-          <Button onClick={() => navigate('/ranking')} className="w-full">
+          <Button onClick={() => navigate('/ranking')} className="w-full mb-6">
             <Trophy className="mr-2 h-4 w-4" />
             {t('vote.showNightRanking')}
           </Button>
+          
+          {/* Waitlist when round closed */}
+          <ParticipantWaitlist 
+            entries={waitlistEntries} 
+            loading={waitlistLoading}
+            currentSingerName={null}
+          />
         </motion.div>
       </div>
     );
@@ -198,7 +215,7 @@ export default function Vote() {
       </motion.div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex flex-col gap-4">
         <AnimatePresence mode="wait">
           {hasVoted ? (
             <motion.div
@@ -206,7 +223,7 @@ export default function Vote() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="glass-card p-8 text-center max-w-md w-full"
+              className="glass-card p-8 text-center max-w-md w-full mx-auto"
             >
               <motion.div
                 initial={{ scale: 0 }}
@@ -251,6 +268,19 @@ export default function Vote() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Waitlist */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <ParticipantWaitlist 
+            entries={waitlistEntries} 
+            loading={waitlistLoading}
+            currentSingerName={performance?.cantor}
+          />
+        </motion.div>
       </div>
     </div>
   );
