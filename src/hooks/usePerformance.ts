@@ -116,7 +116,8 @@ export function useRanking() {
         .from('performances')
         .select('*')
         .eq('status', 'encerrada')
-        .order('nota_media', { ascending: false });
+        .order('nota_media', { ascending: false })
+        .order('total_votos', { ascending: false });
 
       if (!error && data) {
         setPerformances(data as Performance[]);

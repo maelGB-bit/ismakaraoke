@@ -41,11 +41,28 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
   const totalVotes = performance?.total_votos || 0;
   const videoId = youtubeUrl ? extractVideoId(youtubeUrl) : null;
   
+  // Loading states for buttons
+  const [isExiting, setIsExiting] = useState(false);
+  const [isLoadingNext, setIsLoadingNext] = useState(false);
+  
   // Track vote changes for effects
   const [voteEffects, setVoteEffects] = useState<VoteEffect[]>([]);
   const [prevVotes, setPrevVotes] = useState(0);
   const [prevScore, setPrevScore] = useState(0);
   const effectIdRef = useRef(0);
+
+  const handleExit = async () => {
+    if (isExiting) return;
+    setIsExiting(true);
+    await onExit();
+  };
+
+  const handleSelectNext = async () => {
+    if (isLoadingNext || !nextInQueue) return;
+    setIsLoadingNext(true);
+    await onSelectNext();
+    setIsLoadingNext(false);
+  };
 
   useEffect(() => {
     // Detect new vote
@@ -76,12 +93,17 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
     >
       {/* Exit Button */}
       <Button
-        onClick={onExit}
+        onClick={handleExit}
         variant="ghost"
         size="icon"
+        disabled={isExiting}
         className="absolute top-2 right-2 text-muted-foreground hover:text-foreground z-20"
       >
-        <X className="h-5 w-5" />
+        {isExiting ? (
+          <div className="h-5 w-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <X className="h-5 w-5" />
+        )}
       </Button>
 
       {/* Top Bar - Compact Info */}
@@ -159,14 +181,19 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
           initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          onClick={onSelectNext}
-          disabled={!nextInQueue}
+          onClick={handleSelectNext}
+          disabled={!nextInQueue || isLoadingNext}
           className="flex items-center gap-2 px-3 py-1 glass-card hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
         >
           <span className="text-xs uppercase tracking-wider text-muted-foreground">
             {t('tv.nextUp')}:
           </span>
-          {nextInQueue ? (
+          {isLoadingNext ? (
+            <>
+              <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-muted-foreground">{t('waitlist.loading')}</span>
+            </>
+          ) : nextInQueue ? (
             <>
               <span className="text-sm font-bold font-display neon-text-gold truncate max-w-[120px]">
                 {nextInQueue.singer_name}
