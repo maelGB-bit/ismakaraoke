@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { YouTubePlayer } from '@/components/YouTubePlayer';
+import { YouTubeSearch } from '@/components/YouTubeSearch';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
 import { QRCodeDisplay } from '@/components/QRCodeDisplay';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
@@ -210,9 +211,31 @@ function HostContent() {
                 </div>
               </div>
 
+              {/* YouTube Search */}
+              <div className="space-y-3">
+                <Label>Buscar Vídeo no YouTube</Label>
+                <YouTubeSearch
+                  onSelectVideo={(url, title) => {
+                    setYoutubeUrl(url);
+                    setLoadedUrl(url);
+                    if (title && !musica) {
+                      // Try to extract song name from title (remove "karaoke" and channel info)
+                      const cleanTitle = title
+                        .replace(/\(.*?(karaoke|versão|version|lyrics|lyric|instrumental).*?\)/gi, '')
+                        .replace(/\[.*?(karaoke|versão|version|lyrics|lyric|instrumental).*?\]/gi, '')
+                        .replace(/karaoke|versão karaokê/gi, '')
+                        .trim();
+                      setMusica(cleanTitle.substring(0, 50));
+                    }
+                  }}
+                  disabled={isRoundActive}
+                />
+              </div>
+
+              {/* Manual URL input */}
               <div className="flex gap-2">
                 <div className="flex-1">
-                  <Label htmlFor="youtube">URL do YouTube</Label>
+                  <Label htmlFor="youtube">Ou cole a URL diretamente</Label>
                   <Input
                     id="youtube"
                     value={youtubeUrl}
