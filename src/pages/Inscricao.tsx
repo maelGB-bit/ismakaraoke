@@ -299,6 +299,9 @@ export default function Inscricao() {
               <Link className="h-4 w-4" />
               {t('signup.pasteUrl')}
             </Label>
+            <p className="text-xs text-muted-foreground">
+              {t('signup.karaokeHint')}
+            </p>
             <div className="flex gap-2">
               <Input
                 value={manualUrl}
