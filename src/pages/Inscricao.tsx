@@ -85,6 +85,8 @@ export default function Inscricao() {
     return null;
   };
 
+  const [manualSongTitle, setManualSongTitle] = useState('');
+
   const handleManualUrl = () => {
     const videoId = extractVideoId(manualUrl.trim());
     if (!videoId) {
@@ -95,9 +97,17 @@ export default function Inscricao() {
       return;
     }
     
+    if (!manualSongTitle.trim()) {
+      toast({
+        title: t('signup.enterSongTitle'),
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     const video: YouTubeVideo = {
       id: videoId,
-      title: manualUrl.trim(),
+      title: manualSongTitle.trim(),
       thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
       channelTitle: 'YouTube',
       url: `https://www.youtube.com/watch?v=${videoId}`,
@@ -105,6 +115,7 @@ export default function Inscricao() {
     
     setSelectedVideo(video);
     setManualUrl('');
+    setManualSongTitle('');
     setSearchError('');
     toast({
       title: t('signup.videoLoaded'),
@@ -313,6 +324,12 @@ export default function Inscricao() {
                 YouTube
               </Button>
             </div>
+            <Input
+              value={manualSongTitle}
+              onChange={(e) => setManualSongTitle(e.target.value)}
+              placeholder={t('signup.songTitlePlaceholder')}
+              className="mb-2"
+            />
             <div className="flex gap-2">
               <Input
                 value={manualUrl}
@@ -322,7 +339,7 @@ export default function Inscricao() {
               />
               <Button
                 onClick={handleManualUrl}
-                disabled={!manualUrl.trim()}
+                disabled={!manualUrl.trim() || !manualSongTitle.trim()}
                 variant="secondary"
               >
                 {t('signup.load')}

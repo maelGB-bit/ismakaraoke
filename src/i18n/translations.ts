@@ -126,6 +126,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.videoLoaded': '✅ Vídeo carregado!',
     'signup.orSearch': 'ou busque pelo título',
     'signup.karaokeHint': '💡 Dica: no YouTube, busque o nome da música + "karaoke"',
+    'signup.songTitlePlaceholder': 'Nome da música...',
+    'signup.enterSongTitle': 'Digite o nome da música',
     
     // Ranking page
     'ranking.title': 'RANKING DA NOITE',
@@ -457,6 +459,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.videoLoaded': '✅ Video geladen!',
     'signup.orSearch': 'oder nach Titel suchen',
     'signup.karaokeHint': '💡 Tipp: Suche auf YouTube nach dem Songnamen + "karaoke"',
+    'signup.songTitlePlaceholder': 'Songtitel...',
+    'signup.enterSongTitle': 'Songtitel eingeben',
     
     // Ranking page
     'ranking.title': 'RANGLISTE DES ABENDS',
@@ -788,6 +792,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.videoLoaded': '✅ Video loaded!',
     'signup.orSearch': 'or search by title',
     'signup.karaokeHint': '💡 Tip: on YouTube, search for the song name + "karaoke"',
+    'signup.songTitlePlaceholder': 'Song title...',
+    'signup.enterSongTitle': 'Enter song title',
     
     // Ranking page
     'ranking.title': 'TONIGHT\'S RANKING',
@@ -1119,6 +1125,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.videoLoaded': '✅ ¡Video cargado!',
     'signup.orSearch': 'o busca por título',
     'signup.karaokeHint': '💡 Consejo: en YouTube, busca el nombre de la canción + "karaoke"',
+    'signup.songTitlePlaceholder': 'Título de la canción...',
+    'signup.enterSongTitle': 'Ingresa el título de la canción',
     
     // Ranking page
     'ranking.title': 'RANKING DE LA NOCHE',
@@ -1448,6 +1456,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.videoLoaded': '✅ Video yüklendi!',
     'signup.orSearch': 'veya başlığa göre ara',
     'signup.karaokeHint': '💡 İpucu: YouTube\'da şarkı adı + "karaoke" şeklinde arayın',
+    'signup.songTitlePlaceholder': 'Şarkı adı...',
+    'signup.enterSongTitle': 'Şarkı adını girin',
     
     // Ranking page
     'ranking.title': 'GECENİN SIRALAMASI',
