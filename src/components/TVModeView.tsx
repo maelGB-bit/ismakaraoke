@@ -256,7 +256,7 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
                 <Edit className="h-5 w-5" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent className="sm:max-w-lg" container={containerRef.current}>
               <DialogHeader>
                 <DialogTitle>{t('tv.changeVideoTitle')}</DialogTitle>
                 <DialogDescription>{t('tv.changeVideoDesc')}</DialogDescription>
