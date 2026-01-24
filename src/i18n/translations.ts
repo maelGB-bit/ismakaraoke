@@ -125,6 +125,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.invalidUrl': 'Link do YouTube inválido',
     'signup.videoLoaded': '✅ Vídeo carregado!',
     'signup.orSearch': 'ou busque pelo título',
+    'signup.karaokeHint': '💡 Dica: no YouTube, busque o nome da música + "karaoke"',
     
     // Ranking page
     'ranking.title': 'RANKING DA NOITE',
@@ -423,6 +424,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.invalidUrl': 'Ungültiger YouTube-Link',
     'signup.videoLoaded': '✅ Video geladen!',
     'signup.orSearch': 'oder nach Titel suchen',
+    'signup.karaokeHint': '💡 Tipp: Suche auf YouTube nach dem Songnamen + "karaoke"',
     
     // Ranking page
     'ranking.title': 'RANGLISTE DES ABENDS',
@@ -721,6 +723,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.invalidUrl': 'Invalid YouTube link',
     'signup.videoLoaded': '✅ Video loaded!',
     'signup.orSearch': 'or search by title',
+    'signup.karaokeHint': '💡 Tip: on YouTube, search for the song name + "karaoke"',
     
     // Ranking page
     'ranking.title': 'TONIGHT\'S RANKING',
@@ -1019,6 +1022,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.invalidUrl': 'Enlace de YouTube inválido',
     'signup.videoLoaded': '✅ ¡Video cargado!',
     'signup.orSearch': 'o busca por título',
+    'signup.karaokeHint': '💡 Consejo: en YouTube, busca el nombre de la canción + "karaoke"',
     
     // Ranking page
     'ranking.title': 'RANKING DE LA NOCHE',
@@ -1315,6 +1319,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.invalidUrl': 'Geçersiz YouTube linki',
     'signup.videoLoaded': '✅ Video yüklendi!',
     'signup.orSearch': 'veya başlığa göre ara',
+    'signup.karaokeHint': '💡 İpucu: YouTube\'da şarkı adı + "karaoke" şeklinde arayın',
     
     // Ranking page
     'ranking.title': 'GECENİN SIRALAMASI',
