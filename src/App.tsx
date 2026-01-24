@@ -7,6 +7,7 @@ import { LanguageProvider, useLanguage } from "@/i18n/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import Index from "./pages/Index";
 import Host from "./pages/Host";
+import HostAuthPage from "./pages/HostAuth";
 import Vote from "./pages/Vote";
 import Ranking from "./pages/Ranking";
 import Inscricao from "./pages/Inscricao";
@@ -27,6 +28,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/host" element={<Host />} />
+        <Route path="/auth/host" element={<HostAuthPage />} />
         <Route path="/vote" element={<Vote />} />
         <Route path="/ranking" element={<Ranking />} />
         <Route path="/inscricao" element={<Inscricao />} />
