@@ -44,6 +44,9 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
   const [isExiting, setIsExiting] = useState(false);
   const [isLoadingNext, setIsLoadingNext] = useState(false);
   
+  // Autoplay state - starts paused when loading next singer
+  const [shouldAutoplay, setShouldAutoplay] = useState(true);
+  
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -114,6 +117,7 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
   const handleSelectNext = async () => {
     if (isLoadingNext || !nextInQueue) return;
     setIsLoadingNext(true);
+    setShouldAutoplay(false); // Load video paused
     await onSelectNext();
     setIsLoadingNext(false);
   };
@@ -285,7 +289,8 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
         <div className="w-full h-full rounded-lg overflow-hidden neon-border-cyan border">
           {videoId ? (
             <iframe
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+              key={`${videoId}-${shouldAutoplay}`}
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=${shouldAutoplay ? 1 : 0}&rel=0`}
               className="w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
