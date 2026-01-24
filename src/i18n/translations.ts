@@ -312,6 +312,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.exitHint': 'Clique no X para sair do modo TV',
     'tv.enterFullscreen': 'Entrar em tela cheia',
     'tv.exitFullscreen': 'Sair da tela cheia',
+    'tv.changeVideo': 'Alterar Vídeo',
+    'tv.changeVideoTitle': 'Alterar vídeo',
+    'tv.changeVideoDesc': 'Cole a nova URL do YouTube',
+    'tv.newUrl': 'Nova URL',
+    'tv.save': 'Salvar',
+    'tv.videoUpdated': '✅ Vídeo atualizado!',
+    'tv.cantUpdateVideo': 'Não foi possível atualizar o vídeo',
   },
   
   de: {
@@ -551,6 +558,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.exitHint': 'Klicke auf X, um den TV-Modus zu verlassen',
     'tv.enterFullscreen': 'Vollbildmodus aktivieren',
     'tv.exitFullscreen': 'Vollbildmodus beenden',
+    'tv.changeVideo': 'Video ändern',
+    'tv.changeVideoTitle': 'Video ändern',
+    'tv.changeVideoDesc': 'Neue YouTube-URL einfügen',
+    'tv.newUrl': 'Neue URL',
+    'tv.save': 'Speichern',
+    'tv.videoUpdated': '✅ Video aktualisiert!',
+    'tv.cantUpdateVideo': 'Video konnte nicht aktualisiert werden',
     
     // Event Guide page
     'guide.title': 'Event-Leitfaden',
@@ -910,6 +924,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.exitHint': 'Click X to exit TV mode',
     'tv.enterFullscreen': 'Enter fullscreen',
     'tv.exitFullscreen': 'Exit fullscreen',
+    'tv.changeVideo': 'Change Video',
+    'tv.changeVideoTitle': 'Change video',
+    'tv.changeVideoDesc': 'Paste the new YouTube URL',
+    'tv.newUrl': 'New URL',
+    'tv.save': 'Save',
+    'tv.videoUpdated': '✅ Video updated!',
+    'tv.cantUpdateVideo': 'Could not update video',
   },
   
   es: {
@@ -1207,6 +1228,13 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.exitHint': 'Haz clic en X para salir del modo TV',
     'tv.enterFullscreen': 'Pantalla completa',
     'tv.exitFullscreen': 'Salir de pantalla completa',
+    'tv.changeVideo': 'Cambiar Video',
+    'tv.changeVideoTitle': 'Cambiar video',
+    'tv.changeVideoDesc': 'Pega la nueva URL de YouTube',
+    'tv.newUrl': 'Nueva URL',
+    'tv.save': 'Guardar',
+    'tv.videoUpdated': '✅ ¡Video actualizado!',
+    'tv.cantUpdateVideo': 'No se pudo actualizar el video',
   },
   
   tr: {
@@ -1504,5 +1532,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.exitHint': 'TV modundan çıkmak için X\'e tıklayın',
     'tv.enterFullscreen': 'Tam ekran',
     'tv.exitFullscreen': 'Tam ekrandan çık',
+    'tv.changeVideo': 'Video Değiştir',
+    'tv.changeVideoTitle': 'Video değiştir',
+    'tv.changeVideoDesc': 'Yeni YouTube URL\'sini yapıştırın',
+    'tv.newUrl': 'Yeni URL',
+    'tv.save': 'Kaydet',
+    'tv.videoUpdated': '✅ Video güncellendi!',
+    'tv.cantUpdateVideo': 'Video güncellenemedi',
   },
 };
