@@ -260,29 +260,57 @@ function HostContent() {
     }
   };
 
-  const handleChangeVideo = async (newUrl: string) => {
+  const handleChangeVideo = async (newUrl: string, newSongTitle?: string) => {
     setYoutubeUrl(newUrl);
     setLoadedUrl(newUrl);
     
     // Update database if performance is active
     if (performance?.id) {
       try {
-        const { error } = await supabase
+        // Build update object
+        const updateData: { youtube_url: string; musica?: string } = { youtube_url: newUrl };
+        if (newSongTitle) {
+          updateData.musica = newSongTitle;
+          setMusica(newSongTitle);
+        }
+        
+        // Update performance
+        const { error: perfError } = await supabase
           .from('performances')
-          .update({ youtube_url: newUrl })
+          .update(updateData)
           .eq('id', performance.id);
         
-        if (error) throw error;
+        if (perfError) throw perfError;
+        
+        // Delete all votes for this performance (reset for new song)
+        const { error: votesError } = await supabase
+          .from('votes')
+          .delete()
+          .eq('performance_id', performance.id);
+        
+        if (votesError) {
+          console.error('Error deleting votes:', votesError);
+        }
+        
+        // Reset the performance stats (will be recalculated by trigger)
+        await supabase
+          .from('performances')
+          .update({ total_votos: 0, nota_media: 0 })
+          .eq('id', performance.id);
         
         // Also update waitlist entry if exists
         if (currentWaitlistEntryId) {
+          const waitlistUpdate: { youtube_url: string; song_title?: string } = { youtube_url: newUrl };
+          if (newSongTitle) {
+            waitlistUpdate.song_title = newSongTitle;
+          }
           await supabase
             .from('waitlist')
-            .update({ youtube_url: newUrl })
+            .update(waitlistUpdate)
             .eq('id', currentWaitlistEntryId);
         }
         
-        toast({ title: t('tv.videoUpdated') });
+        toast({ title: t('tv.videoUpdated'), description: newSongTitle ? `🎵 ${newSongTitle}` : undefined });
       } catch (error) {
         console.error('Error updating video:', error);
         toast({ title: t('host.error'), description: t('tv.cantUpdateVideo'), variant: 'destructive' });
