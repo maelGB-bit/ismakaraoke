@@ -16,6 +16,16 @@ import { useWaitlist } from '@/hooks/useWaitlist';
 import { useActivePerformance } from '@/hooks/usePerformance';
 import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
 import { useLanguage } from '@/i18n/LanguageContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface YouTubeVideo {
   id: string;
@@ -43,6 +53,7 @@ export default function Inscricao() {
   const [registerForOther, setRegisterForOther] = useState(false);
   const [manualUrl, setManualUrl] = useState('');
   const [searchError, setSearchError] = useState('');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Set singer name from profile when loaded
   useEffect(() => {
@@ -179,7 +190,7 @@ export default function Inscricao() {
     setSelectedVideo(video);
   };
 
-  const handleSubmit = async () => {
+  const handleRequestConfirmation = () => {
     if (!singerName.trim()) {
       toast({
         title: t('signup.enterName'),
@@ -196,7 +207,14 @@ export default function Inscricao() {
       return;
     }
 
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    if (!selectedVideo) return;
+    
     setIsSubmitting(true);
+    setShowConfirmDialog(false);
 
     // If registering for someone else, pass the current user's name as registeredBy
     const registeredBy = registerForOther && profile ? profile.name : undefined;
@@ -220,6 +238,9 @@ export default function Inscricao() {
       setSearchQuery('');
       setVideos([]);
       setSelectedVideo(null);
+      
+      // Navigate to voting page
+      navigate('/vote');
     }
   };
 
@@ -452,20 +473,56 @@ export default function Inscricao() {
             </ScrollArea>
           )}
 
-          {/* Submit Button */}
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting || !singerName.trim() || !selectedVideo}
-            size="lg"
-            className="w-full text-lg"
-          >
-            {isSubmitting ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
+          {/* Submit Button - only show if video is selected */}
+          {selectedVideo && !isSubmitting && (
+            <Button
+              onClick={handleRequestConfirmation}
+              disabled={!singerName.trim() || !selectedVideo}
+              size="lg"
+              className="w-full text-lg"
+            >
               <Mic className="mr-2 h-5 w-5" />
-            )}
-            {t('signup.wantToSing')}
-          </Button>
+              {t('signup.wantToSing')}
+            </Button>
+          )}
+          
+          {isSubmitting && (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          )}
+
+          {/* Confirmation Dialog */}
+          <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+            <AlertDialogContent className="max-w-md">
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('signup.confirmTitle')}</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-4">
+                  <p>{t('signup.confirmQuestion')}</p>
+                  {selectedVideo && (
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={selectedVideo.thumbnail}
+                          alt={selectedVideo.title}
+                          className="w-20 h-12 object-cover rounded"
+                        />
+                        <p className="font-medium text-sm line-clamp-2 flex-1 text-foreground">
+                          {decodeHtmlEntities(selectedVideo.title)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('signup.confirmNo')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmSubmit}>
+                  {t('signup.confirmYes')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {/* Waitlist */}
