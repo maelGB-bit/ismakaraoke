@@ -1,16 +1,27 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { Performance } from '@/types/karaoke';
 import type { WaitlistEntry } from '@/hooks/useWaitlist';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+
 interface TVModeViewProps {
   performance: Performance | null;
   nextInQueue: WaitlistEntry | null;
   youtubeUrl: string | null;
   onExit: () => void;
   onSelectNext: () => void;
+  onChangeVideo?: (newUrl: string) => Promise<void>;
 }
 
 function extractVideoId(url: string): string | null {
@@ -33,7 +44,7 @@ interface VoteEffect {
   isPositive: boolean;
 }
 
-export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSelectNext }: TVModeViewProps) {
+export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSelectNext, onChangeVideo }: TVModeViewProps) {
   const { t } = useLanguage();
   const isActive = performance?.status === 'ativa';
   const score = performance ? Number(performance.nota_media) : 0;
@@ -43,6 +54,11 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
   // Loading states for buttons
   const [isExiting, setIsExiting] = useState(false);
   const [isLoadingNext, setIsLoadingNext] = useState(false);
+  
+  // Change video dialog state
+  const [changeVideoOpen, setChangeVideoOpen] = useState(false);
+  const [newVideoUrl, setNewVideoUrl] = useState('');
+  const [isChangingVideo, setIsChangingVideo] = useState(false);
   
   // Autoplay state - starts paused when loading next singer
   const [shouldAutoplay, setShouldAutoplay] = useState(true);
@@ -122,6 +138,19 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
     setIsLoadingNext(false);
   };
 
+  const handleChangeVideo = async () => {
+    if (!onChangeVideo || !newVideoUrl.trim()) return;
+    setIsChangingVideo(true);
+    try {
+      await onChangeVideo(newVideoUrl.trim());
+      setNewVideoUrl('');
+      setChangeVideoOpen(false);
+      setShouldAutoplay(false); // Load new video paused
+    } finally {
+      setIsChangingVideo(false);
+    }
+  };
+
   useEffect(() => {
     // Detect new vote
     if (totalVotes > prevVotes && prevVotes > 0) {
@@ -152,6 +181,46 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
     >
       {/* Control Buttons */}
       <div className="absolute top-2 right-2 flex items-center gap-1 z-20">
+        {/* Change Video Button */}
+        {isActive && onChangeVideo && (
+          <Dialog open={changeVideoOpen} onOpenChange={setChangeVideoOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-foreground"
+                title={t('tv.changeVideo')}
+              >
+                <Edit className="h-5 w-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{t('tv.changeVideoTitle')}</DialogTitle>
+                <DialogDescription>{t('tv.changeVideoDesc')}</DialogDescription>
+              </DialogHeader>
+              <div className="flex gap-2 mt-4">
+                <Input
+                  value={newVideoUrl}
+                  onChange={(e) => setNewVideoUrl(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=..."
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={handleChangeVideo} 
+                  disabled={isChangingVideo || !newVideoUrl.trim()}
+                >
+                  {isChangingVideo ? (
+                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    t('tv.save')
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+        
         {/* Fullscreen Toggle */}
         <Button
           onClick={toggleFullscreen}

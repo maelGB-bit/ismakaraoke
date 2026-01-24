@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home } from 'lucide-react';
+import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -260,6 +260,36 @@ function HostContent() {
     }
   };
 
+  const handleChangeVideo = async (newUrl: string) => {
+    setYoutubeUrl(newUrl);
+    setLoadedUrl(newUrl);
+    
+    // Update database if performance is active
+    if (performance?.id) {
+      try {
+        const { error } = await supabase
+          .from('performances')
+          .update({ youtube_url: newUrl })
+          .eq('id', performance.id);
+        
+        if (error) throw error;
+        
+        // Also update waitlist entry if exists
+        if (currentWaitlistEntryId) {
+          await supabase
+            .from('waitlist')
+            .update({ youtube_url: newUrl })
+            .eq('id', currentWaitlistEntryId);
+        }
+        
+        toast({ title: t('tv.videoUpdated') });
+      } catch (error) {
+        console.error('Error updating video:', error);
+        toast({ title: t('host.error'), description: t('tv.cantUpdateVideo'), variant: 'destructive' });
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen gradient-bg p-4 lg:p-8">
       {/* TV Mode Overlay */}
@@ -277,6 +307,7 @@ function HostContent() {
               setShowTVMode(false);
             }}
             onSelectNext={handleTVSelectNext}
+            onChangeVideo={handleChangeVideo}
           />
         )}
       </AnimatePresence>
@@ -351,6 +382,20 @@ function HostContent() {
                   <Input id="youtube" value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="mt-1 h-8 text-sm" />
                 </div>
                 <Button onClick={handleLoadVideo} variant="secondary" size="sm" className="mt-5">{t('host.load')}</Button>
+                {isRoundActive && loadedUrl && (
+                  <Button 
+                    onClick={() => {
+                      const newUrl = prompt(t('tv.changeVideoDesc'));
+                      if (newUrl) handleChangeVideo(newUrl);
+                    }} 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-5"
+                    title={t('tv.changeVideo')}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </motion.div>
             <div className="min-h-[300px]"><YouTubePlayer url={loadedUrl} /></div>
