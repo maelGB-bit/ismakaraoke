@@ -119,6 +119,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.welcomeBack': 'Bem-vindo de volta',
     'signup.registerOther': 'Inscrever outra pessoa para cantar',
     'signup.registerOtherHint': 'O nome da pessoa será inscrito, mas você será notificado quando for a vez dela.',
+    'signup.pasteUrl': 'Cole o link do YouTube',
+    'signup.urlPlaceholder': 'https://youtube.com/watch?v=... ou ID do vídeo',
+    'signup.load': 'Carregar',
+    'signup.invalidUrl': 'Link do YouTube inválido',
+    'signup.videoLoaded': '✅ Vídeo carregado!',
+    'signup.orSearch': 'ou busque pelo título',
     
     // Ranking page
     'ranking.title': 'RANKING DA NOITE',
@@ -411,6 +417,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.welcomeBack': 'Willkommen zurück',
     'signup.registerOther': 'Jemand anderen zum Singen anmelden',
     'signup.registerOtherHint': 'Der Name der Person wird eingetragen, aber du wirst benachrichtigt, wenn sie dran ist.',
+    'signup.pasteUrl': 'YouTube-Link einfügen',
+    'signup.urlPlaceholder': 'https://youtube.com/watch?v=... oder Video-ID',
+    'signup.load': 'Laden',
+    'signup.invalidUrl': 'Ungültiger YouTube-Link',
+    'signup.videoLoaded': '✅ Video geladen!',
+    'signup.orSearch': 'oder nach Titel suchen',
     
     // Ranking page
     'ranking.title': 'RANGLISTE DES ABENDS',
@@ -703,6 +715,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.welcomeBack': 'Welcome back',
     'signup.registerOther': 'Register someone else to sing',
     'signup.registerOtherHint': 'Their name will be registered, but you will be notified when it\'s their turn.',
+    'signup.pasteUrl': 'Paste YouTube link',
+    'signup.urlPlaceholder': 'https://youtube.com/watch?v=... or video ID',
+    'signup.load': 'Load',
+    'signup.invalidUrl': 'Invalid YouTube link',
+    'signup.videoLoaded': '✅ Video loaded!',
+    'signup.orSearch': 'or search by title',
     
     // Ranking page
     'ranking.title': 'TONIGHT\'S RANKING',
@@ -995,6 +1013,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.welcomeBack': 'Bienvenido de nuevo',
     'signup.registerOther': 'Inscribir a otra persona para cantar',
     'signup.registerOtherHint': 'Su nombre será inscrito, pero tú serás notificado cuando sea su turno.',
+    'signup.pasteUrl': 'Pega el enlace de YouTube',
+    'signup.urlPlaceholder': 'https://youtube.com/watch?v=... o ID del video',
+    'signup.load': 'Cargar',
+    'signup.invalidUrl': 'Enlace de YouTube inválido',
+    'signup.videoLoaded': '✅ ¡Video cargado!',
+    'signup.orSearch': 'o busca por título',
     
     // Ranking page
     'ranking.title': 'RANKING DE LA NOCHE',
@@ -1285,6 +1309,12 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.welcomeBack': 'Tekrar hoş geldin',
     'signup.registerOther': 'Başka birini şarkı söylemesi için kaydet',
     'signup.registerOtherHint': 'İsimleri kaydedilecek, ama sırası geldiğinde sen bilgilendirileceksin.',
+    'signup.pasteUrl': 'YouTube linkini yapıştır',
+    'signup.urlPlaceholder': 'https://youtube.com/watch?v=... veya video ID',
+    'signup.load': 'Yükle',
+    'signup.invalidUrl': 'Geçersiz YouTube linki',
+    'signup.videoLoaded': '✅ Video yüklendi!',
+    'signup.orSearch': 'veya başlığa göre ara',
     
     // Ranking page
     'ranking.title': 'GECENİN SIRALAMASI',
