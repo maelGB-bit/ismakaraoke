@@ -303,6 +303,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.nextUp': 'Próximo',
     'tv.noOneWaiting': 'Ninguém na fila',
     'tv.exitHint': 'Clique no X para sair do modo TV',
+    'tv.enterFullscreen': 'Entrar em tela cheia',
+    'tv.exitFullscreen': 'Sair da tela cheia',
   },
   
   de: {
@@ -533,6 +535,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.nextUp': 'Nächster',
     'tv.noOneWaiting': 'Niemand in der Schlange',
     'tv.exitHint': 'Klicke auf X, um den TV-Modus zu verlassen',
+    'tv.enterFullscreen': 'Vollbildmodus aktivieren',
+    'tv.exitFullscreen': 'Vollbildmodus beenden',
     
     // Event Guide page
     'guide.title': 'Event-Leitfaden',
@@ -883,6 +887,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.nextUp': 'Up next',
     'tv.noOneWaiting': 'No one in queue',
     'tv.exitHint': 'Click X to exit TV mode',
+    'tv.enterFullscreen': 'Enter fullscreen',
+    'tv.exitFullscreen': 'Exit fullscreen',
   },
   
   es: {
@@ -1171,6 +1177,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.nextUp': 'Siguiente',
     'tv.noOneWaiting': 'Nadie en cola',
     'tv.exitHint': 'Haz clic en X para salir del modo TV',
+    'tv.enterFullscreen': 'Pantalla completa',
+    'tv.exitFullscreen': 'Salir de pantalla completa',
   },
   
   tr: {
@@ -1459,5 +1467,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.nextUp': 'Sıradaki',
     'tv.noOneWaiting': 'Sırada kimse yok',
     'tv.exitHint': 'TV modundan çıkmak için X\'e tıklayın',
+    'tv.enterFullscreen': 'Tam ekran',
+    'tv.exitFullscreen': 'Tam ekrandan çık',
   },
 };
