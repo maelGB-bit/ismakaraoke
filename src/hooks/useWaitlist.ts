@@ -158,8 +158,27 @@ export function useWaitlist() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // Rate limiting constants
+  const RATE_LIMIT_KEY = 'waitlist_last_submission';
+  const RATE_LIMIT_MS = 60000; // 1 minute
+
   const addToWaitlist = async (singerName: string, youtubeUrl: string, songTitle: string, registeredBy?: string) => {
     try {
+      // Check rate limiting
+      const lastSubmission = localStorage.getItem(RATE_LIMIT_KEY);
+      if (lastSubmission) {
+        const timeSince = Date.now() - parseInt(lastSubmission, 10);
+        if (timeSince < RATE_LIMIT_MS) {
+          const waitSeconds = Math.ceil((RATE_LIMIT_MS - timeSince) / 1000);
+          toast({ 
+            title: t('signup.waitMoment'), 
+            description: `${t('signup.waitSeconds')} ${waitSeconds}s`,
+            variant: 'destructive' 
+          });
+          return false;
+        }
+      }
+
       // Get how many times this singer has sung before
       const { data: previousEntries } = await supabase
         .from('waitlist')
@@ -182,6 +201,10 @@ export function useWaitlist() {
       });
 
       if (error) throw error;
+      
+      // Update rate limit timestamp on successful submission
+      localStorage.setItem(RATE_LIMIT_KEY, Date.now().toString());
+      
       toast({ title: t('signup.signupConfirmed'), description: t('signup.addedToQueue') });
 
       // Rebalance after every insert to keep fairness (force rebalance because new entry was added)

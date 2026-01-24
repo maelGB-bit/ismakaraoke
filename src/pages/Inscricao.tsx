@@ -16,6 +16,7 @@ import { useWaitlist } from '@/hooks/useWaitlist';
 import { useActivePerformance } from '@/hooks/usePerformance';
 import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { decodeHtmlEntities } from '@/lib/htmlUtils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -180,11 +181,6 @@ export default function Inscricao() {
     }
   };
 
-  const decodeHtmlEntities = (text: string) => {
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = text;
-    return textarea.value;
-  };
 
   const handleSelectVideo = (video: YouTubeVideo) => {
     setSelectedVideo(video);

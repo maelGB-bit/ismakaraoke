@@ -132,6 +132,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.confirmQuestion': 'Esta é a música que você quer cantar?',
     'signup.confirmYes': 'Sim, enviar!',
     'signup.confirmNo': 'Não, escolher outra',
+    'signup.waitMoment': 'Aguarde um momento',
+    'signup.waitSeconds': 'Aguarde antes de se inscrever novamente:',
     
     // Ranking page
     'ranking.title': 'RANKING DA NOITE',
@@ -472,6 +474,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.confirmQuestion': 'Ist das das Lied, das du singen möchtest?',
     'signup.confirmYes': 'Ja, absenden!',
     'signup.confirmNo': 'Nein, ein anderes wählen',
+    'signup.waitMoment': 'Bitte warten',
+    'signup.waitSeconds': 'Warte, bevor du dich erneut anmeldest:',
     
     // Ranking page
     'ranking.title': 'RANGLISTE DES ABENDS',
@@ -812,6 +816,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.confirmQuestion': 'Is this the song you want to sing?',
     'signup.confirmYes': 'Yes, submit!',
     'signup.confirmNo': 'No, choose another',
+    'signup.waitMoment': 'Please wait',
+    'signup.waitSeconds': 'Wait before signing up again:',
     
     // Ranking page
     'ranking.title': 'TONIGHT\'S RANKING',
@@ -1152,6 +1158,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.confirmQuestion': '¿Es esta la canción que quieres cantar?',
     'signup.confirmYes': '¡Sí, enviar!',
     'signup.confirmNo': 'No, elegir otra',
+    'signup.waitMoment': 'Espera un momento',
+    'signup.waitSeconds': 'Espera antes de inscribirte de nuevo:',
     
     // Ranking page
     'ranking.title': 'RANKING DE LA NOCHE',
@@ -1490,6 +1498,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.confirmQuestion': 'Bu söylemek istediğin şarkı mı?',
     'signup.confirmYes': 'Evet, gönder!',
     'signup.confirmNo': 'Hayır, başka seç',
+    'signup.waitMoment': 'Lütfen bekleyin',
+    'signup.waitSeconds': 'Tekrar kaydolmadan önce bekleyin:',
     
     // Ranking page
     'ranking.title': 'GECENİN SIRALAMASI',

@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { decodeHtmlEntities } from '@/lib/htmlUtils';
 
 interface YouTubeVideo {
   id: string;
@@ -58,11 +59,6 @@ export function YouTubeSearch({ onSelectVideo, disabled }: YouTubeSearchProps) {
     if (e.key === 'Enter') handleSearch();
   };
 
-  const decodeHtmlEntities = (text: string) => {
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = text;
-    return textarea.value;
-  };
 
   return (
     <div className="space-y-3">
