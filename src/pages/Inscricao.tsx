@@ -101,6 +101,14 @@ export default function Inscricao() {
   const [manualSongTitle, setManualSongTitle] = useState('');
 
   const handleManualUrl = () => {
+    if (!singerName.trim()) {
+      toast({
+        title: t('signup.enterName'),
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     const videoId = extractVideoId(manualUrl.trim());
     if (!videoId) {
       toast({
@@ -130,9 +138,7 @@ export default function Inscricao() {
     setManualUrl('');
     setManualSongTitle('');
     setSearchError('');
-    toast({
-      title: t('signup.videoLoaded'),
-    });
+    setShowConfirmDialog(true);
   };
 
   const handleSearch = async () => {
@@ -184,10 +190,6 @@ export default function Inscricao() {
 
 
   const handleSelectVideo = (video: YouTubeVideo) => {
-    setSelectedVideo(video);
-  };
-
-  const handleRequestConfirmation = () => {
     if (!singerName.trim()) {
       toast({
         title: t('signup.enterName'),
@@ -195,15 +197,8 @@ export default function Inscricao() {
       });
       return;
     }
-
-    if (!selectedVideo) {
-      toast({
-        title: t('signup.selectSong'),
-        variant: 'destructive',
-      });
-      return;
-    }
-
+    
+    setSelectedVideo(video);
     setShowConfirmDialog(true);
   };
 
@@ -411,26 +406,6 @@ export default function Inscricao() {
             )}
           </div>
 
-          {/* Selected Video */}
-          {selectedVideo && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="p-3 rounded-lg bg-primary/10 border border-primary/30"
-            >
-              <p className="text-sm text-muted-foreground mb-1">{t('signup.selectedSong')}</p>
-              <div className="flex items-center gap-3">
-                <img
-                  src={selectedVideo.thumbnail}
-                  alt={selectedVideo.title}
-                  className="w-20 h-12 object-cover rounded"
-                />
-                <p className="font-medium text-sm line-clamp-2 flex-1">
-                  {decodeHtmlEntities(selectedVideo.title)}
-                </p>
-              </div>
-            </motion.div>
-          )}
 
           {/* Video Results */}
           {videos.length > 0 && (
@@ -470,18 +445,6 @@ export default function Inscricao() {
             </ScrollArea>
           )}
 
-          {/* Submit Button - only show if video is selected */}
-          {selectedVideo && !isSubmitting && (
-            <Button
-              onClick={handleRequestConfirmation}
-              disabled={!singerName.trim() || !selectedVideo}
-              size="lg"
-              className="w-full text-lg"
-            >
-              <Mic className="mr-2 h-5 w-5" />
-              {t('signup.wantToSing')}
-            </Button>
-          )}
           
           {isSubmitting && (
             <div className="flex items-center justify-center py-4">
