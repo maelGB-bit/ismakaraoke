@@ -25,7 +25,7 @@ interface TVModeViewProps {
   youtubeUrl: string | null;
   onExit: () => void;
   onSelectNext: () => void;
-  onChangeVideo?: (newUrl: string) => Promise<void>;
+  onChangeVideo?: (newUrl: string, newSongTitle?: string) => Promise<void>;
 }
 
 function extractVideoId(url: string): string | null {
@@ -71,6 +71,7 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
   // Change video dialog state
   const [changeVideoOpen, setChangeVideoOpen] = useState(false);
   const [newVideoUrl, setNewVideoUrl] = useState('');
+  const [newSongTitle, setNewSongTitle] = useState('');
   
   // YouTube search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -156,13 +157,14 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
     setIsLoadingNext(false);
   };
 
-  const handleChangeVideo = async (url?: string) => {
+  const handleChangeVideo = async (url?: string, songTitle?: string) => {
     const videoUrl = url || newVideoUrl.trim();
     if (!onChangeVideo || !videoUrl) return;
     setIsChangingVideo(true);
     try {
-      await onChangeVideo(videoUrl);
+      await onChangeVideo(videoUrl, songTitle);
       setNewVideoUrl('');
+      setNewSongTitle('');
       setSearchQuery('');
       setSearchResults([]);
       setChangeVideoOpen(false);
@@ -210,7 +212,7 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
   };
 
   const handleSelectSearchResult = (video: YouTubeVideo) => {
-    handleChangeVideo(video.url);
+    handleChangeVideo(video.url, decodeHtmlEntities(video.title));
   };
 
   useEffect(() => {
@@ -321,6 +323,12 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
                 
                 {/* URL Tab */}
                 <TabsContent value="url" className="space-y-3 mt-4">
+                  <Input
+                    value={newSongTitle}
+                    onChange={(e) => setNewSongTitle(e.target.value)}
+                    placeholder={t('signup.songTitlePlaceholder')}
+                    disabled={isChangingVideo}
+                  />
                   <div className="flex gap-2">
                     <Input
                       value={newVideoUrl}
@@ -330,8 +338,8 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
                       disabled={isChangingVideo}
                     />
                     <Button 
-                      onClick={() => handleChangeVideo()} 
-                      disabled={isChangingVideo || !newVideoUrl.trim()}
+                      onClick={() => handleChangeVideo(undefined, newSongTitle.trim() || undefined)} 
+                      disabled={isChangingVideo || !newVideoUrl.trim() || !newSongTitle.trim()}
                     >
                       {isChangingVideo ? (
                         <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
