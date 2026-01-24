@@ -134,6 +134,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.confirmNo': 'Não, escolher outra',
     'signup.waitMoment': 'Aguarde um momento',
     'signup.waitSeconds': 'Aguarde antes de se inscrever novamente:',
+    'signup.previewHint': '🎧 Ouça um preview de 30 segundos antes de confirmar',
     
     // Ranking page
     'ranking.title': 'RANKING DA NOITE',
@@ -476,6 +477,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.confirmNo': 'Nein, ein anderes wählen',
     'signup.waitMoment': 'Bitte warten',
     'signup.waitSeconds': 'Warte, bevor du dich erneut anmeldest:',
+    'signup.previewHint': '🎧 Höre eine 30-Sekunden-Vorschau, bevor du bestätigst',
     
     // Ranking page
     'ranking.title': 'RANGLISTE DES ABENDS',
@@ -818,6 +820,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.confirmNo': 'No, choose another',
     'signup.waitMoment': 'Please wait',
     'signup.waitSeconds': 'Wait before signing up again:',
+    'signup.previewHint': '🎧 Listen to a 30-second preview before confirming',
     
     // Ranking page
     'ranking.title': 'TONIGHT\'S RANKING',
@@ -1160,6 +1163,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.confirmNo': 'No, elegir otra',
     'signup.waitMoment': 'Espera un momento',
     'signup.waitSeconds': 'Espera antes de inscribirte de nuevo:',
+    'signup.previewHint': '🎧 Escucha una vista previa de 30 segundos antes de confirmar',
     
     // Ranking page
     'ranking.title': 'RANKING DE LA NOCHE',
@@ -1500,6 +1504,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.confirmNo': 'Hayır, başka seç',
     'signup.waitMoment': 'Lütfen bekleyin',
     'signup.waitSeconds': 'Tekrar kaydolmadan önce bekleyin:',
+    'signup.previewHint': '🎧 Onaylamadan önce 30 saniyelik bir önizleme dinleyin',
     
     // Ranking page
     'ranking.title': 'GECENİN SIRALAMASI',
