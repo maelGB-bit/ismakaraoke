@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { Performance } from '@/types/karaoke';
 import type { WaitlistEntry } from '@/hooks/useWaitlist';
-
 interface TVModeViewProps {
   performance: Performance | null;
   nextInQueue: WaitlistEntry | null;
@@ -45,11 +44,66 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
   const [isExiting, setIsExiting] = useState(false);
   const [isLoadingNext, setIsLoadingNext] = useState(false);
   
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
   // Track vote changes for effects
   const [voteEffects, setVoteEffects] = useState<VoteEffect[]>([]);
   const [prevVotes, setPrevVotes] = useState(0);
   const [prevScore, setPrevScore] = useState(0);
   const effectIdRef = useRef(0);
+
+  // Fullscreen handlers
+  const enterFullscreen = useCallback(async () => {
+    try {
+      if (containerRef.current && document.fullscreenEnabled) {
+        await containerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      }
+    } catch (err) {
+      console.log('Fullscreen not available:', err);
+    }
+  }, []);
+
+  const exitFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.log('Error exiting fullscreen:', err);
+    }
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (isFullscreen) {
+      exitFullscreen();
+    } else {
+      enterFullscreen();
+    }
+  }, [isFullscreen, enterFullscreen, exitFullscreen]);
+
+  // Auto-enter fullscreen on mount
+  useEffect(() => {
+    enterFullscreen();
+    
+    // Listen for fullscreen changes (e.g., user pressing ESC)
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      // Exit fullscreen on unmount
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+    };
+  }, [enterFullscreen]);
 
   const handleExit = async () => {
     if (isExiting) return;
@@ -86,25 +140,44 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
 
   return (
     <motion.div
+      ref={containerRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden"
     >
-      {/* Exit Button */}
-      <Button
-        onClick={handleExit}
-        variant="ghost"
-        size="icon"
-        disabled={isExiting}
-        className="absolute top-2 right-2 text-muted-foreground hover:text-foreground z-20"
-      >
-        {isExiting ? (
-          <div className="h-5 w-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-        ) : (
-          <X className="h-5 w-5" />
-        )}
-      </Button>
+      {/* Control Buttons */}
+      <div className="absolute top-2 right-2 flex items-center gap-1 z-20">
+        {/* Fullscreen Toggle */}
+        <Button
+          onClick={toggleFullscreen}
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+          title={isFullscreen ? t('tv.exitFullscreen') : t('tv.enterFullscreen')}
+        >
+          {isFullscreen ? (
+            <Minimize className="h-5 w-5" />
+          ) : (
+            <Maximize className="h-5 w-5" />
+          )}
+        </Button>
+        
+        {/* Exit Button */}
+        <Button
+          onClick={handleExit}
+          variant="ghost"
+          size="icon"
+          disabled={isExiting}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          {isExiting ? (
+            <div className="h-5 w-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <X className="h-5 w-5" />
+          )}
+        </Button>
+      </div>
 
       {/* Top Bar - Compact Info */}
       <div className="flex items-center gap-2 p-2 bg-background/80 backdrop-blur-sm border-b border-border/50 z-10">
