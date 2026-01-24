@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic, Search, Loader2, Play, ArrowLeft, Music, UserPlus } from 'lucide-react';
+import { Mic, Search, Loader2, Play, ArrowLeft, Music, UserPlus, Link, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,6 +41,8 @@ export default function Inscricao() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRegistration, setShowRegistration] = useState(false);
   const [registerForOther, setRegisterForOther] = useState(false);
+  const [manualUrl, setManualUrl] = useState('');
+  const [searchError, setSearchError] = useState('');
 
   // Set singer name from profile when loaded
   useEffect(() => {
@@ -71,6 +73,44 @@ export default function Inscricao() {
     }
   };
 
+  const extractVideoId = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+      /^([a-zA-Z0-9_-]{11})$/
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+
+  const handleManualUrl = () => {
+    const videoId = extractVideoId(manualUrl.trim());
+    if (!videoId) {
+      toast({
+        title: t('signup.invalidUrl'),
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    const video: YouTubeVideo = {
+      id: videoId,
+      title: manualUrl.trim(),
+      thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+      channelTitle: 'YouTube',
+      url: `https://www.youtube.com/watch?v=${videoId}`,
+    };
+    
+    setSelectedVideo(video);
+    setManualUrl('');
+    setSearchError('');
+    toast({
+      title: t('signup.videoLoaded'),
+    });
+  };
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast({
@@ -83,6 +123,7 @@ export default function Inscricao() {
     setIsSearching(true);
     setVideos([]);
     setSelectedVideo(null);
+    setSearchError('');
 
     try {
       const { data, error } = await supabase.functions.invoke('youtube-search', {
@@ -90,11 +131,14 @@ export default function Inscricao() {
       });
 
       if (error) throw new Error(error.message);
-      if (data.error) throw new Error(data.error);
-
+      
       setVideos(data.videos || []);
 
-      if (data.videos?.length === 0) {
+      if (data.error) {
+        setSearchError(data.error);
+      }
+
+      if (data.videos?.length === 0 && !data.error) {
         toast({
           title: t('signup.noVideoFound'),
           description: t('signup.tryOtherTerms'),
@@ -102,11 +146,7 @@ export default function Inscricao() {
       }
     } catch (error) {
       console.error('Error searching YouTube:', error);
-      toast({
-        title: t('signup.searchError'),
-        description: t('signup.cantSearchVideos'),
-        variant: 'destructive',
-      });
+      setSearchError(t('signup.cantSearchVideos'));
     } finally {
       setIsSearching(false);
     }
@@ -253,6 +293,36 @@ export default function Inscricao() {
             </motion.p>
           )}
 
+          {/* Manual URL Input */}
+          <div className="space-y-2">
+            <Label className="text-lg flex items-center gap-2">
+              <Link className="h-4 w-4" />
+              {t('signup.pasteUrl')}
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                value={manualUrl}
+                onChange={(e) => setManualUrl(e.target.value)}
+                placeholder={t('signup.urlPlaceholder')}
+                className="flex-1"
+              />
+              <Button
+                onClick={handleManualUrl}
+                disabled={!manualUrl.trim()}
+                variant="secondary"
+              >
+                {t('signup.load')}
+              </Button>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs text-muted-foreground">{t('signup.orSearch')}</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
           {/* Song Search */}
           <div className="space-y-2">
             <Label className="text-lg flex items-center gap-2">
@@ -280,6 +350,16 @@ export default function Inscricao() {
                 )}
               </Button>
             </div>
+            {searchError && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-600 dark:text-yellow-400"
+              >
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <p className="text-xs">{searchError}</p>
+              </motion.div>
+            )}
           </div>
 
           {/* Selected Video */}

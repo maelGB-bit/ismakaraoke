@@ -5,14 +5,68 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// List of public Invidious instances to try (fallback chain)
-const INVIDIOUS_INSTANCES = [
-  'https://vid.puffyan.us',
-  'https://invidious.nerdvpn.de',
-  'https://invidious.jing.rocks',
-  'https://invidious.privacyredirect.com',
-  'https://iv.nbohr.dk',
+// Piped API instances (more reliable than Invidious)
+const PIPED_INSTANCES = [
+  'https://pipedapi.kavin.rocks',
+  'https://pipedapi.r4fo.com',
+  'https://api.piped.privacydev.net',
+  'https://pipedapi.darkness.services',
+  'https://pipedapi.in.projectsegfau.lt',
 ];
+
+// Invidious instances as fallback
+const INVIDIOUS_INSTANCES = [
+  'https://invidious.fdn.fr',
+  'https://invidious.perennialte.ch',
+  'https://yt.artemislena.eu',
+  'https://invidious.protokolla.fi',
+];
+
+async function searchWithPiped(query: string): Promise<any[]> {
+  const searchQuery = encodeURIComponent(query + ' karaoke');
+  
+  for (const instance of PIPED_INSTANCES) {
+    try {
+      console.log(`Trying Piped instance: ${instance}`);
+      
+      const response = await fetch(
+        `${instance}/search?q=${searchQuery}&filter=videos`,
+        { 
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(6000)
+        }
+      );
+      
+      if (!response.ok) {
+        console.log(`Piped ${instance} returned status ${response.status}`);
+        continue;
+      }
+      
+      const data = await response.json();
+      
+      if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+        console.log(`Success with Piped ${instance}, found ${data.items.length} results`);
+        
+        return data.items.slice(0, 10).map((item: any) => {
+          const videoId = item.url?.replace('/watch?v=', '') || '';
+          return {
+            id: videoId,
+            title: item.title || 'Unknown',
+            thumbnail: item.thumbnail || `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+            channelTitle: item.uploaderName || 'Unknown',
+            url: `https://www.youtube.com/watch?v=${videoId}`,
+          };
+        });
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      console.log(`Piped ${instance} failed: ${msg}`);
+      continue;
+    }
+  }
+  
+  return [];
+}
 
 async function searchWithInvidious(query: string): Promise<any[]> {
   const searchQuery = encodeURIComponent(query + ' karaoke');
@@ -25,19 +79,19 @@ async function searchWithInvidious(query: string): Promise<any[]> {
         `${instance}/api/v1/search?q=${searchQuery}&type=video`,
         { 
           headers: { 'Accept': 'application/json' },
-          signal: AbortSignal.timeout(8000) // 8 second timeout per instance
+          signal: AbortSignal.timeout(6000)
         }
       );
       
       if (!response.ok) {
-        console.log(`Instance ${instance} returned status ${response.status}`);
+        console.log(`Invidious ${instance} returned status ${response.status}`);
         continue;
       }
       
       const data = await response.json();
       
       if (Array.isArray(data) && data.length > 0) {
-        console.log(`Success with ${instance}, found ${data.length} results`);
+        console.log(`Success with Invidious ${instance}, found ${data.length} results`);
         
         return data.slice(0, 10).map((item: any) => ({
           id: item.videoId,
@@ -48,16 +102,16 @@ async function searchWithInvidious(query: string): Promise<any[]> {
         }));
       }
     } catch (error) {
-      console.log(`Instance ${instance} failed:`, error instanceof Error ? error.message : 'Unknown error');
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      console.log(`Invidious ${instance} failed: ${msg}`);
       continue;
     }
   }
   
-  throw new Error('All Invidious instances failed');
+  return [];
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -75,7 +129,24 @@ serve(async (req) => {
 
     console.log('Searching for:', query);
 
-    const videos = await searchWithInvidious(query);
+    // Try Piped first (more reliable)
+    let videos = await searchWithPiped(query);
+    
+    // Fallback to Invidious if Piped fails
+    if (videos.length === 0) {
+      console.log('Piped failed, trying Invidious...');
+      videos = await searchWithInvidious(query);
+    }
+
+    if (videos.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          videos: [],
+          error: 'Nenhum vídeo encontrado. Tente uma busca diferente ou cole o link do YouTube diretamente.'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ videos }),
@@ -87,10 +158,11 @@ serve(async (req) => {
     console.error('Error in youtube-search function:', errorMessage);
     return new Response(
       JSON.stringify({ 
-        error: 'Não foi possível buscar vídeos. Tente novamente em alguns segundos.',
+        videos: [],
+        error: 'Não foi possível buscar vídeos. Cole o link do YouTube diretamente.',
         details: errorMessage 
       }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
