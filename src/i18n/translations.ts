@@ -128,6 +128,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.karaokeHint': '💡 Dica: no YouTube, busque o nome da música + "karaoke"',
     'signup.songTitlePlaceholder': 'Nome da música...',
     'signup.enterSongTitle': 'Digite o nome da música',
+    'signup.confirmTitle': 'Confirmar música',
+    'signup.confirmQuestion': 'Esta é a música que você quer cantar?',
+    'signup.confirmYes': 'Sim, enviar!',
+    'signup.confirmNo': 'Não, escolher outra',
     
     // Ranking page
     'ranking.title': 'RANKING DA NOITE',
@@ -464,6 +468,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.karaokeHint': '💡 Tipp: Suche auf YouTube nach dem Songnamen + "karaoke"',
     'signup.songTitlePlaceholder': 'Songtitel...',
     'signup.enterSongTitle': 'Songtitel eingeben',
+    'signup.confirmTitle': 'Lied bestätigen',
+    'signup.confirmQuestion': 'Ist das das Lied, das du singen möchtest?',
+    'signup.confirmYes': 'Ja, absenden!',
+    'signup.confirmNo': 'Nein, ein anderes wählen',
     
     // Ranking page
     'ranking.title': 'RANGLISTE DES ABENDS',
@@ -800,6 +808,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.karaokeHint': '💡 Tip: on YouTube, search for the song name + "karaoke"',
     'signup.songTitlePlaceholder': 'Song title...',
     'signup.enterSongTitle': 'Enter song title',
+    'signup.confirmTitle': 'Confirm song',
+    'signup.confirmQuestion': 'Is this the song you want to sing?',
+    'signup.confirmYes': 'Yes, submit!',
+    'signup.confirmNo': 'No, choose another',
     
     // Ranking page
     'ranking.title': 'TONIGHT\'S RANKING',
@@ -1136,6 +1148,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.karaokeHint': '💡 Consejo: en YouTube, busca el nombre de la canción + "karaoke"',
     'signup.songTitlePlaceholder': 'Título de la canción...',
     'signup.enterSongTitle': 'Ingresa el título de la canción',
+    'signup.confirmTitle': 'Confirmar canción',
+    'signup.confirmQuestion': '¿Es esta la canción que quieres cantar?',
+    'signup.confirmYes': '¡Sí, enviar!',
+    'signup.confirmNo': 'No, elegir otra',
     
     // Ranking page
     'ranking.title': 'RANKING DE LA NOCHE',
@@ -1470,6 +1486,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.karaokeHint': '💡 İpucu: YouTube\'da şarkı adı + "karaoke" şeklinde arayın',
     'signup.songTitlePlaceholder': 'Şarkı adı...',
     'signup.enterSongTitle': 'Şarkı adını girin',
+    'signup.confirmTitle': 'Şarkıyı onayla',
+    'signup.confirmQuestion': 'Bu söylemek istediğin şarkı mı?',
+    'signup.confirmYes': 'Evet, gönder!',
+    'signup.confirmNo': 'Hayır, başka seç',
     
     // Ranking page
     'ranking.title': 'GECENİN SIRALAMASI',
