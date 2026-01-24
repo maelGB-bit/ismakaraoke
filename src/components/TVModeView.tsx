@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import type { Performance } from '@/types/karaoke';
 import type { WaitlistEntry } from '@/hooks/useWaitlist';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -44,8 +48,17 @@ interface VoteEffect {
   isPositive: boolean;
 }
 
+interface YouTubeVideo {
+  id: string;
+  title: string;
+  thumbnail: string;
+  channelTitle: string;
+  url: string;
+}
+
 export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSelectNext, onChangeVideo }: TVModeViewProps) {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const isActive = performance?.status === 'ativa';
   const score = performance ? Number(performance.nota_media) : 0;
   const totalVotes = performance?.total_votos || 0;
@@ -58,6 +71,11 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
   // Change video dialog state
   const [changeVideoOpen, setChangeVideoOpen] = useState(false);
   const [newVideoUrl, setNewVideoUrl] = useState('');
+  
+  // YouTube search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<YouTubeVideo[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [isChangingVideo, setIsChangingVideo] = useState(false);
   
   // Autoplay state - starts paused when loading next singer
@@ -138,17 +156,61 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
     setIsLoadingNext(false);
   };
 
-  const handleChangeVideo = async () => {
-    if (!onChangeVideo || !newVideoUrl.trim()) return;
+  const handleChangeVideo = async (url?: string) => {
+    const videoUrl = url || newVideoUrl.trim();
+    if (!onChangeVideo || !videoUrl) return;
     setIsChangingVideo(true);
     try {
-      await onChangeVideo(newVideoUrl.trim());
+      await onChangeVideo(videoUrl);
       setNewVideoUrl('');
+      setSearchQuery('');
+      setSearchResults([]);
       setChangeVideoOpen(false);
       setShouldAutoplay(false); // Load new video paused
     } finally {
       setIsChangingVideo(false);
     }
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    setSearchResults([]);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('youtube-search', {
+        body: { query: searchQuery.trim() },
+      });
+
+      if (error) throw new Error(error.message);
+      if (data.error) throw new Error(data.error);
+
+      setSearchResults(data.videos || []);
+
+      if (data.videos?.length === 0) {
+        toast({ title: t('youtube.noVideoFound'), description: t('youtube.tryOtherTerms') });
+      }
+    } catch (error) {
+      console.error('Error searching YouTube:', error);
+      toast({ title: t('youtube.searchError'), description: t('youtube.cantSearchVideos'), variant: 'destructive' });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleSearch();
+  };
+
+  const decodeHtmlEntities = (text: string) => {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+  };
+
+  const handleSelectSearchResult = (video: YouTubeVideo) => {
+    handleChangeVideo(video.url);
   };
 
   useEffect(() => {
@@ -194,29 +256,95 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
                 <Edit className="h-5 w-5" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>{t('tv.changeVideoTitle')}</DialogTitle>
                 <DialogDescription>{t('tv.changeVideoDesc')}</DialogDescription>
               </DialogHeader>
-              <div className="flex gap-2 mt-4">
-                <Input
-                  value={newVideoUrl}
-                  onChange={(e) => setNewVideoUrl(e.target.value)}
-                  placeholder="https://youtube.com/watch?v=..."
-                  className="flex-1"
-                />
-                <Button 
-                  onClick={handleChangeVideo} 
-                  disabled={isChangingVideo || !newVideoUrl.trim()}
-                >
-                  {isChangingVideo ? (
-                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    t('tv.save')
+              <Tabs defaultValue="search" className="mt-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="search" className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    {t('tv.searchTab')}
+                  </TabsTrigger>
+                  <TabsTrigger value="url" className="flex items-center gap-2">
+                    <Link className="h-4 w-4" />
+                    {t('tv.urlTab')}
+                  </TabsTrigger>
+                </TabsList>
+                
+                {/* Search Tab */}
+                <TabsContent value="search" className="space-y-3 mt-4">
+                  <div className="flex gap-2">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        value={searchQuery} 
+                        onChange={(e) => setSearchQuery(e.target.value)} 
+                        onKeyDown={handleSearchKeyDown} 
+                        placeholder={t('youtube.searchPlaceholder')} 
+                        className="pl-10" 
+                        disabled={isSearching || isChangingVideo} 
+                      />
+                    </div>
+                    <Button onClick={handleSearch} disabled={isSearching || isChangingVideo} variant="secondary">
+                      {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : t('youtube.search')}
+                    </Button>
+                  </div>
+
+                  {searchResults.length > 0 && (
+                    <ScrollArea className="h-[250px] rounded-lg border border-border bg-background/50">
+                      <div className="p-2 space-y-2">
+                        {searchResults.map((video) => (
+                          <button 
+                            key={video.id} 
+                            onClick={() => handleSelectSearchResult(video)} 
+                            disabled={isChangingVideo} 
+                            className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors text-left group disabled:opacity-50"
+                          >
+                            <div className="relative flex-shrink-0">
+                              <img src={video.thumbnail} alt={video.title} className="w-24 h-14 object-cover rounded-md" />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                                <Play className="h-5 w-5 text-white fill-white" />
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm line-clamp-2 text-foreground">{decodeHtmlEntities(video.title)}</p>
+                              <p className="text-xs text-muted-foreground mt-1 truncate">{video.channelTitle}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   )}
-                </Button>
-              </div>
+                </TabsContent>
+                
+                {/* URL Tab */}
+                <TabsContent value="url" className="space-y-3 mt-4">
+                  <div className="flex gap-2">
+                    <Input
+                      value={newVideoUrl}
+                      onChange={(e) => setNewVideoUrl(e.target.value)}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="flex-1"
+                      disabled={isChangingVideo}
+                    />
+                    <Button 
+                      onClick={() => handleChangeVideo()} 
+                      disabled={isChangingVideo || !newVideoUrl.trim()}
+                    >
+                      {isChangingVideo ? (
+                        <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        t('tv.save')
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {t('tv.urlHint')}
+                  </p>
+                </TabsContent>
+              </Tabs>
             </DialogContent>
           </Dialog>
         )}
