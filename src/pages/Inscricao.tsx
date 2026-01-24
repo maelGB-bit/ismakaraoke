@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { UserRegistrationModal } from '@/components/UserRegistrationModal';
 import { LeaveButton } from '@/components/LeaveButton';
+import { YouTubePreview } from '@/components/YouTubePreview';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -488,27 +489,26 @@ export default function Inscricao() {
             </div>
           )}
 
-          {/* Confirmation Dialog */}
+          {/* Confirmation Dialog with Preview */}
           <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-            <AlertDialogContent className="max-w-md">
+            <AlertDialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <AlertDialogHeader>
                 <AlertDialogTitle>{t('signup.confirmTitle')}</AlertDialogTitle>
-                <AlertDialogDescription className="space-y-4">
-                  <p>{t('signup.confirmQuestion')}</p>
-                  {selectedVideo && (
-                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={selectedVideo.thumbnail}
-                          alt={selectedVideo.title}
-                          className="w-20 h-12 object-cover rounded"
-                        />
-                        <p className="font-medium text-sm line-clamp-2 flex-1 text-foreground">
+                <AlertDialogDescription asChild>
+                  <div className="space-y-4">
+                    <p>{t('signup.confirmQuestion')}</p>
+                    {selectedVideo && (
+                      <div className="space-y-3">
+                        <p className="font-medium text-sm text-foreground">
                           {decodeHtmlEntities(selectedVideo.title)}
                         </p>
+                        <YouTubePreview 
+                          videoId={selectedVideo.id} 
+                          maxDuration={30}
+                        />
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
