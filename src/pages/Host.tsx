@@ -215,25 +215,34 @@ function HostContent() {
     const next = getTrueNextInQueue();
     if (!next) return;
     
-    // End current round if active
-    if (isRoundActive && performance) {
-      try {
-        await supabase.from('performances').update({ status: 'encerrada' }).eq('id', performance.id);
-        if (currentWaitlistEntryId && performance.cantor) {
-          await markAsDone(currentWaitlistEntryId, performance.cantor);
-        }
-      } catch (error) {
-        console.error('Error ending round:', error);
-      }
-    }
+    // Capture current state before updating
+    const previousEntryId = currentWaitlistEntryId;
+    const previousPerformance = performance;
+    const wasActive = isRoundActive;
     
-    // Load and start next singer
+    // Update UI state immediately (optimistic update for instant feedback)
     setCantor(next.singer_name);
     setMusica(next.song_title);
     setYoutubeUrl(next.youtube_url);
     setLoadedUrl(next.youtube_url);
     setCurrentWaitlistEntryId(next.id);
+    setLastHighScore(0);
     
+    // Run cleanup in background (non-blocking) - don't wait for these
+    if (wasActive && previousPerformance) {
+      (async () => {
+        try {
+          await supabase.from('performances').update({ status: 'encerrada' }).eq('id', previousPerformance.id);
+          if (previousEntryId && previousPerformance.cantor) {
+            await markAsDone(previousEntryId, previousPerformance.cantor);
+          }
+        } catch (err) {
+          console.error('Cleanup error:', err);
+        }
+      })();
+    }
+    
+    // Start new performance immediately
     try {
       const { data, error } = await supabase.from('performances').insert({ 
         cantor: next.singer_name, 
@@ -241,10 +250,11 @@ function HostContent() {
         youtube_url: next.youtube_url, 
         status: 'ativa' 
       }).select().single();
-      if (error) throw error;
-      setPerformance(data as Performance);
-      setLastHighScore(0);
-      toast({ title: t('host.singerSelected'), description: `${next.singer_name} - ${next.song_title}` });
+      
+      if (!error && data) {
+        setPerformance(data as Performance);
+        toast({ title: t('host.singerSelected'), description: `${next.singer_name} - ${next.song_title}` });
+      }
     } catch (error) {
       console.error('Error starting next round:', error);
     }
