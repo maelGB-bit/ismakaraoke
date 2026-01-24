@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { decodeHtmlEntities } from '@/lib/htmlUtils';
 import type { Performance } from '@/types/karaoke';
 import type { WaitlistEntry } from '@/hooks/useWaitlist';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -205,11 +206,6 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
     if (e.key === 'Enter') handleSearch();
   };
 
-  const decodeHtmlEntities = (text: string) => {
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = text;
-    return textarea.value;
-  };
 
   const handleSelectSearchResult = (video: YouTubeVideo) => {
     handleChangeVideo(video.url, decodeHtmlEntities(video.title));
