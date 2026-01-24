@@ -5,24 +5,98 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Piped API instances (more reliable than Invidious)
+// Piped API instances as fallback
 const PIPED_INSTANCES = [
   'https://pipedapi.kavin.rocks',
   'https://pipedapi.r4fo.com',
   'https://api.piped.privacydev.net',
-  'https://pipedapi.darkness.services',
-  'https://pipedapi.in.projectsegfau.lt',
 ];
 
-// Invidious instances as fallback
+// Invidious instances as secondary fallback
 const INVIDIOUS_INSTANCES = [
   'https://invidious.fdn.fr',
   'https://invidious.perennialte.ch',
   'https://yt.artemislena.eu',
-  'https://invidious.protokolla.fi',
 ];
 
-async function searchWithPiped(query: string): Promise<any[]> {
+interface VideoResult {
+  id: string;
+  title: string;
+  thumbnail: string;
+  channelTitle: string;
+  url: string;
+}
+
+// Try YouTube Data API with multiple keys
+async function searchWithYouTubeAPI(query: string): Promise<VideoResult[]> {
+  const apiKeysRaw = Deno.env.get('YOUTUBE_API_KEY');
+  if (!apiKeysRaw) {
+    console.log('No YOUTUBE_API_KEY configured');
+    return [];
+  }
+
+  // Support multiple keys separated by comma
+  const apiKeys = apiKeysRaw.split(',').map(k => k.trim()).filter(k => k.length > 0);
+  console.log(`Found ${apiKeys.length} YouTube API key(s)`);
+
+  const searchQuery = query + ' karaoke';
+
+  for (let i = 0; i < apiKeys.length; i++) {
+    const apiKey = apiKeys[i];
+    console.log(`Trying YouTube API key ${i + 1}/${apiKeys.length}`);
+
+    try {
+      const searchParams = new URLSearchParams({
+        part: 'snippet',
+        q: searchQuery,
+        type: 'video',
+        maxResults: '10',
+        key: apiKey,
+        videoEmbeddable: 'true',
+      });
+
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?${searchParams.toString()}`,
+        { signal: AbortSignal.timeout(8000) }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log(`YouTube API key ${i + 1} failed with status ${response.status}: ${errorText.substring(0, 200)}`);
+        
+        // If quota exceeded or forbidden, try next key
+        if (response.status === 403 || response.status === 429) {
+          continue;
+        }
+        continue;
+      }
+
+      const data = await response.json();
+      
+      if (data.items && data.items.length > 0) {
+        console.log(`Success with YouTube API key ${i + 1}, found ${data.items.length} results`);
+        
+        return data.items.map((item: any) => ({
+          id: item.id.videoId,
+          title: item.snippet.title,
+          thumbnail: item.snippet.thumbnails.medium.url,
+          channelTitle: item.snippet.channelTitle,
+          url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+        }));
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      console.log(`YouTube API key ${i + 1} error: ${msg}`);
+      continue;
+    }
+  }
+
+  console.log('All YouTube API keys exhausted or failed');
+  return [];
+}
+
+// Try Piped API instances
+async function searchWithPiped(query: string): Promise<VideoResult[]> {
   const searchQuery = encodeURIComponent(query + ' karaoke');
   
   for (const instance of PIPED_INSTANCES) {
@@ -68,7 +142,8 @@ async function searchWithPiped(query: string): Promise<any[]> {
   return [];
 }
 
-async function searchWithInvidious(query: string): Promise<any[]> {
+// Try Invidious API instances
+async function searchWithInvidious(query: string): Promise<VideoResult[]> {
   const searchQuery = encodeURIComponent(query + ' karaoke');
   
   for (const instance of INVIDIOUS_INSTANCES) {
@@ -129,10 +204,16 @@ serve(async (req) => {
 
     console.log('Searching for:', query);
 
-    // Try Piped first (more reliable)
-    let videos = await searchWithPiped(query);
+    // 1. Try YouTube API with multiple keys
+    let videos = await searchWithYouTubeAPI(query);
     
-    // Fallback to Invidious if Piped fails
+    // 2. Fallback to Piped if YouTube API fails
+    if (videos.length === 0) {
+      console.log('YouTube API failed, trying Piped...');
+      videos = await searchWithPiped(query);
+    }
+    
+    // 3. Fallback to Invidious if Piped fails
     if (videos.length === 0) {
       console.log('Piped failed, trying Invidious...');
       videos = await searchWithInvidious(query);
@@ -142,7 +223,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           videos: [],
-          error: 'Nenhum vídeo encontrado. Tente uma busca diferente ou cole o link do YouTube diretamente.'
+          error: 'Nenhum vídeo encontrado. Cole o link do YouTube diretamente.'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
