@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic, Search, Loader2, Play, ArrowLeft, Music, UserPlus, Link, AlertCircle } from 'lucide-react';
+import { Mic, Search, Loader2, Play, ArrowLeft, Music, UserPlus, Link, AlertCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -299,9 +299,20 @@ export default function Inscricao() {
               <Link className="h-4 w-4" />
               {t('signup.pasteUrl')}
             </Label>
-            <p className="text-xs text-muted-foreground">
-              {t('signup.karaokeHint')}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-muted-foreground flex-1">
+                {t('signup.karaokeHint')}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="shrink-0"
+                onClick={() => window.open('https://www.youtube.com/results?search_query=karaoke', '_blank')}
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                YouTube
+              </Button>
+            </div>
             <div className="flex gap-2">
               <Input
                 value={manualUrl}
