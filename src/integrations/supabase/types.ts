@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      event_settings: {
+        Row: {
+          id: string
+          registration_open: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          registration_open?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          registration_open?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       host_settings: {
         Row: {
           created_at: string

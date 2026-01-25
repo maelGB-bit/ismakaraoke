@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2 } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/i18n/LanguageContext';
@@ -19,11 +19,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { useEventSettings } from '@/hooks/useEventSettings';
 
 interface TVModeViewProps {
   performance: Performance | null;
   nextInQueue: WaitlistEntry | null;
   youtubeUrl: string | null;
+  queueCount: number;
   onExit: () => void;
   onSelectNext: () => void;
   onChangeVideo?: (newUrl: string, newSongTitle?: string) => Promise<void>;
@@ -57,9 +59,10 @@ interface YouTubeVideo {
   url: string;
 }
 
-export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSelectNext, onChangeVideo }: TVModeViewProps) {
+export function TVModeView({ performance, nextInQueue, youtubeUrl, queueCount, onExit, onSelectNext, onChangeVideo }: TVModeViewProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { isRegistrationOpen, toggleRegistration } = useEventSettings();
   const isActive = performance?.status === 'ativa';
   const score = performance ? Number(performance.nota_media) : 0;
   const totalVotes = performance?.total_votos || 0;
@@ -68,6 +71,28 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
   // Loading states for buttons
   const [isExiting, setIsExiting] = useState(false);
   const [isLoadingNext, setIsLoadingNext] = useState(false);
+  const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
+  
+  // Calculate estimated end time (4 min per song + 1 min break)
+  const estimatedEndTime = useMemo(() => {
+    const SONG_DURATION_MINUTES = 4;
+    const BREAK_MINUTES = 1;
+    const totalMinutes = queueCount * (SONG_DURATION_MINUTES + BREAK_MINUTES);
+    const endTime = new Date(Date.now() + totalMinutes * 60 * 1000);
+    return endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }, [queueCount]);
+
+  const handleToggleRegistration = async () => {
+    if (isTogglingRegistration) return;
+    setIsTogglingRegistration(true);
+    const success = await toggleRegistration();
+    if (success) {
+      toast({
+        title: isRegistrationOpen ? t('registration.closedSuccess') : t('registration.opened'),
+      });
+    }
+    setIsTogglingRegistration(false);
+  };
   
   // Change video dialog state
   const [changeVideoOpen, setChangeVideoOpen] = useState(false);
@@ -481,6 +506,55 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, onExit, onSel
           ) : (
             <span className="text-xs text-muted-foreground">-</span>
           )}
+        </motion.button>
+
+        {/* Queue Stats */}
+        <motion.div
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flex items-center gap-3 px-3 py-1 glass-card"
+        >
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Users className="w-3 h-3" />
+            <span className="text-sm font-bold text-foreground">{queueCount}</span>
+            <span className="text-xs">{t('tv.queueCount')}</span>
+          </div>
+          {queueCount > 0 && (
+            <>
+              <span className="text-muted-foreground text-xs">•</span>
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <Clock className="w-3 h-3" />
+                <span className="text-xs">{t('tv.estimatedEnd')}:</span>
+                <span className="text-sm font-bold text-foreground">{estimatedEndTime}</span>
+              </div>
+            </>
+          )}
+        </motion.div>
+
+        {/* Registration Toggle Button */}
+        <motion.button
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          onClick={handleToggleRegistration}
+          disabled={isTogglingRegistration}
+          className={`flex items-center gap-2 px-3 py-1 glass-card transition-colors disabled:opacity-50 ${
+            isRegistrationOpen 
+              ? 'hover:bg-destructive/10 text-foreground' 
+              : 'hover:bg-primary/10 text-muted-foreground'
+          }`}
+        >
+          {isTogglingRegistration ? (
+            <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : isRegistrationOpen ? (
+            <Lock className="w-3 h-3" />
+          ) : (
+            <Unlock className="w-3 h-3" />
+          )}
+          <span className="text-xs">
+            {isRegistrationOpen ? t('registration.closeBtn') : t('registration.openBtn')}
+          </span>
         </motion.button>
 
       </div>

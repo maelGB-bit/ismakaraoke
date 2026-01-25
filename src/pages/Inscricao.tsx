@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic, Search, Loader2, Play, ArrowLeft, Music, UserPlus, Link, AlertCircle, ExternalLink } from 'lucide-react';
+import { Mic, Search, Loader2, Play, ArrowLeft, Music, UserPlus, Link, AlertCircle, ExternalLink, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useWaitlist } from '@/hooks/useWaitlist';
 import { useActivePerformance } from '@/hooks/usePerformance';
 import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
+import { useEventSettings } from '@/hooks/useEventSettings';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { decodeHtmlEntities } from '@/lib/htmlUtils';
 import {
@@ -44,6 +45,7 @@ export default function Inscricao() {
   const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist();
   const { performance } = useActivePerformance();
   const { profile, loading: profileLoading, saveProfile } = useUserProfile();
+  const { isRegistrationOpen, loading: settingsLoading } = useEventSettings();
   
   const [singerName, setSingerName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -273,14 +275,49 @@ export default function Inscricao() {
           )}
         </div>
 
-        {/* Form */}
-        <div className="glass-card p-6 space-y-6">
-          {/* Singer Name */}
-          <div className="space-y-2">
-            <Label htmlFor="singer-name" className="text-lg flex items-center gap-2">
-              <Mic className="h-4 w-4" />
-              {t('signup.yourName')}
-            </Label>
+        {/* Registration Closed Message */}
+        {!isRegistrationOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-card p-6 text-center border-destructive/50"
+          >
+            <Lock className="h-12 w-12 mx-auto mb-4 text-destructive" />
+            <h2 className="text-xl font-bold text-destructive mb-2">
+              {t('registration.closedByHost')}
+            </h2>
+            <p className="text-muted-foreground">
+              {t('registration.closedMessage')}
+            </p>
+            <div className="flex gap-3 mt-6">
+              <Button
+                onClick={() => navigate('/vote')}
+                variant="outline"
+                className="flex-1"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t('signup.goToVoting')}
+              </Button>
+              <Button
+                onClick={() => navigate('/ranking')}
+                variant="outline"
+                className="flex-1"
+              >
+                {t('signup.showRanking')}
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Form - only show if registration is open */}
+        {isRegistrationOpen && (
+          <div className="glass-card p-6 space-y-6">
+            {/* Singer Name */}
+            <div className="space-y-2">
+              <Label htmlFor="singer-name" className="text-lg flex items-center gap-2">
+                <Mic className="h-4 w-4" />
+                {t('signup.yourName')}
+              </Label>
             <Input
               id="singer-name"
               value={singerName}
@@ -483,6 +520,7 @@ export default function Inscricao() {
             </AlertDialogContent>
           </AlertDialog>
         </div>
+        )}
 
         {/* Waitlist */}
         <ParticipantWaitlist 

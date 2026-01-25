@@ -358,6 +358,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.save': 'Salvar',
     'tv.videoUpdated': '✅ Vídeo atualizado!',
     'tv.cantUpdateVideo': 'Não foi possível atualizar o vídeo',
+    'tv.queueCount': 'pessoas na fila',
+    'tv.estimatedEnd': 'Previsão de término',
+    'tv.avgSongDuration': '~4 min/música + 1 min intervalo',
+    
+    // Registration control
+    'registration.open': 'Inscrições abertas',
+    'registration.closed': 'Inscrições encerradas',
+    'registration.openBtn': 'Abrir Inscrições',
+    'registration.closeBtn': 'Encerrar Inscrições',
+    'registration.closedByHost': 'O organizador encerrou as inscrições',
+    'registration.closedMessage': 'As inscrições para este evento foram encerradas pelo organizador. Aguarde a liberação.',
+    'registration.opened': '✅ Inscrições abertas!',
+    'registration.closedSuccess': '🔒 Inscrições encerradas!',
   },
   
   de: {
@@ -703,6 +716,21 @@ export const translations: Record<Language, Record<string, string>> = {
     // Menu option
     'menu.guide': 'Event-Leitfaden',
     'menu.guide.desc': 'Sieh wie es funktioniert und drucke QR-Codes für die Tische',
+    
+    // TV Mode queue stats
+    'tv.queueCount': 'Personen in der Warteschlange',
+    'tv.estimatedEnd': 'Geschätzte Endzeit',
+    'tv.avgSongDuration': '~4 Min/Lied + 1 Min Pause',
+    
+    // Registration control
+    'registration.open': 'Anmeldung geöffnet',
+    'registration.closed': 'Anmeldung geschlossen',
+    'registration.openBtn': 'Anmeldung öffnen',
+    'registration.closeBtn': 'Anmeldung schließen',
+    'registration.closedByHost': 'Der Organisator hat die Anmeldung geschlossen',
+    'registration.closedMessage': 'Die Anmeldung für diese Veranstaltung wurde vom Organisator geschlossen. Bitte warten Sie auf die Freigabe.',
+    'registration.opened': '✅ Anmeldung geöffnet!',
+    'registration.closedSuccess': '🔒 Anmeldung geschlossen!',
   },
   
   en: {
@@ -1048,6 +1076,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.save': 'Save',
     'tv.videoUpdated': '✅ Video updated!',
     'tv.cantUpdateVideo': 'Could not update video',
+    'tv.queueCount': 'people in queue',
+    'tv.estimatedEnd': 'Estimated end time',
+    'tv.avgSongDuration': '~4 min/song + 1 min break',
+    
+    // Registration control
+    'registration.open': 'Registration open',
+    'registration.closed': 'Registration closed',
+    'registration.openBtn': 'Open Registration',
+    'registration.closeBtn': 'Close Registration',
+    'registration.closedByHost': 'The organizer has closed registration',
+    'registration.closedMessage': 'Registration for this event has been closed by the organizer. Please wait for it to be reopened.',
+    'registration.opened': '✅ Registration opened!',
+    'registration.closedSuccess': '🔒 Registration closed!',
   },
   
   es: {
@@ -1391,6 +1432,19 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.save': 'Guardar',
     'tv.videoUpdated': '✅ ¡Video actualizado!',
     'tv.cantUpdateVideo': 'No se pudo actualizar el video',
+    'tv.queueCount': 'personas en la cola',
+    'tv.estimatedEnd': 'Hora estimada de fin',
+    'tv.avgSongDuration': '~4 min/canción + 1 min pausa',
+    
+    // Registration control
+    'registration.open': 'Inscripción abierta',
+    'registration.closed': 'Inscripción cerrada',
+    'registration.openBtn': 'Abrir inscripción',
+    'registration.closeBtn': 'Cerrar inscripción',
+    'registration.closedByHost': 'El organizador ha cerrado las inscripciones',
+    'registration.closedMessage': 'Las inscripciones para este evento han sido cerradas por el organizador. Espere a que se reabra.',
+    'registration.opened': '✅ ¡Inscripción abierta!',
+    'registration.closedSuccess': '🔒 ¡Inscripción cerrada!',
   },
   
   tr: {
@@ -1734,5 +1788,18 @@ export const translations: Record<Language, Record<string, string>> = {
     'tv.save': 'Kaydet',
     'tv.videoUpdated': '✅ Video güncellendi!',
     'tv.cantUpdateVideo': 'Video güncellenemedi',
+    'tv.queueCount': 'kişi sırada',
+    'tv.estimatedEnd': 'Tahmini bitiş saati',
+    'tv.avgSongDuration': '~4 dk/şarkı + 1 dk mola',
+    
+    // Registration control
+    'registration.open': 'Kayıt açık',
+    'registration.closed': 'Kayıt kapalı',
+    'registration.openBtn': 'Kaydı aç',
+    'registration.closeBtn': 'Kaydı kapat',
+    'registration.closedByHost': 'Organizatör kayıtları kapattı',
+    'registration.closedMessage': 'Bu etkinlik için kayıtlar organizatör tarafından kapatıldı. Lütfen tekrar açılmasını bekleyin.',
+    'registration.opened': '✅ Kayıt açıldı!',
+    'registration.closedSuccess': '🔒 Kayıt kapatıldı!',
   },
 };
