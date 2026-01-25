@@ -29,23 +29,28 @@ export default function Vote() {
   const [lastVideoChangedAt, setLastVideoChangedAt] = useState<string | null>(null);
 
   // Check if user already voted for current performance
+  const checkExistingVote = async () => {
+    if (!performance?.id || !deviceId) {
+      setCheckingVote(false);
+      return;
+    }
+    
+    const { data } = await supabase
+      .from('votes')
+      .select('id')
+      .eq('performance_id', performance.id)
+      .eq('device_id', deviceId)
+      .maybeSingle();
+
+    setHasVoted(!!data);
+    setCheckingVote(false);
+  };
+
   useEffect(() => {
     if (!performance?.id || !deviceId) {
       setCheckingVote(false);
       return;
     }
-
-    const checkExistingVote = async () => {
-      const { data } = await supabase
-        .from('votes')
-        .select('id')
-        .eq('performance_id', performance.id)
-        .eq('device_id', deviceId)
-        .maybeSingle();
-
-      setHasVoted(!!data);
-      setCheckingVote(false);
-    };
 
     setCheckingVote(true);
     checkExistingVote();
@@ -58,8 +63,8 @@ export default function Vote() {
     const videoChangedAt = performance.video_changed_at;
     
     if (videoChangedAt && lastVideoChangedAt && videoChangedAt !== lastVideoChangedAt) {
-      // Video was changed by host - reset voting status and notify user
-      setHasVoted(false);
+      // Video was changed by host - re-check vote status (votes were deleted) and notify user
+      checkExistingVote();
       toast({
         title: t('vote.songChanged'),
         description: t('vote.songChangedDesc'),
@@ -67,7 +72,7 @@ export default function Vote() {
     }
     
     setLastVideoChangedAt(videoChangedAt || null);
-  }, [performance?.video_changed_at, lastVideoChangedAt, toast, t]);
+  }, [performance?.video_changed_at]);
 
   const handleSubmitVote = async (nota: number) => {
     if (!performance?.id || !deviceId) return;
