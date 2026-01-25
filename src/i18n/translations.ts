@@ -93,6 +93,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'vote.youGave': 'Você deu',
     'vote.for': 'para',
     'vote.cantRegisterVote': 'Não foi possível registrar o voto',
+    'vote.songChanged': '🎵 Música alterada!',
+    'vote.songChangedDesc': 'O organizador alterou a música. Vote novamente!',
     
     // Inscricao page
     'signup.title': 'Inscrição',
@@ -436,6 +438,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'vote.youGave': 'Du hast',
     'vote.for': 'für',
     'vote.cantRegisterVote': 'Stimme konnte nicht registriert werden',
+    'vote.songChanged': '🎵 Lied geändert!',
+    'vote.songChangedDesc': 'Der Veranstalter hat das Lied geändert. Stimme erneut ab!',
     
     // Inscricao page
     'signup.title': 'Anmeldung',
@@ -779,6 +783,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'vote.youGave': 'You gave',
     'vote.for': 'to',
     'vote.cantRegisterVote': 'Could not register vote',
+    'vote.songChanged': '🎵 Song changed!',
+    'vote.songChangedDesc': 'The organizer changed the song. Vote again!',
     
     // Inscricao page
     'signup.title': 'Sign Up',
@@ -1122,6 +1128,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'vote.youGave': 'Has dado',
     'vote.for': 'a',
     'vote.cantRegisterVote': 'No se pudo registrar el voto',
+    'vote.songChanged': '🎵 ¡Canción cambiada!',
+    'vote.songChangedDesc': 'El organizador cambió la canción. ¡Vota de nuevo!',
     
     // Inscricao page
     'signup.title': 'Inscripción',
@@ -1463,6 +1471,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'vote.youGave': 'Verdiniz',
     'vote.for': 'için',
     'vote.cantRegisterVote': 'Oy kaydedilemedi',
+    'vote.songChanged': '🎵 Şarkı değiştirildi!',
+    'vote.songChangedDesc': 'Organizatör şarkıyı değiştirdi. Tekrar oy verin!',
     
     // Inscricao page
     'signup.title': 'Kayıt',

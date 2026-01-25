@@ -44,6 +44,7 @@ export type Database = {
           nota_media: number | null
           status: string
           total_votos: number | null
+          video_changed_at: string | null
           youtube_url: string | null
         }
         Insert: {
@@ -54,6 +55,7 @@ export type Database = {
           nota_media?: number | null
           status?: string
           total_votos?: number | null
+          video_changed_at?: string | null
           youtube_url?: string | null
         }
         Update: {
@@ -64,6 +66,7 @@ export type Database = {
           nota_media?: number | null
           status?: string
           total_votos?: number | null
+          video_changed_at?: string | null
           youtube_url?: string | null
         }
         Relationships: []
