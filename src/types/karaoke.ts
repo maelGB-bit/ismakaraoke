@@ -7,6 +7,7 @@ export interface Performance {
   nota_media: number;
   total_votos: number;
   created_at: string;
+  video_changed_at?: string | null;
 }
 
 export interface Vote {
