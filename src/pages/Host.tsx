@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit } from 'lucide-react';
+import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ import { TVModeView } from '@/components/TVModeView';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
+import { useEventSettings } from '@/hooks/useEventSettings';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { Performance } from '@/types/karaoke';
 import { useToast } from '@/hooks/use-toast';
@@ -55,6 +56,8 @@ function HostContent() {
     getNextInQueue,
   } = useWaitlist();
 
+  const { isRegistrationOpen, toggleRegistration } = useEventSettings();
+
   const [cantor, setCantor] = useState('');
   const [musica, setMusica] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -64,7 +67,20 @@ function HostContent() {
   const [lastHighScore, setLastHighScore] = useState(0);
   const [currentWaitlistEntryId, setCurrentWaitlistEntryId] = useState<string | null>(null);
   const [showTVMode, setShowTVMode] = useState(false);
+  const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
   const highestScore = ranking.length > 0 ? Math.max(...ranking.map(p => Number(p.nota_media))) : 0;
+
+  const handleToggleRegistration = async () => {
+    if (isTogglingRegistration) return;
+    setIsTogglingRegistration(true);
+    const success = await toggleRegistration();
+    if (success) {
+      toast({
+        title: isRegistrationOpen ? t('registration.closedSuccess') : t('registration.opened'),
+      });
+    }
+    setIsTogglingRegistration(false);
+  };
 
   useEffect(() => {
     if (performance && performance.status === 'ativa') {
@@ -328,6 +344,7 @@ function HostContent() {
             performance={performance}
             nextInQueue={trueNextInQueue}
             youtubeUrl={loadedUrl}
+            queueCount={waitlistEntries.filter(e => e.status === 'waiting').length}
             onExit={async () => {
               // End voting when exiting TV mode
               if (isRoundActive && performance) {
@@ -345,6 +362,25 @@ function HostContent() {
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="max-w-7xl mx-auto">
         <header className="text-center mb-6 relative">
           <div className="absolute right-0 top-0 flex gap-2">
+            <Button
+              onClick={handleToggleRegistration}
+              variant="outline"
+              size="sm"
+              disabled={isTogglingRegistration}
+              className={isRegistrationOpen 
+                ? "text-destructive border-destructive/50 hover:bg-destructive/10" 
+                : "text-primary border-primary/50 hover:bg-primary/10"
+              }
+            >
+              {isTogglingRegistration ? (
+                <div className="mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : isRegistrationOpen ? (
+                <Lock className="mr-2 h-4 w-4" />
+              ) : (
+                <Unlock className="mr-2 h-4 w-4" />
+              )}
+              {isRegistrationOpen ? t('registration.closeBtn') : t('registration.openBtn')}
+            </Button>
             <Button
               onClick={handleEnterTVMode}
               variant="outline"
