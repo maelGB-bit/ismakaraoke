@@ -55,7 +55,7 @@ export default function Vote() {
   useEffect(() => {
     if (!performance) return;
     
-    const videoChangedAt = (performance as any).video_changed_at;
+    const videoChangedAt = performance.video_changed_at;
     
     if (videoChangedAt && lastVideoChangedAt && videoChangedAt !== lastVideoChangedAt) {
       // Video was changed by host - reset voting status and notify user
@@ -67,7 +67,7 @@ export default function Vote() {
     }
     
     setLastVideoChangedAt(videoChangedAt || null);
-  }, [(performance as any)?.video_changed_at]);
+  }, [performance?.video_changed_at, lastVideoChangedAt, toast, t]);
 
   const handleSubmitVote = async (nota: number) => {
     if (!performance?.id || !deviceId) return;
