@@ -267,22 +267,17 @@ function HostContent() {
     // Update database if performance is active
     if (performance?.id) {
       try {
-        // Build update object
-        const updateData: { youtube_url: string; musica?: string } = { youtube_url: newUrl };
+        // Build update object with video_changed_at timestamp to notify voters
+        const updateData: { youtube_url: string; musica?: string; video_changed_at: string } = { 
+          youtube_url: newUrl,
+          video_changed_at: new Date().toISOString()
+        };
         if (newSongTitle) {
           updateData.musica = newSongTitle;
           setMusica(newSongTitle);
         }
         
-        // Update performance
-        const { error: perfError } = await supabase
-          .from('performances')
-          .update(updateData)
-          .eq('id', performance.id);
-        
-        if (perfError) throw perfError;
-        
-        // Delete all votes for this performance (reset for new song)
+        // Delete all votes for this performance first (reset for new song)
         const { error: votesError } = await supabase
           .from('votes')
           .delete()
@@ -292,11 +287,17 @@ function HostContent() {
           console.error('Error deleting votes:', votesError);
         }
         
-        // Reset the performance stats (will be recalculated by trigger)
-        await supabase
+        // Update performance with new URL, song title, reset stats, and video_changed_at
+        const { error: perfError } = await supabase
           .from('performances')
-          .update({ total_votos: 0, nota_media: 0 })
+          .update({ 
+            ...updateData, 
+            total_votos: 0, 
+            nota_media: 0 
+          })
           .eq('id', performance.id);
+        
+        if (perfError) throw perfError;
         
         // Also update waitlist entry if exists
         if (currentWaitlistEntryId) {

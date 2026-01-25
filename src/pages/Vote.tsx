@@ -26,6 +26,7 @@ export default function Vote() {
   const [hasVoted, setHasVoted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingVote, setCheckingVote] = useState(true);
+  const [lastVideoChangedAt, setLastVideoChangedAt] = useState<string | null>(null);
 
   // Check if user already voted for current performance
   useEffect(() => {
@@ -49,6 +50,24 @@ export default function Vote() {
     setCheckingVote(true);
     checkExistingVote();
   }, [performance?.id, deviceId]);
+
+  // Detect when host changes the video/song and reset voting
+  useEffect(() => {
+    if (!performance) return;
+    
+    const videoChangedAt = (performance as any).video_changed_at;
+    
+    if (videoChangedAt && lastVideoChangedAt && videoChangedAt !== lastVideoChangedAt) {
+      // Video was changed by host - reset voting status and notify user
+      setHasVoted(false);
+      toast({
+        title: t('vote.songChanged'),
+        description: t('vote.songChangedDesc'),
+      });
+    }
+    
+    setLastVideoChangedAt(videoChangedAt || null);
+  }, [(performance as any)?.video_changed_at]);
 
   const handleSubmitVote = async (nota: number) => {
     if (!performance?.id || !deviceId) return;
