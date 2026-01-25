@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic2, CheckCircle, Trophy, AlertCircle, Clock, Music } from 'lucide-react';
@@ -26,7 +26,10 @@ export default function Vote() {
   const [hasVoted, setHasVoted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingVote, setCheckingVote] = useState(true);
-  const [lastVideoChangedAt, setLastVideoChangedAt] = useState<string | null>(null);
+  
+  // Use ref to track video changes without causing stale closure issues
+  const lastVideoChangedAtRef = useRef<string | null>(null);
+  const isFirstLoadRef = useRef(true);
 
   // Check if user already voted for current performance
   const checkExistingVote = async () => {
@@ -52,27 +55,39 @@ export default function Vote() {
       return;
     }
 
+    // Reset refs when performance changes (new singer)
+    isFirstLoadRef.current = true;
+    lastVideoChangedAtRef.current = null;
+    
     setCheckingVote(true);
     checkExistingVote();
   }, [performance?.id, deviceId]);
 
-  // Detect when host changes the video/song and reset voting
+  // Detect when host changes the video/song and reset voting (realtime)
   useEffect(() => {
     if (!performance) return;
     
     const videoChangedAt = performance.video_changed_at;
     
-    if (videoChangedAt && lastVideoChangedAt && videoChangedAt !== lastVideoChangedAt) {
+    // On first load for this performance, just record the initial value
+    if (isFirstLoadRef.current) {
+      isFirstLoadRef.current = false;
+      lastVideoChangedAtRef.current = videoChangedAt || null;
+      return;
+    }
+    
+    // Check if video was changed by host (same performance, different video)
+    if (videoChangedAt && videoChangedAt !== lastVideoChangedAtRef.current) {
       // Video was changed by host - re-check vote status (votes were deleted) and notify user
+      console.log('Video changed detected:', lastVideoChangedAtRef.current, '->', videoChangedAt);
+      lastVideoChangedAtRef.current = videoChangedAt;
       checkExistingVote();
       toast({
         title: t('vote.songChanged'),
         description: t('vote.songChangedDesc'),
       });
     }
-    
-    setLastVideoChangedAt(videoChangedAt || null);
-  }, [performance?.video_changed_at]);
+  }, [performance?.video_changed_at, toast, t]);
 
   const handleSubmitVote = async (nota: number) => {
     if (!performance?.id || !deviceId) return;
