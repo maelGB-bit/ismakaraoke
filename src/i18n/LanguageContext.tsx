@@ -5,7 +5,6 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
-  isLanguageSelected: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
@@ -14,14 +13,12 @@ const LANGUAGE_KEY = 'karaoke_language';
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>('pt');
-  const [isLanguageSelected, setIsLanguageSelected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem(LANGUAGE_KEY) as Language | null;
     if (savedLanguage && languages.some(l => l.code === savedLanguage)) {
       setLanguageState(savedLanguage);
-      setIsLanguageSelected(true);
     }
     setIsLoading(false);
   }, []);
@@ -29,7 +26,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem(LANGUAGE_KEY, lang);
-    setIsLanguageSelected(true);
   };
 
   const t = (key: string): string => {
@@ -41,7 +37,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isLanguageSelected }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

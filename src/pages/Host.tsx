@@ -13,6 +13,7 @@ import { ConfettiEffect } from '@/components/ConfettiEffect';
 import { HostWaitlistPanel } from '@/components/HostWaitlistPanel';
 import { HostAuth, useHostAuth } from '@/components/HostAuth';
 import { TVModeView } from '@/components/TVModeView';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -390,6 +391,7 @@ function HostContent() {
               <Monitor className="mr-2 h-4 w-4" />
               {t('tv.modeButton')}
             </Button>
+            <LanguageSwitcher />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">

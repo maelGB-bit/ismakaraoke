@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { VoteSlider } from '@/components/VoteSlider';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { LeaveButton } from '@/components/LeaveButton';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useActivePerformance } from '@/hooks/usePerformance';
 import { useDeviceId } from '@/hooks/useDeviceId';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -230,7 +231,12 @@ export default function Vote() {
   }
 
   return (
-    <div className="min-h-screen gradient-bg flex flex-col p-4">
+    <div className="min-h-screen gradient-bg flex flex-col p-4 relative">
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageSwitcher />
+      </div>
+      
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
