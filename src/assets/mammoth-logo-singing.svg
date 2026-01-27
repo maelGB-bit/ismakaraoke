@@ -1,0 +1,60 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(128 128) rotate(90) scale(120)">
+      <stop offset="0" stop-color="#FFB347" stop-opacity="0.8" />
+      <stop offset="1" stop-color="#FF6B8A" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="face" x1="64" y1="72" x2="192" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7A5C4B" />
+      <stop offset="1" stop-color="#5A4034" />
+    </linearGradient>
+    <linearGradient id="mane" x1="32" y1="40" x2="224" y2="216" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FDD27F" />
+      <stop offset="1" stop-color="#FF8C66" />
+    </linearGradient>
+  </defs>
+
+  <circle cx="128" cy="128" r="120" fill="url(#glow)" />
+
+  <path
+    d="M128 24C88 24 54 44 40 78C26 112 36 170 72 198C108 226 148 232 188 210C228 188 242 144 232 104C222 64 184 24 128 24Z"
+    fill="url(#mane)"
+  />
+
+  <path
+    d="M64 120C64 86 92 58 128 58C164 58 192 86 192 120V156C192 192 164 220 128 220C92 220 64 192 64 156V120Z"
+    fill="url(#face)"
+  />
+
+  <ellipse cx="102" cy="120" rx="10" ry="16" fill="#2B1B16" />
+  <ellipse cx="154" cy="120" rx="10" ry="16" fill="#2B1B16" />
+  <circle cx="99" cy="116" r="3" fill="#FFF3E0" />
+  <circle cx="151" cy="116" r="3" fill="#FFF3E0" />
+
+  <path
+    d="M106 166C114 156 140 156 148 166C152 170 152 176 148 182C144 190 132 196 127 196C122 196 110 190 106 182C102 176 102 170 106 166Z"
+    fill="#F95F6B"
+  />
+  <path d="M116 182C120 178 134 178 138 182" stroke="#3B1E1B" stroke-width="4" stroke-linecap="round" />
+
+  <path
+    d="M72 150C52 150 36 134 36 114C36 94 52 80 72 80C84 80 92 88 92 104C92 120 84 128 72 128C62 128 56 122 56 114C56 106 62 100 72 100"
+    stroke="#EFD1BE"
+    stroke-width="10"
+    stroke-linecap="round"
+  />
+  <path
+    d="M184 150C204 150 220 134 220 114C220 94 204 80 184 80C172 80 164 88 164 104C164 120 172 128 184 128C194 128 200 122 200 114C200 106 194 100 184 100"
+    stroke="#EFD1BE"
+    stroke-width="10"
+    stroke-linecap="round"
+  />
+
+  <path d="M92 88C104 76 120 70 128 70" stroke="#2B1B16" stroke-width="6" stroke-linecap="round" />
+  <path d="M164 88C152 76 136 70 128 70" stroke="#2B1B16" stroke-width="6" stroke-linecap="round" />
+
+  <path d="M202 54C212 42 226 38 236 38" stroke="#FF8C66" stroke-width="6" stroke-linecap="round" />
+  <circle cx="236" cy="38" r="6" fill="#FF8C66" />
+  <path d="M210 74C222 66 234 66 244 70" stroke="#FFB347" stroke-width="6" stroke-linecap="round" />
+  <circle cx="244" cy="70" r="6" fill="#FFB347" />
+</svg>

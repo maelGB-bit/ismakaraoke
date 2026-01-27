@@ -4,7 +4,7 @@ import { Mic2, Users, Trophy, ArrowRight, Music, Globe, BookOpen } from 'lucide-
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { languages } from '@/i18n/translations';
-import mammothLogo from '@/assets/mammoth-logo.png';
+import mammothLogo from '@/assets/mammoth-logo-singing.svg';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,7 +99,11 @@ export default function Index() {
           className="inline-block mb-6"
         >
           <div className="relative">
-            <img src={mammothLogo} alt="Mamutts Karaoke" className="w-32 h-32 animate-float" />
+            <img
+              src={mammothLogo}
+              alt="Mamute cantando"
+              className="w-32 h-32 animate-float"
+            />
             <div className="absolute inset-0 w-32 h-32 bg-primary/20 blur-2xl rounded-full" />
           </div>
         </motion.div>
