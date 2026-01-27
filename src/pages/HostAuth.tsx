@@ -50,14 +50,15 @@ export default function HostAuthPage() {
       }
     }
 
-    // Check if any hosts or coordinators exist
+    // Check if any hosts exist (not coordinators - they are created by admin)
     const { count } = await supabase
       .from('user_roles')
       .select('*', { count: 'exact', head: true })
-      .in('role', ['host', 'coordinator']);
+      .eq('role', 'host');
     
     setHasHosts((count ?? 0) > 0);
-    // If no hosts/coordinators exist, show signup form for first one
+    // If no hosts exist, show signup form for first one
+    // Coordinators should always use login (they are created by admin)
     setIsSignUp((count ?? 0) === 0);
     setIsLoading(false);
   };
@@ -160,7 +161,26 @@ export default function HostAuthPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateInputs()) return;
+    // For login, only validate email format and that password is not empty
+    try {
+      emailSchema.parse(email);
+    } catch {
+      toast({ 
+        title: t('auth.invalidEmail') || 'Email inválido', 
+        description: t('auth.enterValidEmail') || 'Digite um email válido',
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    if (!password.trim()) {
+      toast({ 
+        title: 'Senha obrigatória', 
+        description: 'Digite sua senha',
+        variant: 'destructive' 
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -204,7 +224,7 @@ export default function HostAuthPage() {
           title: t('auth.accessGranted'), 
           description: t('auth.welcomeHost') 
         });
-        navigate('/host');
+        navigate('/host', { replace: true });
       }
     } catch (error: any) {
       console.error('Error logging in:', error);
