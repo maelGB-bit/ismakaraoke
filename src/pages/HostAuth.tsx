@@ -33,38 +33,50 @@ export default function HostAuthPage() {
   }, []);
 
   const checkAuthState = async () => {
-    // Check if user is already logged in
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session?.user) {
-      // Check if user is a host or coordinator
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .in('role', ['host', 'coordinator']);
+    try {
+      // Check if user is already logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        // Check if user is a host or coordinator
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .in('role', ['host', 'coordinator']);
 
-      if (roleData && roleData.length > 0) {
-        navigate('/host', { replace: true });
-        return;
+        if (roleData && roleData.length > 0) {
+          navigate('/host', { replace: true });
+          return;
+        }
       }
-    }
 
-    // Check if any hosts OR coordinators exist - if any exist, show login form
-    // Only show signup form if this is the very first user (no hosts exist)
-    const { count: hostCount } = await supabase
-      .from('user_roles')
-      .select('*', { count: 'exact', head: true })
-      .eq('role', 'host');
-    
-    // Always default to login form if there are any hosts
-    // The signup option is ONLY for the very first host setup
-    const hasAnyHosts = (hostCount ?? 0) > 0;
-    setHasHosts(hasAnyHosts);
-    // Default to login - coordinators are ALWAYS created by admin, they should never see signup
-    // Only show signup if no hosts exist at all (first-time setup)
-    setIsSignUp(!hasAnyHosts);
-    setIsLoading(false);
+      // Check if any hosts OR coordinators exist - if any exist, show login form
+      // Only show signup form if this is the very first user (no hosts exist)
+      const { count: hostCount, error: countError } = await supabase
+        .from('user_roles')
+        .select('*', { count: 'exact', head: true })
+        .in('role', ['host', 'coordinator']);
+      
+      if (countError) {
+        console.error('Error checking hosts:', countError);
+      }
+      
+      // Always default to login form if there are any hosts or coordinators
+      // The signup option is ONLY for the very first host setup
+      const hasAnyHosts = (hostCount ?? 0) > 0;
+      setHasHosts(hasAnyHosts);
+      // Default to login - coordinators are ALWAYS created by admin, they should never see signup
+      // Only show signup if no hosts exist at all (first-time setup)
+      setIsSignUp(!hasAnyHosts);
+    } catch (error) {
+      console.error('Error in checkAuthState:', error);
+      // Default to login form on error
+      setHasHosts(true);
+      setIsSignUp(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const validateInputs = (): boolean => {
