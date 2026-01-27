@@ -17,9 +17,8 @@ function generateInstanceCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-function generateTempPassword(): string {
-  return Math.random().toString(36).slice(-12) + 'A1!';
-}
+// Fixed temporary password
+const TEMP_PASSWORD = "mamutekaraoke";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -72,7 +71,6 @@ Deno.serve(async (req) => {
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
     let userId: string;
-    let tempPassword: string | null = null;
     let isNewUser = false;
 
     // Check if user already exists
@@ -83,10 +81,9 @@ Deno.serve(async (req) => {
       console.log("User already exists:", existingUser.id);
       userId = existingUser.id;
       
-      // Generate new password and update it for existing user
-      tempPassword = generateTempPassword();
+      // Reset password to fixed temp password
       const { error: updatePasswordError } = await adminClient.auth.admin.updateUserById(userId, {
-        password: tempPassword,
+        password: TEMP_PASSWORD,
       });
       
       if (updatePasswordError) {
@@ -139,7 +136,7 @@ Deno.serve(async (req) => {
           })
           .eq("id", existingInstance.id);
 
-        // Update request status
+        // Update request status with must_change_password = true
         await adminClient
           .from("coordinator_requests")
           .update({
@@ -149,7 +146,9 @@ Deno.serve(async (req) => {
             approved_by: callerUser?.id || null,
             expires_at: expiresAt.toISOString(),
             instance_name: instanceName.trim(),
-            temp_password: tempPassword,
+            temp_password: TEMP_PASSWORD,
+            current_password: TEMP_PASSWORD,
+            must_change_password: true,
           })
           .eq("id", requestId);
 
@@ -158,7 +157,7 @@ Deno.serve(async (req) => {
             success: true,
             userId,
             instanceCode: existingInstance.instance_code,
-            tempPassword,
+            tempPassword: TEMP_PASSWORD,
             expiresAt: expiresAt.toISOString(),
             renewed: true,
           }),
@@ -171,10 +170,9 @@ Deno.serve(async (req) => {
     } else {
       // Create new user
       isNewUser = true;
-      tempPassword = generateTempPassword();
       const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
         email,
-        password: tempPassword,
+        password: TEMP_PASSWORD,
         email_confirm: true,
       });
 
@@ -247,7 +245,9 @@ Deno.serve(async (req) => {
         approved_by: callerUser?.id || null,
         expires_at: expiresAt.toISOString(),
         instance_name: instanceName.trim(),
-        temp_password: tempPassword,
+        temp_password: TEMP_PASSWORD,
+        current_password: TEMP_PASSWORD,
+        must_change_password: true,
       })
       .eq("id", requestId);
 
@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
         success: true,
         userId,
         instanceCode,
-        tempPassword,
+        tempPassword: TEMP_PASSWORD,
         expiresAt: expiresAt.toISOString(),
       }),
       {

@@ -44,6 +44,8 @@ export interface CoordinatorRequest {
   expires_at?: string;
   instance_name?: string;
   temp_password?: string;
+  current_password?: string;
+  must_change_password?: boolean;
   created_at: string;
   updated_at: string;
 }

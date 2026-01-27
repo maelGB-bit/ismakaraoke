@@ -64,7 +64,7 @@ export function CoordinatorDetailsModal({ request, open, onOpenChange, onPasswor
   if (!request) return null;
 
   const isExpired = request.expires_at && new Date(request.expires_at) < new Date();
-  const displayPassword = currentPassword || request.temp_password;
+  const displayPassword = currentPassword || request.current_password || request.temp_password;
 
   const copyPassword = () => {
     if (displayPassword) {
@@ -244,7 +244,9 @@ export function CoordinatorDetailsModal({ request, open, onOpenChange, onPasswor
                 <div className="flex items-center gap-3">
                   <Key className="h-4 w-4 text-primary" />
                   <div className="flex-1">
-                    <p className="text-xs text-muted-foreground">Senha Temporária</p>
+                    <p className="text-xs text-muted-foreground">
+                      {request.must_change_password ? 'Senha Temporária' : 'Senha Atual'}
+                    </p>
                     <div className="flex items-center gap-2">
                       <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
                         {displayPassword ? (showPassword ? displayPassword : '••••••••••') : 'Não disponível'}
