@@ -71,44 +71,126 @@ Deno.serve(async (req) => {
     // Use service role client to create user without affecting admin session
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Create user account
-    const tempPassword = generateTempPassword();
-    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
-      email,
-      password: tempPassword,
-      email_confirm: true, // Auto-confirm email
-    });
+    let userId: string;
+    let tempPassword: string | null = null;
+    let isNewUser = false;
 
-    if (authError) {
-      console.error("Auth error:", authError);
-      return new Response(JSON.stringify({ error: authError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Check if user already exists
+    const { data: existingUsers } = await adminClient.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(u => u.email === email);
+
+    if (existingUser) {
+      console.log("User already exists:", existingUser.id);
+      userId = existingUser.id;
+      
+      // Check if they already have a coordinator role
+      const { data: existingRole } = await adminClient
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("role", "coordinator")
+        .maybeSingle();
+      
+      if (!existingRole) {
+        // Add coordinator role if missing
+        const { error: roleError } = await adminClient
+          .from("user_roles")
+          .insert({ user_id: userId, role: "coordinator" });
+        
+        if (roleError) {
+          console.error("Role error:", roleError);
+        }
+      }
+
+      // Check if they already have an instance
+      const { data: existingInstance } = await adminClient
+        .from("karaoke_instances")
+        .select("id, instance_code")
+        .eq("coordinator_id", userId)
+        .maybeSingle();
+
+      if (existingInstance) {
+        // Update the existing instance with new expiration
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + durationHours);
+        
+        await adminClient
+          .from("karaoke_instances")
+          .update({
+            name: instanceName.trim(),
+            status: "active",
+            expires_at: expiresAt.toISOString(),
+          })
+          .eq("id", existingInstance.id);
+
+        // Update request status
+        await adminClient
+          .from("coordinator_requests")
+          .update({
+            status: "approved",
+            user_id: userId,
+            approved_at: new Date().toISOString(),
+            approved_by: callerUser?.id || null,
+            expires_at: expiresAt.toISOString(),
+            instance_name: instanceName.trim(),
+          })
+          .eq("id", requestId);
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            userId,
+            instanceCode: existingInstance.instance_code,
+            tempPassword: null,
+            expiresAt: expiresAt.toISOString(),
+            renewed: true,
+          }),
+          {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    } else {
+      // Create new user
+      isNewUser = true;
+      tempPassword = generateTempPassword();
+      const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+        email,
+        password: tempPassword,
+        email_confirm: true,
       });
-    }
 
-    if (!authData.user) {
-      return new Response(JSON.stringify({ error: "Failed to create user" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+      if (authError) {
+        console.error("Auth error:", authError);
+        return new Response(JSON.stringify({ error: authError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-    const userId = authData.user.id;
+      if (!authData.user) {
+        return new Response(JSON.stringify({ error: "Failed to create user" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-    // 2. Add coordinator role
-    const { error: roleError } = await adminClient
-      .from("user_roles")
-      .insert({ user_id: userId, role: "coordinator" });
+      userId = authData.user.id;
 
-    if (roleError) {
-      console.error("Role error:", roleError);
-      // Cleanup: delete created user
-      await adminClient.auth.admin.deleteUser(userId);
-      return new Response(JSON.stringify({ error: "Failed to assign role" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      // Add coordinator role
+      const { error: roleError } = await adminClient
+        .from("user_roles")
+        .insert({ user_id: userId, role: "coordinator" });
+
+      if (roleError) {
+        console.error("Role error:", roleError);
+        await adminClient.auth.admin.deleteUser(userId);
+        return new Response(JSON.stringify({ error: "Failed to assign role" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // 3. Calculate expiration
