@@ -81,9 +81,10 @@ Deno.serve(async (req) => {
       console.log("User already exists:", existingUser.id);
       userId = existingUser.id;
       
-      // Reset password to fixed temp password
+      // Reset password to fixed temp password and clear session_invalidated flag
       const { error: updatePasswordError } = await adminClient.auth.admin.updateUserById(userId, {
         password: TEMP_PASSWORD,
+        app_metadata: { session_invalidated: false }
       });
       
       if (updatePasswordError) {

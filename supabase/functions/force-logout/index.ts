@@ -52,22 +52,29 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Sign out user from all sessions
-    const { error: signOutError } = await adminClient.auth.admin.signOut(userId, 'global');
+    // Update user metadata to add force_logout timestamp
+    // This will invalidate old tokens when combined with client-side check
+    const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
+      app_metadata: { 
+        force_logout_at: new Date().toISOString(),
+        session_invalidated: true
+      }
+    });
 
-    if (signOutError) {
-      console.error("Sign out error:", signOutError);
-      return new Response(JSON.stringify({ error: "Failed to sign out user" }), {
+    if (updateError) {
+      console.error("Update user error:", updateError);
+      return new Response(JSON.stringify({ error: "Failed to update user" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log("User signed out successfully:", userId);
+    console.log("User metadata updated to force logout:", userId);
 
     return new Response(
       JSON.stringify({
         success: true,
+        message: "User session will be invalidated. User will need to login again.",
       }),
       {
         status: 200,
