@@ -49,11 +49,13 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           created_at: string
+          current_password: string | null
           email: string
           expires_at: string | null
           id: string
           instance_name: string | null
           interest: Database["public"]["Enums"]["subscription_interest"]
+          must_change_password: boolean | null
           name: string
           phone: string
           status: Database["public"]["Enums"]["coordinator_request_status"]
@@ -65,11 +67,13 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           created_at?: string
+          current_password?: string | null
           email: string
           expires_at?: string | null
           id?: string
           instance_name?: string | null
           interest: Database["public"]["Enums"]["subscription_interest"]
+          must_change_password?: boolean | null
           name: string
           phone: string
           status?: Database["public"]["Enums"]["coordinator_request_status"]
@@ -81,11 +85,13 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           created_at?: string
+          current_password?: string | null
           email?: string
           expires_at?: string | null
           id?: string
           instance_name?: string | null
           interest?: Database["public"]["Enums"]["subscription_interest"]
+          must_change_password?: boolean | null
           name?: string
           phone?: string
           status?: Database["public"]["Enums"]["coordinator_request_status"]

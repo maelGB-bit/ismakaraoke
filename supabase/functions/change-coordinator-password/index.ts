@@ -5,13 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface ResetPasswordRequest {
-  userId: string;
-  requestId: string;
+interface ChangePasswordRequest {
+  newPassword: string;
 }
-
-// Fixed temporary password
-const TEMP_PASSWORD = "mamutekaraoke";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -35,20 +31,20 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    // Check if caller is admin
-    const { data: isAdminData, error: adminCheckError } = await userClient.rpc("is_admin");
-    if (adminCheckError || !isAdminData) {
-      return new Response(JSON.stringify({ error: "Not authorized" }), {
-        status: 403,
+    // Get the current user
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Not authenticated" }), {
+        status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const body: ResetPasswordRequest = await req.json();
-    const { userId, requestId } = body;
+    const body: ChangePasswordRequest = await req.json();
+    const { newPassword } = body;
 
-    if (!userId || !requestId) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+    if (!newPassword || newPassword.length < 6) {
+      return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -56,39 +52,38 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Update user password to fixed temp password
-    const { error: updatePasswordError } = await adminClient.auth.admin.updateUserById(userId, {
-      password: TEMP_PASSWORD,
+    // Update user password using admin client
+    const { error: updatePasswordError } = await adminClient.auth.admin.updateUserById(user.id, {
+      password: newPassword,
     });
 
     if (updatePasswordError) {
       console.error("Password update error:", updatePasswordError);
-      return new Response(JSON.stringify({ error: "Failed to reset password" }), {
+      return new Response(JSON.stringify({ error: "Failed to update password" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Update temp_password, current_password and must_change_password in coordinator_requests
+    // Update current_password and must_change_password in coordinator_requests
     const { error: updateRequestError } = await adminClient
       .from("coordinator_requests")
       .update({ 
-        temp_password: TEMP_PASSWORD,
-        current_password: TEMP_PASSWORD,
-        must_change_password: true,
+        current_password: newPassword,
+        must_change_password: false,
       })
-      .eq("id", requestId);
+      .eq("user_id", user.id);
 
     if (updateRequestError) {
       console.error("Update request error:", updateRequestError);
+      // Don't fail - password was changed successfully
     }
 
-    console.log("Password reset successfully for user:", userId);
+    console.log("Password changed successfully for user:", user.id);
 
     return new Response(
       JSON.stringify({
         success: true,
-        tempPassword: TEMP_PASSWORD,
       }),
       {
         status: 200,

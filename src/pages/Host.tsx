@@ -16,6 +16,7 @@ import { TVModeView } from '@/components/TVModeView';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { NoInstanceAssigned } from '@/components/NoInstanceAssigned';
 import { SubscriptionExpired } from '@/components/SubscriptionExpired';
+import { ChangePasswordModal } from '@/components/ChangePasswordModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -65,11 +66,55 @@ function HostContent() {
     getNextInQueue,
   } = useWaitlist(instanceId);
 
-  // Show loading while checking for instance
-  if (instanceLoading) {
+  // Check if user needs to change password
+  const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [checkingPasswordStatus, setCheckingPasswordStatus] = useState(true);
+
+  useEffect(() => {
+    const checkPasswordStatus = async () => {
+      if (!user?.email) {
+        setCheckingPasswordStatus(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('coordinator_requests')
+          .select('must_change_password')
+          .eq('email', user.email)
+          .eq('status', 'approved')
+          .maybeSingle();
+
+        if (!error && data?.must_change_password) {
+          setMustChangePassword(true);
+        }
+      } catch (err) {
+        console.error('Error checking password status:', err);
+      } finally {
+        setCheckingPasswordStatus(false);
+      }
+    };
+
+    checkPasswordStatus();
+  }, [user?.email]);
+
+  // Show loading while checking for instance or password status
+  if (instanceLoading || checkingPasswordStatus) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
         <Loader2 className="w-16 h-16 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  // Show password change modal if required
+  if (mustChangePassword) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <ChangePasswordModal 
+          open={true} 
+          onPasswordChanged={() => setMustChangePassword(false)} 
+        />
       </div>
     );
   }
