@@ -1,61 +1,103 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic2, Users, Trophy, ArrowRight, Music, BookOpen } from 'lucide-react';
+import { Mic2, Loader2, LogIn, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import mammothLogo from '@/assets/mammoth-logo.png';
+import { InterestForm } from '@/components/InterestForm';
 
 export default function Index() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { toast } = useToast();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
 
-  const features = [
-    {
-      icon: BookOpen,
-      title: t('menu.guide'),
-      description: t('menu.guide.desc'),
-      path: '/guia',
-      color: 'text-neon-green',
-      glow: '',
-    },
-    {
-      icon: Mic2,
-      title: t('menu.host'),
-      description: t('menu.host.desc'),
-      path: '/host',
-      color: 'text-primary',
-      glow: 'neon-glow-pink',
-    },
-    {
-      icon: Music,
-      title: t('menu.signup'),
-      description: t('menu.signup.desc'),
-      path: '/inscricao',
-      color: 'text-accent',
-      glow: 'neon-glow-cyan',
-    },
-    {
-      icon: Users,
-      title: t('menu.vote'),
-      description: t('menu.vote.desc'),
-      path: '/vote',
-      color: 'text-secondary',
-      glow: '',
-    },
-    {
-      icon: Trophy,
-      title: t('menu.ranking'),
-      description: t('menu.ranking.desc'),
-      path: '/ranking',
-      color: 'text-yellow-400',
-      glow: 'neon-glow-gold',
-    },
-  ];
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        await redirectBasedOnRole(session.user.id);
+      }
+      setCheckingSession(false);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          await redirectBasedOnRole(session.user.id);
+        }
+      }
+    );
+
+    checkSession();
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const redirectBasedOnRole = async (userId: string) => {
+    const { data: roles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId);
+
+    const userRoles = roles?.map(r => r.role) || [];
+
+    if (userRoles.includes('admin')) {
+      navigate('/admin');
+    } else if (userRoles.includes('coordinator')) {
+      navigate('/host');
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim() || !password.trim()) {
+      toast({ title: 'Preencha todos os campos', variant: 'destructive' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        await redirectBasedOnRole(data.user.id);
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro ao fazer login';
+      toast({ title: message, variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center">
+        <Loader2 className="w-16 h-16 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen gradient-bg flex flex-col items-center justify-center p-4 relative">
-      {/* Language Switcher */}
       <div className="absolute top-4 right-4">
         <LanguageSwitcher />
       </div>
@@ -63,25 +105,25 @@ export default function Index() {
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-12"
+        className="text-center mb-8"
       >
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', delay: 0.2 }}
-          className="inline-block mb-6"
+          className="inline-block mb-4"
         >
           <div className="relative">
-            <img src={mammothLogo} alt="Mamutts Karaoke" className="w-32 h-32 animate-float" />
-            <div className="absolute inset-0 w-32 h-32 bg-primary/20 blur-2xl rounded-full" />
+            <img src={mammothLogo} alt="Mamutts Karaoke" className="w-24 h-24 animate-float" />
+            <div className="absolute inset-0 w-24 h-24 bg-primary/20 blur-2xl rounded-full" />
           </div>
         </motion.div>
 
-        <h1 className="text-5xl md:text-7xl font-black font-display mb-4">
+        <h1 className="text-4xl md:text-5xl font-black font-display mb-2">
           <span className="neon-text-pink">MAMUTTS</span>{' '}
           <span className="neon-text-cyan">KARAOKE</span>
         </h1>
-        <p className="text-xl text-muted-foreground max-w-md mx-auto">
+        <p className="text-muted-foreground">
           {t('app.subtitle')}
         </p>
       </motion.div>
@@ -90,40 +132,70 @@ export default function Index() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl w-full"
+        className="w-full max-w-md"
       >
-        {features.map((feature, index) => (
-          <motion.div
-            key={feature.path}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 + index * 0.1 }}
-          >
-            <Button
-              onClick={() => navigate(feature.path)}
-              variant="outline"
-              className={`glass-card w-full h-auto p-6 flex flex-col items-center gap-4 group hover:scale-105 transition-transform ${feature.glow}`}
-            >
-              <feature.icon className={`w-12 h-12 ${feature.color}`} />
-              <div className="text-center">
-                <h2 className="text-2xl font-bold font-display mb-1">
-                  {feature.title}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {feature.description}
-                </p>
-              </div>
-              <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </motion.div>
-        ))}
+        <Tabs defaultValue="login" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="login" className="gap-2">
+              <LogIn className="h-4 w-4" />
+              Entrar
+            </TabsTrigger>
+            <TabsTrigger value="interest" className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Tenho Interesse
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="login">
+            <div className="glass-card p-6 rounded-xl">
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="seu@email.com"
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    disabled={isLoading}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Mic2 className="mr-2 h-4 w-4" />
+                      Entrar
+                    </>
+                  )}
+                </Button>
+              </form>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="interest">
+            <InterestForm />
+          </TabsContent>
+        </Tabs>
       </motion.div>
 
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
-        className="mt-12 text-sm text-muted-foreground"
+        className="mt-8 text-sm text-muted-foreground"
       >
         {t('app.madeWith')}
       </motion.p>
