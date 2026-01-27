@@ -115,64 +115,36 @@ export function AdminCoordinatorRequests() {
     const request = approvalDialog.request;
 
     try {
-      // 1. Create user account
-      const tempPassword = Math.random().toString(36).slice(-12) + 'A1!';
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: request.email,
-        password: tempPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
+      // Get duration in hours
+      const durationConfig = APPROVAL_DURATIONS.find(d => d.value === duration);
+      const durationHours = durationConfig?.hours || 24;
+
+      // Call edge function to create coordinator (keeps admin session intact)
+      const { data: session } = await supabase.auth.getSession();
+      
+      const response = await supabase.functions.invoke('create-coordinator', {
+        body: {
+          email: request.email,
+          name: request.name,
+          instanceName: instanceName.trim(),
+          durationHours,
+          requestId: request.id,
         },
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Erro ao criar usuário');
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao criar coordenador');
+      }
 
-      const userId = authData.user.id;
+      const result = response.data;
 
-      // 2. Add coordinator role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: userId, role: 'coordinator' });
-
-      if (roleError) throw roleError;
-
-      // 3. Calculate expiration
-      const durationConfig = APPROVAL_DURATIONS.find(d => d.value === duration);
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + (durationConfig?.hours || 24));
-
-      // 4. Create karaoke instance
-      const instanceCode = generateInstanceCode();
-      const { error: instanceError } = await supabase
-        .from('karaoke_instances')
-        .insert({
-          coordinator_id: userId,
-          name: instanceName.trim(),
-          instance_code: instanceCode,
-          status: 'active',
-          expires_at: expiresAt.toISOString(),
-        });
-
-      if (instanceError) throw instanceError;
-
-      // 5. Update request status
-      const { error: updateError } = await supabase
-        .from('coordinator_requests')
-        .update({
-          status: 'approved',
-          user_id: userId,
-          approved_at: new Date().toISOString(),
-          expires_at: expiresAt.toISOString(),
-          instance_name: instanceName.trim(),
-        })
-        .eq('id', request.id);
-
-      if (updateError) throw updateError;
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao criar coordenador');
+      }
 
       toast({ 
         title: 'Coordenador aprovado!',
-        description: `Instância ${instanceCode} criada. Senha temporária: ${tempPassword}`,
+        description: `Instância ${result.instanceCode} criada. Senha temporária: ${result.tempPassword}`,
       });
 
       setApprovalDialog({ open: false, request: null });
@@ -181,7 +153,7 @@ export function AdminCoordinatorRequests() {
       console.error('Error approving coordinator:', error);
       const message = error instanceof Error ? error.message : 'Erro ao aprovar';
       
-      if (message.includes('already registered')) {
+      if (message.includes('already registered') || message.includes('already been registered')) {
         toast({ title: 'Este email já está cadastrado no sistema', variant: 'destructive' });
       } else {
         toast({ title: message, variant: 'destructive' });
