@@ -90,6 +90,7 @@ export default function Index() {
 
       if (error) {
         console.error('Index: Error fetching roles:', error);
+        setIsLoading(false);
         return;
       }
 
@@ -98,15 +99,17 @@ export default function Index() {
 
       if (userRoles.includes('admin')) {
         console.log('Index: Redirecting to /admin');
-        navigate('/admin');
+        navigate('/admin', { replace: true });
       } else if (userRoles.includes('coordinator')) {
         console.log('Index: Redirecting to /host');
-        navigate('/host');
+        navigate('/host', { replace: true });
       } else {
         console.log('Index: No recognized role found');
+        setIsLoading(false);
       }
     } catch (err) {
       console.error('Index: Error in redirectBasedOnRole:', err);
+      setIsLoading(false);
     }
   };
 
