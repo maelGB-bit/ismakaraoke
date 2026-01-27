@@ -73,7 +73,7 @@ function buildFairOrder(waitingEntries: WaitlistEntry[]): WaitlistEntry[] {
   return result;
 }
 
-export function useWaitlist() {
+export function useWaitlist(instanceId?: string | null) {
   const [entries, setEntries] = useState<WaitlistEntry[]>([]);
   const [historyEntries, setHistoryEntries] = useState<WaitlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,12 +107,18 @@ export function useWaitlist() {
 
   const fetchWaitingEntries = async (forceRebalance = false) => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('waitlist')
         .select('*')
         .eq('status', 'waiting')
         .order('priority', { ascending: true })
         .order('created_at', { ascending: true });
+      
+      if (instanceId) {
+        query = query.eq('karaoke_instance_id', instanceId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       const waiting = (data as WaitlistEntry[]) || [];
@@ -127,12 +133,18 @@ export function useWaitlist() {
 
   const fetchHistory = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('waitlist')
         .select('*')
         .eq('status', 'done')
         .order('created_at', { ascending: false })
         .limit(50);
+      
+      if (instanceId) {
+        query = query.eq('karaoke_instance_id', instanceId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setHistoryEntries((data as WaitlistEntry[]) || []);
@@ -150,11 +162,17 @@ export function useWaitlist() {
   useEffect(() => {
     fetchEntries();
 
+    const channelName = instanceId ? `waitlist-${instanceId}` : 'waitlist-changes';
     const channel = supabase
-      .channel('waitlist-changes')
+      .channel(channelName)
       .on(
         'postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'waitlist' }, 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'waitlist',
+          ...(instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {}),
+        }, 
         (payload) => {
           console.log('Waitlist INSERT detected:', payload);
           fetchEntries();
@@ -162,7 +180,12 @@ export function useWaitlist() {
       )
       .on(
         'postgres_changes', 
-        { event: 'UPDATE', schema: 'public', table: 'waitlist' }, 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'waitlist',
+          ...(instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {}),
+        }, 
         (payload) => {
           console.log('Waitlist UPDATE detected:', payload);
           fetchEntries();
@@ -170,7 +193,12 @@ export function useWaitlist() {
       )
       .on(
         'postgres_changes', 
-        { event: 'DELETE', schema: 'public', table: 'waitlist' }, 
+        { 
+          event: 'DELETE', 
+          schema: 'public', 
+          table: 'waitlist',
+          ...(instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {}),
+        }, 
         (payload) => {
           console.log('Waitlist DELETE detected:', payload);
           fetchEntries();
@@ -183,7 +211,7 @@ export function useWaitlist() {
     return () => { 
       supabase.removeChannel(channel); 
     };
-  }, []);
+  }, [instanceId]);
 
   // Rate limiting constants
   const RATE_LIMIT_KEY = 'waitlist_last_submission';
@@ -216,7 +244,7 @@ export function useWaitlist() {
 
       const timesSung = previousEntries?.[0]?.times_sung || 0;
 
-      const { error } = await supabase.from('waitlist').insert({
+      const insertData = {
         singer_name: singerName.trim(),
         youtube_url: youtubeUrl,
         song_title: songTitle,
@@ -225,7 +253,10 @@ export function useWaitlist() {
         priority: 999999,
         status: 'waiting',
         registered_by: registeredBy?.trim() || null,
-      });
+        karaoke_instance_id: instanceId || null,
+      };
+
+      const { error } = await supabase.from('waitlist').insert(insertData);
 
       if (error) throw error;
       

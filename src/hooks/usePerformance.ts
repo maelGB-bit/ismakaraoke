@@ -2,20 +2,26 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Performance } from '@/types/karaoke';
 
-export function useActivePerformance() {
+export function useActivePerformance(instanceId?: string | null) {
   const [performance, setPerformance] = useState<Performance | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch initial active performance
     const fetchActive = async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('performances')
         .select('*')
         .eq('status', 'ativa')
         .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
+      
+      // Filter by instance if provided
+      if (instanceId) {
+        query = query.eq('karaoke_instance_id', instanceId);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (!error && data) {
         setPerformance(data as Performance);
@@ -26,14 +32,16 @@ export function useActivePerformance() {
     fetchActive();
 
     // Subscribe to realtime updates
+    const channelName = instanceId ? `performances-${instanceId}` : 'performances-realtime';
     const channel = supabase
-      .channel('performances-realtime')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'performances',
+          ...(instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {}),
         },
         (payload) => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
@@ -51,7 +59,7 @@ export function useActivePerformance() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [instanceId]);
 
   return { performance, loading, setPerformance };
 }
@@ -106,18 +114,24 @@ export function usePerformanceById(id: string | null) {
   return { performance, loading };
 }
 
-export function useRanking() {
+export function useRanking(instanceId?: string | null) {
   const [performances, setPerformances] = useState<Performance[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRanking = async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('performances')
         .select('*')
         .eq('status', 'encerrada')
         .order('nota_media', { ascending: false })
         .order('total_votos', { ascending: false });
+      
+      if (instanceId) {
+        query = query.eq('karaoke_instance_id', instanceId);
+      }
+
+      const { data, error } = await query;
 
       if (!error && data) {
         setPerformances(data as Performance[]);
@@ -128,14 +142,16 @@ export function useRanking() {
     fetchRanking();
 
     // Subscribe to realtime updates
+    const channelName = instanceId ? `ranking-${instanceId}` : 'ranking-realtime';
     const channel = supabase
-      .channel('ranking-realtime')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'performances',
+          ...(instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {}),
         },
         () => {
           fetchRanking();
@@ -146,7 +162,7 @@ export function useRanking() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [instanceId]);
 
   return { performances, loading, refetch: () => {} };
 }
