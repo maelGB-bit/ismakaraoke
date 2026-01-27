@@ -5,6 +5,7 @@ import type { KaraokeInstance } from '@/types/admin';
 export function useKaraokeInstance(coordinatorId?: string) {
   const [instance, setInstance] = useState<KaraokeInstance | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
     if (!coordinatorId) {
@@ -20,7 +21,14 @@ export function useKaraokeInstance(coordinatorId?: string) {
         .maybeSingle();
 
       if (!error && data) {
-        setInstance(data as KaraokeInstance);
+        const inst = data as KaraokeInstance;
+        setInstance(inst);
+        
+        // Check if subscription is expired
+        if (inst.expires_at) {
+          const expiresAt = new Date(inst.expires_at);
+          setIsExpired(expiresAt < new Date());
+        }
       }
       setLoading(false);
     };
@@ -42,7 +50,13 @@ export function useKaraokeInstance(coordinatorId?: string) {
           if (payload.eventType === 'DELETE') {
             setInstance(null);
           } else {
-            setInstance(payload.new as KaraokeInstance);
+            const inst = payload.new as KaraokeInstance;
+            setInstance(inst);
+            
+            if (inst.expires_at) {
+              const expiresAt = new Date(inst.expires_at);
+              setIsExpired(expiresAt < new Date());
+            }
           }
         }
       )
@@ -53,7 +67,7 @@ export function useKaraokeInstance(coordinatorId?: string) {
     };
   }, [coordinatorId]);
 
-  return { instance, loading };
+  return { instance, loading, isExpired };
 }
 
 export function useAllInstances() {

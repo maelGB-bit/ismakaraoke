@@ -44,6 +44,54 @@ export type Database = {
         }
         Relationships: []
       }
+      coordinator_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          email: string
+          expires_at: string | null
+          id: string
+          instance_name: string | null
+          interest: Database["public"]["Enums"]["subscription_interest"]
+          name: string
+          phone: string
+          status: Database["public"]["Enums"]["coordinator_request_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string | null
+          id?: string
+          instance_name?: string | null
+          interest: Database["public"]["Enums"]["subscription_interest"]
+          name: string
+          phone: string
+          status?: Database["public"]["Enums"]["coordinator_request_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string | null
+          id?: string
+          instance_name?: string | null
+          interest?: Database["public"]["Enums"]["subscription_interest"]
+          name?: string
+          phone?: string
+          status?: Database["public"]["Enums"]["coordinator_request_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       event_settings: {
         Row: {
           id: string
@@ -90,6 +138,7 @@ export type Database = {
         Row: {
           coordinator_id: string
           created_at: string
+          expires_at: string | null
           id: string
           instance_code: string
           name: string
@@ -99,6 +148,7 @@ export type Database = {
         Insert: {
           coordinator_id: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           instance_code: string
           name: string
@@ -108,6 +158,7 @@ export type Database = {
         Update: {
           coordinator_id?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           instance_code?: string
           name?: string
@@ -292,6 +343,12 @@ export type Database = {
     }
     Enums: {
       app_role: "host" | "admin" | "coordinator"
+      coordinator_request_status:
+        | "pending"
+        | "approved"
+        | "expired"
+        | "rejected"
+      subscription_interest: "single_event" | "weekly" | "monthly" | "yearly"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -420,6 +477,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["host", "admin", "coordinator"],
+      coordinator_request_status: [
+        "pending",
+        "approved",
+        "expired",
+        "rejected",
+      ],
+      subscription_interest: ["single_event", "weekly", "monthly", "yearly"],
     },
   },
 } as const

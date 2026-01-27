@@ -16,6 +16,7 @@ export interface KaraokeInstance {
   status: 'active' | 'paused' | 'closed';
   created_at: string;
   updated_at: string;
+  expires_at?: string;
   coordinator_email?: string;
 }
 
@@ -26,3 +27,44 @@ export interface Coordinator {
   created_at: string;
   instance?: KaraokeInstance;
 }
+
+export type SubscriptionInterest = 'single_event' | 'weekly' | 'monthly' | 'yearly';
+export type CoordinatorRequestStatus = 'pending' | 'approved' | 'expired' | 'rejected';
+
+export interface CoordinatorRequest {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  interest: SubscriptionInterest;
+  status: CoordinatorRequestStatus;
+  user_id?: string;
+  approved_at?: string;
+  approved_by?: string;
+  expires_at?: string;
+  instance_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const INTEREST_LABELS: Record<SubscriptionInterest, string> = {
+  single_event: 'Evento único',
+  weekly: 'Semanal',
+  monthly: 'Mensal',
+  yearly: 'Anual',
+};
+
+export const STATUS_LABELS: Record<CoordinatorRequestStatus, string> = {
+  pending: 'Pendente',
+  approved: 'Aprovado',
+  expired: 'Expirado',
+  rejected: 'Rejeitado',
+};
+
+export const APPROVAL_DURATIONS = [
+  { value: '3h', label: '3 horas', hours: 3 },
+  { value: '24h', label: '24 horas', hours: 24 },
+  { value: '7d', label: '7 dias', hours: 168 },
+  { value: '1m', label: '1 mês', hours: 720 },
+  { value: '1y', label: '1 ano', hours: 8760 },
+];

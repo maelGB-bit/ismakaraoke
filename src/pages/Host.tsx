@@ -15,6 +15,7 @@ import { HostAuth, useHostAuth } from '@/components/HostAuth';
 import { TVModeView } from '@/components/TVModeView';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { NoInstanceAssigned } from '@/components/NoInstanceAssigned';
+import { SubscriptionExpired } from '@/components/SubscriptionExpired';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -48,7 +49,7 @@ function HostContent() {
   const { logout, user } = useHostAuth();
   
   // Get the coordinator's karaoke instance
-  const { instance, loading: instanceLoading } = useKaraokeInstance(user?.id);
+  const { instance, loading: instanceLoading, isExpired } = useKaraokeInstance(user?.id);
   const instanceId = instance?.id || null;
   
   const { performance, setPerformance } = useActivePerformance(instanceId);
@@ -76,6 +77,11 @@ function HostContent() {
   // If coordinator has no instance assigned, show message
   if (!instance) {
     return <NoInstanceAssigned onLogout={logout} userEmail={user?.email} />;
+  }
+
+  // If subscription expired, show renewal page
+  if (isExpired) {
+    return <SubscriptionExpired coordinatorName={user?.email?.split('@')[0]} />;
   }
 
   const { isRegistrationOpen, toggleRegistration } = useEventSettings();
