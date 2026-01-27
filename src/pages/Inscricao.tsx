@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mic, Search, Loader2, Play, ArrowLeft, Music, UserPlus, Link, AlertCircle, ExternalLink, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,12 +12,14 @@ import { UserRegistrationModal } from '@/components/UserRegistrationModal';
 import { LeaveButton } from '@/components/LeaveButton';
 import { YouTubePreview } from '@/components/YouTubePreview';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { InstanceNotFound } from '@/components/InstanceNotFound';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useWaitlist } from '@/hooks/useWaitlist';
 import { useActivePerformance } from '@/hooks/usePerformance';
 import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
 import { useEventSettings } from '@/hooks/useEventSettings';
+import { useInstanceByCode } from '@/hooks/useInstanceByCode';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { decodeHtmlEntities } from '@/lib/htmlUtils';
 import {
@@ -41,10 +43,16 @@ interface YouTubeVideo {
 
 export default function Inscricao() {
   const navigate = useNavigate();
+  const { instanceCode } = useParams<{ instanceCode?: string }>();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist();
-  const { performance } = useActivePerformance();
+  
+  // If instanceCode is provided, look up the instance
+  const { instance, loading: instanceLoading, error: instanceError } = useInstanceByCode(instanceCode);
+  const instanceId = instance?.id || null;
+  
+  const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
+  const { performance } = useActivePerformance(instanceId);
   const { profile, loading: profileLoading, saveProfile } = useUserProfile();
   const { isRegistrationOpen, loading: settingsLoading } = useEventSettings();
   
@@ -238,11 +246,16 @@ export default function Inscricao() {
       setSelectedVideo(null);
       
       // Navigate to voting page
-      navigate('/vote');
+      navigate(instanceCode ? `/vote/${instanceCode}` : '/vote');
     }
   };
 
-  if (profileLoading) {
+  // Instance not found (only when instanceCode was provided)
+  if (instanceCode && instanceError) {
+    return <InstanceNotFound instanceCode={instanceCode} error={instanceError} />;
+  }
+
+  if (profileLoading || instanceLoading) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -300,7 +313,7 @@ export default function Inscricao() {
             </p>
             <div className="flex gap-3 mt-6">
               <Button
-                onClick={() => navigate('/vote')}
+                onClick={() => navigate(instanceCode ? `/vote/${instanceCode}` : '/vote')}
                 variant="outline"
                 className="flex-1"
               >
@@ -308,7 +321,7 @@ export default function Inscricao() {
                 {t('signup.goToVoting')}
               </Button>
               <Button
-                onClick={() => navigate('/ranking')}
+                onClick={() => navigate(instanceCode ? `/ranking/${instanceCode}` : '/ranking')}
                 variant="outline"
                 className="flex-1"
               >

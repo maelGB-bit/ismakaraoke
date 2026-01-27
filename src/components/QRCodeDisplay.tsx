@@ -4,12 +4,16 @@ import { useLanguage } from '@/i18n/LanguageContext';
 
 interface QRCodeDisplayProps {
   compact?: boolean;
+  instanceCode?: string;
 }
 
-export function QRCodeDisplay({ compact = false }: QRCodeDisplayProps) {
+export function QRCodeDisplay({ compact = false, instanceCode }: QRCodeDisplayProps) {
   const { t } = useLanguage();
   const baseUrl = window.location.origin;
-  const voteUrl = `${baseUrl}/vote`;
+  // If instanceCode is provided, link to instance-specific vote page
+  const voteUrl = instanceCode 
+    ? `${baseUrl}/vote/${instanceCode}` 
+    : `${baseUrl}/vote`;
 
   if (compact) {
     return (
@@ -24,6 +28,9 @@ export function QRCodeDisplay({ compact = false }: QRCodeDisplayProps) {
         </div>
         <div className="text-xs">
           <p className="text-muted-foreground">{t('qr.scanToVote')}</p>
+          {instanceCode && (
+            <p className="font-mono font-bold text-primary">{instanceCode}</p>
+          )}
         </div>
       </div>
     );
@@ -49,6 +56,11 @@ export function QRCodeDisplay({ compact = false }: QRCodeDisplayProps) {
       </div>
 
       <div className="mt-2">
+        {instanceCode && (
+          <p className="text-lg font-mono font-bold text-primary mb-1">
+            Código: {instanceCode}
+          </p>
+        )}
         <p className="text-xs text-muted-foreground break-all max-w-[200px] mx-auto">
           {voteUrl}
         </p>
