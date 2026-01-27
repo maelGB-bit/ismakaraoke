@@ -7,6 +7,8 @@ import { LanguageProvider } from "@/i18n/LanguageContext";
 import Index from "./pages/Index";
 import Host from "./pages/Host";
 import HostAuthPage from "./pages/HostAuth";
+import AdminAuthPage from "./pages/AdminAuth";
+import Admin from "./pages/Admin";
 import Vote from "./pages/Vote";
 import Ranking from "./pages/Ranking";
 import Inscricao from "./pages/Inscricao";
@@ -26,9 +28,14 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/host" element={<Host />} />
             <Route path="/auth/host" element={<HostAuthPage />} />
+            <Route path="/auth/admin" element={<AdminAuthPage />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="/vote" element={<Vote />} />
+            <Route path="/vote/:instanceCode" element={<Vote />} />
             <Route path="/ranking" element={<Ranking />} />
+            <Route path="/ranking/:instanceCode" element={<Ranking />} />
             <Route path="/inscricao" element={<Inscricao />} />
+            <Route path="/inscricao/:instanceCode" element={<Inscricao />} />
             <Route path="/guia" element={<EventGuide />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
 import { useEventSettings } from '@/hooks/useEventSettings';
+import { useKaraokeInstance } from '@/hooks/useKaraokeInstance';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { Performance } from '@/types/karaoke';
 import { useToast } from '@/hooks/use-toast';
@@ -43,9 +44,14 @@ function HostContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const { logout } = useHostAuth();
-  const { performance, setPerformance } = useActivePerformance();
-  const { performances: ranking } = useRanking();
+  const { logout, user } = useHostAuth();
+  
+  // Get the coordinator's karaoke instance
+  const { instance, loading: instanceLoading } = useKaraokeInstance(user?.id);
+  const instanceId = instance?.id || null;
+  
+  const { performance, setPerformance } = useActivePerformance(instanceId);
+  const { performances: ranking } = useRanking(instanceId);
   const {
     entries: waitlistEntries,
     historyEntries,
@@ -55,7 +61,7 @@ function HostContent() {
     removeFromWaitlist,
     movePriority,
     getNextInQueue,
-  } = useWaitlist();
+  } = useWaitlist(instanceId);
 
   const { isRegistrationOpen, toggleRegistration } = useEventSettings();
 

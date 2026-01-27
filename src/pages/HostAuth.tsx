@@ -37,28 +37,27 @@ export default function HostAuthPage() {
     const { data: { session } } = await supabase.auth.getSession();
     
     if (session?.user) {
-      // Check if user is a host
+      // Check if user is a host or coordinator
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', session.user.id)
-        .eq('role', 'host')
-        .maybeSingle();
+        .in('role', ['host', 'coordinator']);
 
-      if (roleData) {
+      if (roleData && roleData.length > 0) {
         navigate('/host');
         return;
       }
     }
 
-    // Check if any hosts exist
+    // Check if any hosts or coordinators exist
     const { count } = await supabase
       .from('user_roles')
       .select('*', { count: 'exact', head: true })
-      .eq('role', 'host');
+      .in('role', ['host', 'coordinator']);
     
     setHasHosts((count ?? 0) > 0);
-    // If no hosts exist, show signup form for first host
+    // If no hosts/coordinators exist, show signup form for first one
     setIsSignUp((count ?? 0) === 0);
     setIsLoading(false);
   };
@@ -184,19 +183,18 @@ export default function HostAuthPage() {
       }
 
       if (data.user) {
-        // Check if user is a host
+        // Check if user is a host or coordinator
         const { data: roleData } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', data.user.id)
-          .eq('role', 'host')
-          .maybeSingle();
+          .in('role', ['host', 'coordinator']);
 
-        if (!roleData) {
+        if (!roleData || roleData.length === 0) {
           await supabase.auth.signOut();
           toast({ 
             title: t('auth.notAuthorized') || 'Não autorizado', 
-            description: t('auth.notAHost') || 'Esta conta não tem permissão de host',
+            description: t('auth.notAHost') || 'Esta conta não tem permissão de organizador',
             variant: 'destructive' 
           });
           return;

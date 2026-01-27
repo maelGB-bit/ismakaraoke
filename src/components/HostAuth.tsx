@@ -67,18 +67,18 @@ export function HostAuth({ children }: HostAuthProps) {
 
   const checkHostRole = async (userId: string) => {
     try {
+      // Check for both 'host' and 'coordinator' roles
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .eq('role', 'host')
-        .maybeSingle();
+        .in('role', ['host', 'coordinator']);
 
       if (error) {
         console.error('Error checking host role:', error);
         setIsHost(false);
       } else {
-        setIsHost(!!data);
+        setIsHost(data && data.length > 0);
       }
     } catch (err) {
       console.error('Error checking host role:', err);
