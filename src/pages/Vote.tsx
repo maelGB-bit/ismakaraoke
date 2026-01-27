@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic2, CheckCircle, Trophy, AlertCircle, Clock, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,20 +7,28 @@ import { VoteSlider } from '@/components/VoteSlider';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { LeaveButton } from '@/components/LeaveButton';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { InstanceNotFound } from '@/components/InstanceNotFound';
 import { useActivePerformance } from '@/hooks/usePerformance';
 import { useDeviceId } from '@/hooks/useDeviceId';
 import { useWaitlist } from '@/hooks/useWaitlist';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { useInstanceByCode } from '@/hooks/useInstanceByCode';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Vote() {
   const navigate = useNavigate();
+  const { instanceCode } = useParams<{ instanceCode?: string }>();
   const { toast } = useToast();
   const { t } = useLanguage();
-  const { performance, loading } = useActivePerformance();
-  const { entries: waitlistEntries, loading: waitlistLoading } = useWaitlist();
+  
+  // If instanceCode is provided, look up the instance
+  const { instance, loading: instanceLoading, error: instanceError } = useInstanceByCode(instanceCode);
+  const instanceId = instance?.id || null;
+  
+  const { performance, loading } = useActivePerformance(instanceId);
+  const { entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
   const { profile: userProfile } = useUserProfile();
   const deviceId = useDeviceId();
 
@@ -109,6 +117,7 @@ export default function Vote() {
         performance_id: performance.id,
         nota,
         device_id: deviceId,
+        karaoke_instance_id: instanceId,
       });
 
       if (error) {
@@ -141,8 +150,13 @@ export default function Vote() {
     }
   };
 
+  // Instance not found (only when instanceCode was provided)
+  if (instanceCode && instanceError) {
+    return <InstanceNotFound instanceCode={instanceCode} error={instanceError} />;
+  }
+
   // Loading state
-  if (loading || checkingVote) {
+  if (loading || checkingVote || instanceLoading) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
         <div className="glass-card p-8 text-center">
@@ -170,11 +184,11 @@ export default function Vote() {
             {t('vote.noActiveVoting')}
           </p>
           <div className="flex flex-col gap-3 mb-6">
-            <Button onClick={() => navigate('/inscricao')} className="w-full">
+            <Button onClick={() => navigate(instanceCode ? `/inscricao/${instanceCode}` : '/inscricao')} className="w-full">
               <Music className="mr-2 h-4 w-4" />
               {t('vote.wantToSing')}
             </Button>
-            <Button onClick={() => navigate('/ranking')} variant="outline" className="w-full">
+            <Button onClick={() => navigate(instanceCode ? `/ranking/${instanceCode}` : '/ranking')} variant="outline" className="w-full">
               <Trophy className="mr-2 h-4 w-4" />
               {t('vote.showRanking')}
             </Button>
@@ -213,7 +227,7 @@ export default function Vote() {
           <div className="text-4xl font-black font-display neon-text-gold mb-6">
             {t('vote.finalScore')}: {Number(performance.nota_media).toFixed(1)}
           </div>
-          <Button onClick={() => navigate('/ranking')} className="w-full mb-6">
+          <Button onClick={() => navigate(instanceCode ? `/ranking/${instanceCode}` : '/ranking')} className="w-full mb-6">
             <Trophy className="mr-2 h-4 w-4" />
             {t('vote.showNightRanking')}
           </Button>
@@ -291,14 +305,14 @@ export default function Vote() {
               </p>
               <div className="flex flex-col gap-3">
                 <Button
-                  onClick={() => navigate('/inscricao')}
+                  onClick={() => navigate(instanceCode ? `/inscricao/${instanceCode}` : '/inscricao')}
                   className="w-full"
                 >
                   <Music className="mr-2 h-4 w-4" />
                   {t('vote.wantToSing')}
                 </Button>
                 <Button
-                  onClick={() => navigate('/ranking')}
+                  onClick={() => navigate(instanceCode ? `/ranking/${instanceCode}` : '/ranking')}
                   variant="outline"
                   className="w-full"
                 >

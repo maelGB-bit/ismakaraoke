@@ -1,16 +1,29 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Trophy, Vote, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RankingCard } from '@/components/RankingCard';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { InstanceNotFound } from '@/components/InstanceNotFound';
 import { useRanking } from '@/hooks/usePerformance';
+import { useInstanceByCode } from '@/hooks/useInstanceByCode';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Ranking() {
   const navigate = useNavigate();
+  const { instanceCode } = useParams<{ instanceCode?: string }>();
   const { t } = useLanguage();
-  const { performances, loading } = useRanking();
+  
+  // If instanceCode is provided, look up the instance
+  const { instance, loading: instanceLoading, error: instanceError } = useInstanceByCode(instanceCode);
+  const instanceId = instance?.id || null;
+  
+  const { performances, loading } = useRanking(instanceId);
+
+  // Instance not found (only when instanceCode was provided)
+  if (instanceCode && instanceError) {
+    return <InstanceNotFound instanceCode={instanceCode} error={instanceError} />;
+  }
 
   return (
     <div className="min-h-screen gradient-bg p-4 lg:p-8 relative">
@@ -39,11 +52,16 @@ export default function Ranking() {
           <p className="text-muted-foreground mt-2">
             {t('ranking.subtitle')}
           </p>
+          {instance && (
+            <p className="text-sm text-primary mt-1">
+              {instance.name}
+            </p>
+          )}
         </header>
 
         {/* Ranking List */}
         <div className="space-y-4 mb-8">
-          {loading ? (
+          {loading || instanceLoading ? (
             <div className="glass-card p-8 text-center">
               <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary mb-4" />
               <p className="text-muted-foreground">{t('ranking.loading')}</p>
@@ -76,7 +94,7 @@ export default function Ranking() {
         {/* Action Button */}
         <div className="flex justify-center">
           <Button
-            onClick={() => navigate('/vote')}
+            onClick={() => navigate(instanceCode ? `/vote/${instanceCode}` : '/vote')}
             size="lg"
             className="w-full max-w-md"
           >

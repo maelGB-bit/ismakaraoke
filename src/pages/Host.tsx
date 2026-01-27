@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock } from 'lucide-react';
+import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { HostWaitlistPanel } from '@/components/HostWaitlistPanel';
 import { HostAuth, useHostAuth } from '@/components/HostAuth';
 import { TVModeView } from '@/components/TVModeView';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { NoInstanceAssigned } from '@/components/NoInstanceAssigned';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -62,6 +63,20 @@ function HostContent() {
     movePriority,
     getNextInQueue,
   } = useWaitlist(instanceId);
+
+  // Show loading while checking for instance
+  if (instanceLoading) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center">
+        <Loader2 className="w-16 h-16 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  // If coordinator has no instance assigned, show message
+  if (!instance) {
+    return <NoInstanceAssigned onLogout={logout} userEmail={user?.email} />;
+  }
 
   const { isRegistrationOpen, toggleRegistration } = useEventSettings();
 
@@ -112,8 +127,17 @@ function HostContent() {
 
     setIsCreating(true);
     try {
-      await supabase.from('performances').update({ status: 'encerrada' }).eq('status', 'ativa');
-      const { data, error } = await supabase.from('performances').insert({ cantor: cantor.trim(), musica: musica.trim(), youtube_url: loadedUrl, status: 'ativa' }).select().single();
+      // End any active performances for this instance
+      if (instanceId) {
+        await supabase.from('performances').update({ status: 'encerrada' }).eq('status', 'ativa').eq('karaoke_instance_id', instanceId);
+      }
+      const { data, error } = await supabase.from('performances').insert({ 
+        cantor: cantor.trim(), 
+        musica: musica.trim(), 
+        youtube_url: loadedUrl, 
+        status: 'ativa',
+        karaoke_instance_id: instanceId,
+      }).select().single();
       if (error) throw error;
       setPerformance(data as Performance);
       setLastHighScore(0);
@@ -213,12 +237,15 @@ function HostContent() {
     if (cantor.trim() && musica.trim() && !isRoundActive) {
       setIsCreating(true);
       try {
-        await supabase.from('performances').update({ status: 'encerrada' }).eq('status', 'ativa');
+        if (instanceId) {
+          await supabase.from('performances').update({ status: 'encerrada' }).eq('status', 'ativa').eq('karaoke_instance_id', instanceId);
+        }
         const { data, error } = await supabase.from('performances').insert({ 
           cantor: cantor.trim(), 
           musica: musica.trim(), 
           youtube_url: loadedUrl, 
-          status: 'ativa' 
+          status: 'ativa',
+          karaoke_instance_id: instanceId,
         }).select().single();
         if (error) throw error;
         setPerformance(data as Performance);
@@ -271,7 +298,8 @@ function HostContent() {
         cantor: next.singer_name, 
         musica: next.song_title, 
         youtube_url: next.youtube_url, 
-        status: 'ativa' 
+        status: 'ativa',
+        karaoke_instance_id: instanceId,
       }).select().single();
       
       if (!error && data) {
@@ -489,7 +517,7 @@ function HostContent() {
               onMovePriority={movePriority}
               currentSinger={isRoundActive ? performance?.cantor : null}
             />
-            <QRCodeDisplay />
+            <QRCodeDisplay instanceCode={instance?.instance_code} />
             {!isRoundActive && (
               <div className="glass-card p-4 text-center">
                 <p className="text-muted-foreground text-sm">{performance?.status === 'encerrada' ? t('host.roundEnded') : t('host.waitingStart')}</p>
