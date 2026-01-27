@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Language, translations, languages } from './translations';
 
 interface LanguageContextType {
@@ -12,16 +12,16 @@ const LanguageContext = createContext<LanguageContextType | null>(null);
 const LANGUAGE_KEY = 'karaoke_language';
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('pt');
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem(LANGUAGE_KEY) as Language | null;
-    if (savedLanguage && languages.some(l => l.code === savedLanguage)) {
-      setLanguageState(savedLanguage);
+  const [language, setLanguageState] = useState<Language>(() => {
+    // Initialize from localStorage synchronously to avoid flash
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(LANGUAGE_KEY) as Language | null;
+      if (saved && languages.some(l => l.code === saved)) {
+        return saved;
+      }
     }
-    setIsLoading(false);
-  }, []);
+    return 'pt';
+  });
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
@@ -31,10 +31,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const t = (key: string): string => {
     return translations[language][key] || key;
   };
-
-  if (isLoading) {
-    return null;
-  }
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
