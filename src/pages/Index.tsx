@@ -4,7 +4,7 @@ import { Mic2, Users, Trophy, ArrowRight, Music, Globe, BookOpen } from 'lucide-
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { languages } from '@/i18n/translations';
-import mammothLogo from '@/assets/mammoth-logo-singing.svg';
+import mammothLogo from '@/assets/mammoth-logo-singing.png';
 import {
   DropdownMenu,
   DropdownMenuContent,
