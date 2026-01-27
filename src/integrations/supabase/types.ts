@@ -57,6 +57,7 @@ export type Database = {
           name: string
           phone: string
           status: Database["public"]["Enums"]["coordinator_request_status"]
+          temp_password: string | null
           updated_at: string
           user_id: string | null
         }
@@ -72,6 +73,7 @@ export type Database = {
           name: string
           phone: string
           status?: Database["public"]["Enums"]["coordinator_request_status"]
+          temp_password?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -87,6 +89,7 @@ export type Database = {
           name?: string
           phone?: string
           status?: Database["public"]["Enums"]["coordinator_request_status"]
+          temp_password?: string | null
           updated_at?: string
           user_id?: string | null
         }

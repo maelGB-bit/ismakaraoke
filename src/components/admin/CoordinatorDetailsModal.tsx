@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Mail, Phone, User, Building, Tag } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Clock, Mail, Phone, User, Building, Tag, Key, Copy, RefreshCw, Loader2, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import type { CoordinatorRequest } from '@/types/admin';
 import { INTEREST_LABELS, STATUS_LABELS } from '@/types/admin';
 
@@ -8,6 +12,7 @@ interface CoordinatorDetailsModalProps {
   request: CoordinatorRequest | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onPasswordReset?: () => void;
 }
 
 function getStatusBadgeVariant(status: CoordinatorRequest['status'], expiresAt?: string): 'default' | 'secondary' | 'destructive' | 'outline' {
@@ -50,14 +55,76 @@ function getTimeRemaining(expiresAt: string): string {
   return 'Menos de 1 hora';
 }
 
-export function CoordinatorDetailsModal({ request, open, onOpenChange }: CoordinatorDetailsModalProps) {
+export function CoordinatorDetailsModal({ request, open, onOpenChange, onPasswordReset }: CoordinatorDetailsModalProps) {
+  const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState<string | null>(null);
+
   if (!request) return null;
 
   const isExpired = request.expires_at && new Date(request.expires_at) < new Date();
+  const displayPassword = currentPassword || request.temp_password;
+
+  const copyPassword = () => {
+    if (displayPassword) {
+      navigator.clipboard.writeText(displayPassword);
+      toast({ title: 'Senha copiada!' });
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!request.user_id) {
+      toast({ title: 'Usuário não encontrado', variant: 'destructive' });
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const response = await supabase.functions.invoke('reset-coordinator-password', {
+        body: {
+          userId: request.user_id,
+          requestId: request.id,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao resetar senha');
+      }
+
+      const result = response.data;
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao resetar senha');
+      }
+
+      setCurrentPassword(result.tempPassword);
+      toast({ 
+        title: 'Senha resetada com sucesso!',
+        description: `Nova senha: ${result.tempPassword}`,
+      });
+      
+      if (onPasswordReset) {
+        onPasswordReset();
+      }
+    } catch (error: unknown) {
+      console.error('Error resetting password:', error);
+      const message = error instanceof Error ? error.message : 'Erro ao resetar senha';
+      toast({ title: message, variant: 'destructive' });
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) {
+        setShowPassword(false);
+        setCurrentPassword(null);
+      }
+      onOpenChange(isOpen);
+    }}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -147,7 +214,7 @@ export function CoordinatorDetailsModal({ request, open, onOpenChange }: Coordin
                   <Calendar className="h-4 w-4 text-primary" />
                   <div>
                     <p className="text-xs text-muted-foreground">Data/Hora da Aprovação</p>
-                    <p className="font-medium">{formatDateTime(request.approved_at)}</p>
+                    <p className="font-medium">{formatDateTime(request.approved_at ?? null)}</p>
                   </div>
                 </div>
 
@@ -172,6 +239,55 @@ export function CoordinatorDetailsModal({ request, open, onOpenChange }: Coordin
                     </div>
                   </>
                 )}
+
+                {/* Password Section */}
+                <div className="flex items-center gap-3">
+                  <Key className="h-4 w-4 text-primary" />
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">Senha Temporária</p>
+                    <div className="flex items-center gap-2">
+                      <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
+                        {displayPassword ? (showPassword ? displayPassword : '••••••••••') : 'Não disponível'}
+                      </code>
+                      {displayPassword && (
+                        <>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                            onClick={copyPassword}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reset Password Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-2"
+                  onClick={handleResetPassword}
+                  disabled={isResetting}
+                >
+                  {isResetting ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                  )}
+                  Resetar Senha
+                </Button>
               </div>
             </div>
           )}

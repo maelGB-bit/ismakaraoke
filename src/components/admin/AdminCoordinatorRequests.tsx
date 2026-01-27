@@ -483,6 +483,7 @@ export function AdminCoordinatorRequests() {
         request={detailsModal.request}
         open={detailsModal.open}
         onOpenChange={(open) => setDetailsModal({ open, request: detailsModal.request })}
+        onPasswordReset={fetchRequests}
       />
     </>
   );
