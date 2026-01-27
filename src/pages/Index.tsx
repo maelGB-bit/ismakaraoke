@@ -50,10 +50,13 @@ export default function Index() {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Index: Auth state changed:', event);
+        // Use setTimeout to avoid Supabase deadlock
         if (event === 'SIGNED_IN' && session?.user && isMounted) {
-          await redirectBasedOnRole(session.user.id);
+          setTimeout(() => {
+            redirectBasedOnRole(session.user.id);
+          }, 0);
         }
       }
     );
@@ -115,20 +118,18 @@ export default function Index() {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
 
       if (error) throw error;
-
-      if (data.user) {
-        await redirectBasedOnRole(data.user.id);
-      }
+      
+      // onAuthStateChange will handle the redirect
+      // Keep loading state until redirect happens
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao fazer login';
       toast({ title: message, variant: 'destructive' });
-    } finally {
       setIsLoading(false);
     }
   };
