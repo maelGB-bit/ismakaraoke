@@ -138,6 +138,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.waitMoment': 'Aguarde um momento',
     'signup.waitSeconds': 'Aguarde antes de se inscrever novamente:',
     'signup.previewHint': '🎧 Ouça um preview de 30 segundos antes de confirmar',
+    'signup.searchUnavailable': 'Busca temporariamente indisponível',
+    'signup.searchUnavailableHint': 'A busca automática está fora do ar. Use o campo abaixo para colar o link do YouTube diretamente.',
     
     // Ranking page
     'ranking.title': 'RANKING DA NOITE',
@@ -497,6 +499,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.waitMoment': 'Bitte warten',
     'signup.waitSeconds': 'Warte, bevor du dich erneut anmeldest:',
     'signup.previewHint': '🎧 Höre eine 30-Sekunden-Vorschau, bevor du bestätigst',
+    'signup.searchUnavailable': 'Suche vorübergehend nicht verfügbar',
+    'signup.searchUnavailableHint': 'Die automatische Suche ist derzeit nicht verfügbar. Füge den YouTube-Link direkt in das Feld unten ein.',
     
     // Ranking page
     'ranking.title': 'RANGLISTE DES ABENDS',
@@ -858,6 +862,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.waitMoment': 'Please wait',
     'signup.waitSeconds': 'Wait before signing up again:',
     'signup.previewHint': '🎧 Listen to a 30-second preview before confirming',
+    'signup.searchUnavailable': 'Search temporarily unavailable',
+    'signup.searchUnavailableHint': 'Automatic search is currently down. Use the field below to paste the YouTube link directly.',
     
     // Ranking page
     'ranking.title': 'TONIGHT\'S RANKING',
@@ -1217,6 +1223,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.waitMoment': 'Espera un momento',
     'signup.waitSeconds': 'Espera antes de inscribirte de nuevo:',
     'signup.previewHint': '🎧 Escucha una vista previa de 30 segundos antes de confirmar',
+    'signup.searchUnavailable': 'Búsqueda temporalmente no disponible',
+    'signup.searchUnavailableHint': 'La búsqueda automática no está disponible. Usa el campo de abajo para pegar el enlace de YouTube directamente.',
     
     // Ranking page
     'ranking.title': 'RANKING DE LA NOCHE',
@@ -1574,6 +1582,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'signup.waitMoment': 'Lütfen bekleyin',
     'signup.waitSeconds': 'Tekrar kaydolmadan önce bekleyin:',
     'signup.previewHint': '🎧 Onaylamadan önce 30 saniyelik bir önizleme dinleyin',
+    'signup.searchUnavailable': 'Arama geçici olarak kullanılamıyor',
+    'signup.searchUnavailableHint': 'Otomatik arama şu anda çalışmıyor. YouTube linkini doğrudan aşağıdaki alana yapıştırın.',
     
     // Ranking page
     'ranking.title': 'GECENİN SIRALAMASI',
