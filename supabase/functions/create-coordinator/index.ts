@@ -149,6 +149,7 @@ Deno.serve(async (req) => {
             approved_by: callerUser?.id || null,
             expires_at: expiresAt.toISOString(),
             instance_name: instanceName.trim(),
+            temp_password: tempPassword,
           })
           .eq("id", requestId);
 
@@ -246,6 +247,7 @@ Deno.serve(async (req) => {
         approved_by: callerUser?.id || null,
         expires_at: expiresAt.toISOString(),
         instance_name: instanceName.trim(),
+        temp_password: tempPassword,
       })
       .eq("id", requestId);
 

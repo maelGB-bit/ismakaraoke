@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import mammothLogo from '@/assets/mammoth-logo.png';
 import { InterestForm } from '@/components/InterestForm';
+import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export default function Index() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -227,6 +229,14 @@ export default function Index() {
                     </>
                   )}
                 </Button>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="w-full text-sm text-muted-foreground"
+                  onClick={() => setForgotPasswordOpen(true)}
+                >
+                  Esqueci minha senha
+                </Button>
               </form>
             </div>
           </TabsContent>
@@ -245,6 +255,11 @@ export default function Index() {
       >
         {t('app.madeWith')}
       </motion.p>
+
+      <ForgotPasswordModal 
+        open={forgotPasswordOpen} 
+        onOpenChange={setForgotPasswordOpen} 
+      />
     </div>
   );
 }

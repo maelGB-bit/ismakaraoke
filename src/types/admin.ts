@@ -43,6 +43,7 @@ export interface CoordinatorRequest {
   approved_by?: string;
   expires_at?: string;
   instance_name?: string;
+  temp_password?: string;
   created_at: string;
   updated_at: string;
 }
