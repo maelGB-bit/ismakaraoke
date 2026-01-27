@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          created_at: string
+          encrypted_key: string
+          id: string
+          is_active: boolean
+          name: string
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          encrypted_key: string
+          id?: string
+          is_active?: boolean
+          name: string
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          encrypted_key?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_settings: {
         Row: {
           id: string
@@ -56,11 +86,42 @@ export type Database = {
         }
         Relationships: []
       }
+      karaoke_instances: {
+        Row: {
+          coordinator_id: string
+          created_at: string
+          id: string
+          instance_code: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          coordinator_id: string
+          created_at?: string
+          id?: string
+          instance_code: string
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          coordinator_id?: string
+          created_at?: string
+          id?: string
+          instance_code?: string
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       performances: {
         Row: {
           cantor: string
           created_at: string
           id: string
+          karaoke_instance_id: string | null
           musica: string
           nota_media: number | null
           status: string
@@ -72,6 +133,7 @@ export type Database = {
           cantor: string
           created_at?: string
           id?: string
+          karaoke_instance_id?: string | null
           musica: string
           nota_media?: number | null
           status?: string
@@ -83,6 +145,7 @@ export type Database = {
           cantor?: string
           created_at?: string
           id?: string
+          karaoke_instance_id?: string | null
           musica?: string
           nota_media?: number | null
           status?: string
@@ -90,7 +153,15 @@ export type Database = {
           video_changed_at?: string | null
           youtube_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "performances_karaoke_instance_id_fkey"
+            columns: ["karaoke_instance_id"]
+            isOneToOne: false
+            referencedRelation: "karaoke_instances"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -118,6 +189,7 @@ export type Database = {
           created_at: string
           device_id: string
           id: string
+          karaoke_instance_id: string | null
           nota: number
           performance_id: string
         }
@@ -125,6 +197,7 @@ export type Database = {
           created_at?: string
           device_id: string
           id?: string
+          karaoke_instance_id?: string | null
           nota: number
           performance_id: string
         }
@@ -132,10 +205,18 @@ export type Database = {
           created_at?: string
           device_id?: string
           id?: string
+          karaoke_instance_id?: string | null
           nota?: number
           performance_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "votes_karaoke_instance_id_fkey"
+            columns: ["karaoke_instance_id"]
+            isOneToOne: false
+            referencedRelation: "karaoke_instances"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "votes_performance_id_fkey"
             columns: ["performance_id"]
@@ -149,6 +230,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          karaoke_instance_id: string | null
           priority: number
           registered_by: string | null
           singer_name: string
@@ -160,6 +242,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          karaoke_instance_id?: string | null
           priority?: number
           registered_by?: string | null
           singer_name: string
@@ -171,6 +254,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          karaoke_instance_id?: string | null
           priority?: number
           registered_by?: string | null
           singer_name?: string
@@ -179,13 +263,22 @@ export type Database = {
           times_sung?: number
           youtube_url?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_karaoke_instance_id_fkey"
+            columns: ["karaoke_instance_id"]
+            isOneToOne: false
+            referencedRelation: "karaoke_instances"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_user_instance_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -193,6 +286,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
+      is_coordinator: { Args: never; Returns: boolean }
       is_host: { Args: never; Returns: boolean }
     }
     Enums: {
