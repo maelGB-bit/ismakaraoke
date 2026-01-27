@@ -105,8 +105,8 @@ export default function Index() {
         </motion.div>
 
         <h1 className="text-5xl md:text-7xl font-black font-display mb-4">
-          <span className="neon-text-pink">MAMUTTS</span>{' '}
-          <span className="neon-text-cyan">KARAOKE</span>
+          <span className="neon-text-pink">Mamute</span>{' '}
+          <span className="neon-text-cyan">Karaoke</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-md mx-auto">
           {t('app.subtitle')}
