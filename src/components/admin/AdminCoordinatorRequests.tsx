@@ -60,12 +60,24 @@ export function AdminCoordinatorRequests() {
 
   const fetchRequests = async () => {
     try {
+      // Ensure we have a valid session before querying
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        console.error('No active session');
+        toast({ title: 'Sessão expirada. Faça login novamente.', variant: 'destructive' });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('coordinator_requests')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
       // Cast the data to our type
       const typedData = (data || []).map(item => ({
