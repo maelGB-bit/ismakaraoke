@@ -27,12 +27,39 @@ interface VideoResult {
   url: string;
 }
 
+interface YouTubeApiResult {
+  videos: VideoResult[];
+  quotaExceeded: boolean;
+}
+
+const QUOTA_ERROR_REASONS = new Set([
+  'quotaExceeded',
+  'dailyLimitExceeded',
+  'rateLimitExceeded',
+  'userRateLimitExceeded',
+]);
+
+function isQuotaError(errorText: string): boolean {
+  try {
+    const parsed = JSON.parse(errorText);
+    const reason = parsed?.error?.errors?.[0]?.reason;
+    if (typeof reason === 'string' && QUOTA_ERROR_REASONS.has(reason)) {
+      return true;
+    }
+  } catch {
+    // Ignore JSON parse errors and fall through to substring checks.
+  }
+
+  const lowered = errorText.toLowerCase();
+  return lowered.includes('quota') || lowered.includes('rate limit');
+}
+
 // Try YouTube Data API with multiple keys
-async function searchWithYouTubeAPI(query: string): Promise<VideoResult[]> {
+async function searchWithYouTubeAPI(query: string): Promise<YouTubeApiResult> {
   const apiKeysRaw = Deno.env.get('YOUTUBE_API_KEY');
   if (!apiKeysRaw) {
     console.log('No YOUTUBE_API_KEY configured');
-    return [];
+    return { videos: [], quotaExceeded: false };
   }
 
   // Support multiple keys separated by comma
@@ -40,6 +67,7 @@ async function searchWithYouTubeAPI(query: string): Promise<VideoResult[]> {
   console.log(`Found ${apiKeys.length} YouTube API key(s)`);
 
   const searchQuery = query + ' karaoke';
+  let quotaExceeded = false;
 
   for (let i = 0; i < apiKeys.length; i++) {
     const apiKey = apiKeys[i];
@@ -66,6 +94,9 @@ async function searchWithYouTubeAPI(query: string): Promise<VideoResult[]> {
         
         // If quota exceeded or forbidden, try next key
         if (response.status === 403 || response.status === 429) {
+          if (isQuotaError(errorText)) {
+            quotaExceeded = true;
+          }
           continue;
         }
         continue;
@@ -76,13 +107,16 @@ async function searchWithYouTubeAPI(query: string): Promise<VideoResult[]> {
       if (data.items && data.items.length > 0) {
         console.log(`Success with YouTube API key ${i + 1}, found ${data.items.length} results`);
         
-        return data.items.map((item: any) => ({
-          id: item.id.videoId,
-          title: item.snippet.title,
-          thumbnail: item.snippet.thumbnails.medium.url,
-          channelTitle: item.snippet.channelTitle,
-          url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-        }));
+        return {
+          videos: data.items.map((item: any) => ({
+            id: item.id.videoId,
+            title: item.snippet.title,
+            thumbnail: item.snippet.thumbnails.medium.url,
+            channelTitle: item.snippet.channelTitle,
+            url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+          })),
+          quotaExceeded: false,
+        };
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Unknown error';
@@ -92,7 +126,7 @@ async function searchWithYouTubeAPI(query: string): Promise<VideoResult[]> {
   }
 
   console.log('All YouTube API keys exhausted or failed');
-  return [];
+  return { videos: [], quotaExceeded };
 }
 
 // Try Piped API instances
@@ -205,7 +239,8 @@ serve(async (req) => {
     console.log('Searching for:', query);
 
     // 1. Try YouTube API with multiple keys
-    let videos = await searchWithYouTubeAPI(query);
+    const youtubeResult = await searchWithYouTubeAPI(query);
+    let videos = youtubeResult.videos;
     
     // 2. Fallback to Piped if YouTube API fails
     if (videos.length === 0) {
@@ -223,14 +258,17 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           videos: [],
-          error: 'Nenhum vídeo encontrado. Cole o link do YouTube diretamente.'
+          errorCode: youtubeResult.quotaExceeded ? 'quotaExceeded' : 'noVideos',
+          error: youtubeResult.quotaExceeded
+            ? 'Quota da API do YouTube esgotada.'
+            : 'Nenhum vídeo encontrado.'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     return new Response(
-      JSON.stringify({ videos }),
+      JSON.stringify({ videos, errorCode: null }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
@@ -240,7 +278,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         videos: [],
-        error: 'Não foi possível buscar vídeos. Cole o link do YouTube diretamente.',
+        errorCode: 'searchFailed',
+        error: 'Não foi possível buscar vídeos.',
         details: errorMessage 
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
