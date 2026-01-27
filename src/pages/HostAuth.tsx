@@ -45,21 +45,25 @@ export default function HostAuthPage() {
         .in('role', ['host', 'coordinator']);
 
       if (roleData && roleData.length > 0) {
-        navigate('/host');
+        navigate('/host', { replace: true });
         return;
       }
     }
 
-    // Check if any hosts exist (not coordinators - they are created by admin)
-    const { count } = await supabase
+    // Check if any hosts OR coordinators exist - if any exist, show login form
+    // Only show signup form if this is the very first user (no hosts exist)
+    const { count: hostCount } = await supabase
       .from('user_roles')
       .select('*', { count: 'exact', head: true })
       .eq('role', 'host');
     
-    setHasHosts((count ?? 0) > 0);
-    // If no hosts exist, show signup form for first one
-    // Coordinators should always use login (they are created by admin)
-    setIsSignUp((count ?? 0) === 0);
+    // Always default to login form if there are any hosts
+    // The signup option is ONLY for the very first host setup
+    const hasAnyHosts = (hostCount ?? 0) > 0;
+    setHasHosts(hasAnyHosts);
+    // Default to login - coordinators are ALWAYS created by admin, they should never see signup
+    // Only show signup if no hosts exist at all (first-time setup)
+    setIsSignUp(!hasAnyHosts);
     setIsLoading(false);
   };
 

@@ -107,6 +107,13 @@ export function HostAuth({ children }: HostAuthProps) {
     navigate('/auth/host');
   };
 
+  // Redirect effect - runs when auth state is determined
+  useEffect(() => {
+    if (!isLoading && (!user || !session || !isHost)) {
+      navigate('/auth/host', { replace: true });
+    }
+  }, [isLoading, user, session, isHost, navigate]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
@@ -117,12 +124,8 @@ export function HostAuth({ children }: HostAuthProps) {
     );
   }
 
-  // If not authenticated or not a host, redirect to auth page
+  // Show loading while redirect happens
   if (!user || !session || !isHost) {
-    // Use useEffect pattern would be better, but for now just return loading while redirect happens
-    setTimeout(() => {
-      navigate('/auth/host');
-    }, 100);
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
         <div className="animate-pulse-slow">
