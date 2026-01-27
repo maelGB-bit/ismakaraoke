@@ -76,17 +76,32 @@ export default function Index() {
   }, []);
 
   const redirectBasedOnRole = async (userId: string) => {
-    const { data: roles } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId);
+    try {
+      console.log('Index: Fetching roles for user:', userId);
+      const { data: roles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
 
-    const userRoles = roles?.map(r => r.role) || [];
+      if (error) {
+        console.error('Index: Error fetching roles:', error);
+        return;
+      }
 
-    if (userRoles.includes('admin')) {
-      navigate('/admin');
-    } else if (userRoles.includes('coordinator')) {
-      navigate('/host');
+      console.log('Index: User roles:', roles);
+      const userRoles = roles?.map(r => r.role) || [];
+
+      if (userRoles.includes('admin')) {
+        console.log('Index: Redirecting to /admin');
+        navigate('/admin');
+      } else if (userRoles.includes('coordinator')) {
+        console.log('Index: Redirecting to /host');
+        navigate('/host');
+      } else {
+        console.log('Index: No recognized role found');
+      }
+    } catch (err) {
+      console.error('Index: Error in redirectBasedOnRole:', err);
     }
   };
 
