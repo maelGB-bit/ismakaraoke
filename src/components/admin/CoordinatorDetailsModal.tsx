@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Mail, Phone, User, Building, Tag, Key, Copy, RefreshCw, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Calendar, Clock, Mail, Phone, User, Building, Tag, Key, Copy, RefreshCw, Loader2, Eye, EyeOff, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { CoordinatorRequest } from '@/types/admin';
@@ -59,6 +59,7 @@ export function CoordinatorDetailsModal({ request, open, onOpenChange, onPasswor
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [currentPassword, setCurrentPassword] = useState<string | null>(null);
 
   if (!request) return null;
@@ -70,6 +71,41 @@ export function CoordinatorDetailsModal({ request, open, onOpenChange, onPasswor
     if (displayPassword) {
       navigator.clipboard.writeText(displayPassword);
       toast({ title: 'Senha copiada!' });
+    }
+  };
+
+  const handleForceLogout = async () => {
+    if (!request.user_id) {
+      toast({ title: 'Usuário não encontrado', variant: 'destructive' });
+      return;
+    }
+
+    setIsLoggingOut(true);
+    try {
+      const response = await supabase.functions.invoke('force-logout', {
+        body: { userId: request.user_id },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao deslogar usuário');
+      }
+
+      const result = response.data;
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao deslogar usuário');
+      }
+
+      toast({ 
+        title: 'Usuário deslogado!',
+        description: 'O coordenador precisará fazer login novamente.',
+      });
+    } catch (error: unknown) {
+      console.error('Error forcing logout:', error);
+      const message = error instanceof Error ? error.message : 'Erro ao deslogar usuário';
+      toast({ title: message, variant: 'destructive' });
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -289,6 +325,22 @@ export function CoordinatorDetailsModal({ request, open, onOpenChange, onPasswor
                     <RefreshCw className="h-4 w-4 mr-2" />
                   )}
                   Resetar Senha
+                </Button>
+
+                {/* Force Logout Button */}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full mt-2"
+                  onClick={handleForceLogout}
+                  disabled={isLoggingOut}
+                >
+                  {isLoggingOut ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <LogOut className="h-4 w-4 mr-2" />
+                  )}
+                  Forçar Logout
                 </Button>
               </div>
             </div>
