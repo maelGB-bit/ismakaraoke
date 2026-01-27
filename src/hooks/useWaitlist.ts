@@ -152,10 +152,37 @@ export function useWaitlist() {
 
     const channel = supabase
       .channel('waitlist-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'waitlist' }, () => { fetchEntries(); })
-      .subscribe();
+      .on(
+        'postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'waitlist' }, 
+        (payload) => {
+          console.log('Waitlist INSERT detected:', payload);
+          fetchEntries();
+        }
+      )
+      .on(
+        'postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'waitlist' }, 
+        (payload) => {
+          console.log('Waitlist UPDATE detected:', payload);
+          fetchEntries();
+        }
+      )
+      .on(
+        'postgres_changes', 
+        { event: 'DELETE', schema: 'public', table: 'waitlist' }, 
+        (payload) => {
+          console.log('Waitlist DELETE detected:', payload);
+          fetchEntries();
+        }
+      )
+      .subscribe((status) => {
+        console.log('Waitlist realtime subscription status:', status);
+      });
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { 
+      supabase.removeChannel(channel); 
+    };
   }, []);
 
   // Rate limiting constants
