@@ -80,6 +80,17 @@ export function HostAuth({ children }: HostAuthProps) {
       } else {
         setIsHost(data && data.length > 0);
       }
+
+      // Check if user was forced to logout by admin
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.app_metadata?.session_invalidated) {
+        console.log('User session was invalidated by admin, signing out');
+        await supabase.auth.signOut();
+        setUser(null);
+        setSession(null);
+        setIsHost(false);
+        return;
+      }
     } catch (err) {
       console.error('Error checking host role:', err);
       setIsHost(false);
