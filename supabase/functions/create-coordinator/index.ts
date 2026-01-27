@@ -83,6 +83,22 @@ Deno.serve(async (req) => {
       console.log("User already exists:", existingUser.id);
       userId = existingUser.id;
       
+      // Generate new password and update it for existing user
+      tempPassword = generateTempPassword();
+      const { error: updatePasswordError } = await adminClient.auth.admin.updateUserById(userId, {
+        password: tempPassword,
+      });
+      
+      if (updatePasswordError) {
+        console.error("Password update error:", updatePasswordError);
+        return new Response(JSON.stringify({ error: "Failed to reset password" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      console.log("Password reset successfully for user:", userId);
+      
       // Check if they already have a coordinator role
       const { data: existingRole } = await adminClient
         .from("user_roles")
@@ -141,7 +157,7 @@ Deno.serve(async (req) => {
             success: true,
             userId,
             instanceCode: existingInstance.instance_code,
-            tempPassword: null,
+            tempPassword,
             expiresAt: expiresAt.toISOString(),
             renewed: true,
           }),

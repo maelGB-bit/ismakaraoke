@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock, Check, X, Trash2, Loader2, RefreshCw, UserPlus, Link as LinkIcon, Copy } from 'lucide-react';
+import { Clock, Check, X, Trash2, Loader2, RefreshCw, UserPlus, Link as LinkIcon, Copy, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { CoordinatorDetailsModal } from './CoordinatorDetailsModal';
 import type { CoordinatorRequest, CoordinatorRequestStatus } from '@/types/admin';
 import { INTEREST_LABELS, STATUS_LABELS, APPROVAL_DURATIONS } from '@/types/admin';
 
@@ -57,6 +58,12 @@ export function AdminCoordinatorRequests() {
   const [instanceName, setInstanceName] = useState('');
   const [duration, setDuration] = useState('24h');
   const [isApproving, setIsApproving] = useState(false);
+  
+  // Details modal state
+  const [detailsModal, setDetailsModal] = useState<{ open: boolean; request: CoordinatorRequest | null }>({
+    open: false,
+    request: null,
+  });
 
   const fetchRequests = async () => {
     try {
@@ -278,7 +285,7 @@ export function AdminCoordinatorRequests() {
                     </TableHeader>
                     <TableBody>
                       {pendingRequests.map((request) => (
-                        <TableRow key={request.id}>
+                        <TableRow key={request.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setDetailsModal({ open: true, request })}>
                           <TableCell className="font-medium">{request.name}</TableCell>
                           <TableCell>{request.email}</TableCell>
                           <TableCell>{request.phone}</TableCell>
@@ -288,7 +295,10 @@ export function AdminCoordinatorRequests() {
                           <TableCell className="text-muted-foreground">
                             {new Date(request.created_at).toLocaleDateString('pt-BR')}
                           </TableCell>
-                          <TableCell className="text-right space-x-2">
+                          <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
+                            <Button size="icon" variant="ghost" onClick={() => setDetailsModal({ open: true, request })}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
                             <Button size="sm" onClick={() => openApprovalDialog(request)}>
                               <Check className="h-4 w-4 mr-1" />
                               Aprovar
@@ -325,7 +335,7 @@ export function AdminCoordinatorRequests() {
                       {approvedRequests.map((request) => {
                         const isExpired = request.expires_at && new Date(request.expires_at) < new Date();
                         return (
-                          <TableRow key={request.id} className={isExpired ? 'opacity-60' : ''}>
+                          <TableRow key={request.id} className={`cursor-pointer hover:bg-muted/50 ${isExpired ? 'opacity-60' : ''}`} onClick={() => setDetailsModal({ open: true, request })}>
                             <TableCell className="font-medium">{request.name}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
@@ -335,7 +345,7 @@ export function AdminCoordinatorRequests() {
                                   size="icon"
                                   variant="ghost"
                                   className="h-6 w-6"
-                                  onClick={() => copyInstanceLink(request)}
+                                  onClick={(e) => { e.stopPropagation(); copyInstanceLink(request); }}
                                 >
                                   <Copy className="h-3 w-3" />
                                 </Button>
@@ -351,7 +361,10 @@ export function AdminCoordinatorRequests() {
                                 {request.expires_at ? getTimeRemaining(request.expires_at) : '-'}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-right space-x-2">
+                            <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
+                              <Button size="icon" variant="ghost" onClick={() => setDetailsModal({ open: true, request })}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
                               <Button size="sm" variant="outline" onClick={() => handleRenew(request)}>
                                 <RefreshCw className="h-4 w-4 mr-1" />
                                 Renovar
@@ -385,7 +398,7 @@ export function AdminCoordinatorRequests() {
                     </TableHeader>
                     <TableBody>
                       {otherRequests.map((request) => (
-                        <TableRow key={request.id} className="opacity-60">
+                        <TableRow key={request.id} className="opacity-60 cursor-pointer hover:bg-muted/50" onClick={() => setDetailsModal({ open: true, request })}>
                           <TableCell>{request.name}</TableCell>
                           <TableCell>{request.email}</TableCell>
                           <TableCell>
@@ -393,7 +406,10 @@ export function AdminCoordinatorRequests() {
                               {STATUS_LABELS[request.status]}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <Button size="icon" variant="ghost" onClick={() => setDetailsModal({ open: true, request })}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
                             <Button size="icon" variant="ghost" onClick={() => handleDelete(request.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -461,6 +477,13 @@ export function AdminCoordinatorRequests() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Details Modal */}
+      <CoordinatorDetailsModal
+        request={detailsModal.request}
+        open={detailsModal.open}
+        onOpenChange={(open) => setDetailsModal({ open, request: detailsModal.request })}
+      />
     </>
   );
 }
