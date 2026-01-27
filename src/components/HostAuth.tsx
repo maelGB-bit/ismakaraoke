@@ -108,8 +108,10 @@ export function HostAuth({ children }: HostAuthProps) {
 
   // If not authenticated or not a host, redirect to auth page
   if (!user || !session || !isHost) {
-    // Use effect to navigate to avoid render issues
-    navigate('/auth/host');
+    // Use useEffect pattern would be better, but for now just return loading while redirect happens
+    setTimeout(() => {
+      navigate('/auth/host');
+    }, 100);
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
         <div className="animate-pulse-slow">

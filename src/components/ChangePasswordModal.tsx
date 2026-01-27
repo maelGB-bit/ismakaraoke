@@ -65,7 +65,7 @@ export function ChangePasswordModal({ open, onPasswordChanged }: ChangePasswordM
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={() => {}} modal={true}>
       <DialogContent className="max-w-sm" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
