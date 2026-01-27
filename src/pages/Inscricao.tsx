@@ -386,12 +386,23 @@ export default function Inscricao() {
             </div>
             {searchError && (
               <motion.div
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-600 dark:text-yellow-400"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-4 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/40 shadow-lg"
               >
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                <p className="text-xs">{searchError}</p>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-full bg-amber-500/20">
+                    <AlertCircle className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <p className="font-semibold text-amber-600 dark:text-amber-400">
+                      {t('signup.searchUnavailable')}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('signup.searchUnavailableHint')}
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             )}
           </div>
