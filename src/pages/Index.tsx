@@ -136,7 +136,7 @@ export default function Index() {
                 <h2 className="text-2xl font-bold font-display mb-1">
                   {feature.title}
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground line-clamp-2">
                   {feature.description}
                 </p>
               </div>
