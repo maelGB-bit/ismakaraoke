@@ -224,6 +224,14 @@ export default function HostAuthPage() {
           return;
         }
 
+        // Clear any session invalidation flags (from force logout)
+        try {
+          await supabase.functions.invoke('clear-session-flag');
+        } catch (flagError) {
+          console.error('Error clearing session flag:', flagError);
+          // Don't block login for this
+        }
+
         toast({ 
           title: t('auth.accessGranted'), 
           description: t('auth.welcomeHost') 
