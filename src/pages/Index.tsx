@@ -132,11 +132,11 @@ export default function Index() {
               className={`glass-card w-full h-auto p-6 flex flex-col items-center gap-4 group hover:scale-105 transition-transform ${feature.glow}`}
             >
               <feature.icon className={`w-12 h-12 ${feature.color}`} />
-              <div className="text-center">
-                <h2 className="text-2xl font-bold font-display mb-1">
+              <div className="text-center w-full break-words">
+                <h2 className="text-2xl font-bold font-display mb-1 break-words">
                   {feature.title}
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground break-words">
                   {feature.description}
                 </p>
               </div>
