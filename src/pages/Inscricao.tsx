@@ -58,6 +58,7 @@ export default function Inscricao() {
   const [manualUrl, setManualUrl] = useState('');
   const [searchError, setSearchError] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isQuotaExceeded, setIsQuotaExceeded] = useState(false);
 
   // Set singer name from profile when loaded
   useEffect(() => {
@@ -166,7 +167,10 @@ export default function Inscricao() {
       
       setVideos(data.videos || []);
 
-      if (data.error) {
+      if (data.errorCode === 'quotaExceeded') {
+        setIsQuotaExceeded((prev) => prev || true);
+        setSearchError(t('signup.quotaExceeded'));
+      } else if (data.error) {
         setSearchError(data.error);
       }
 
@@ -354,55 +358,59 @@ export default function Inscricao() {
             </motion.p>
           )}
 
-          {/* Manual URL Input */}
-          <div className="space-y-2">
-            <Label className="text-lg flex items-center gap-2">
-              <Link className="h-4 w-4" />
-              {t('signup.pasteUrl')}
-            </Label>
-            <div className="flex items-center gap-2">
-              <p className="text-xs text-muted-foreground flex-1">
-                {t('signup.karaokeHint')}
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="shrink-0"
-                onClick={() => window.open('https://www.youtube.com/results?search_query=karaoke', '_blank')}
-              >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                YouTube
-              </Button>
-            </div>
-            <Input
-              value={manualSongTitle}
-              onChange={(e) => setManualSongTitle(e.target.value)}
-              placeholder={t('signup.songTitlePlaceholder')}
-              className="mb-2"
-            />
-            <div className="flex gap-2">
-              <Input
-                value={manualUrl}
-                onChange={(e) => setManualUrl(e.target.value)}
-                placeholder={t('signup.urlPlaceholder')}
-                className="flex-1"
-              />
-              <Button
-                onClick={handleManualUrl}
-                disabled={!manualUrl.trim() || !manualSongTitle.trim()}
-                variant="secondary"
-              >
-                {t('signup.load')}
-              </Button>
-            </div>
-          </div>
+          {isQuotaExceeded && (
+            <>
+              {/* Manual URL Input */}
+              <div className="space-y-2">
+                <Label className="text-lg flex items-center gap-2">
+                  <Link className="h-4 w-4" />
+                  {t('signup.pasteUrl')}
+                </Label>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-muted-foreground flex-1">
+                    {t('signup.karaokeHint')}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() => window.open('https://www.youtube.com/results?search_query=karaoke', '_blank')}
+                  >
+                    <ExternalLink className="h-3 w-3 mr-1" />
+                    YouTube
+                  </Button>
+                </div>
+                <Input
+                  value={manualSongTitle}
+                  onChange={(e) => setManualSongTitle(e.target.value)}
+                  placeholder={t('signup.songTitlePlaceholder')}
+                  className="mb-2"
+                />
+                <div className="flex gap-2">
+                  <Input
+                    value={manualUrl}
+                    onChange={(e) => setManualUrl(e.target.value)}
+                    placeholder={t('signup.urlPlaceholder')}
+                    className="flex-1"
+                  />
+                  <Button
+                    onClick={handleManualUrl}
+                    disabled={!manualUrl.trim() || !manualSongTitle.trim()}
+                    variant="secondary"
+                  >
+                    {t('signup.load')}
+                  </Button>
+                </div>
+              </div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs text-muted-foreground">{t('signup.orSearch')}</span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
+              {/* Divider */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground">{t('signup.orSearch')}</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            </>
+          )}
 
           {/* Song Search */}
           <div className="space-y-2">
