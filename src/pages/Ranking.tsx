@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Vote, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RankingCard } from '@/components/RankingCard';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useRanking } from '@/hooks/usePerformance';
 import { useLanguage } from '@/i18n/LanguageContext';
 
@@ -12,7 +13,12 @@ export default function Ranking() {
   const { performances, loading } = useRanking();
 
   return (
-    <div className="min-h-screen gradient-bg p-4 lg:p-8">
+    <div className="min-h-screen gradient-bg p-4 lg:p-8 relative">
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageSwitcher />
+      </div>
+      
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -11,6 +11,7 @@ import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { UserRegistrationModal } from '@/components/UserRegistrationModal';
 import { LeaveButton } from '@/components/LeaveButton';
 import { YouTubePreview } from '@/components/YouTubePreview';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -250,7 +251,12 @@ export default function Inscricao() {
   }
 
   return (
-    <div className="min-h-screen gradient-bg p-4">
+    <div className="min-h-screen gradient-bg p-4 relative">
+      {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageSwitcher />
+      </div>
+      
       {showRegistration && (
         <UserRegistrationModal onComplete={handleRegistrationComplete} />
       )}

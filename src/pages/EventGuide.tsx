@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { HostAuth } from '@/components/HostAuth';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 function EventGuideContent() {
   const navigate = useNavigate();
@@ -39,14 +40,17 @@ function EventGuideContent() {
           <ArrowLeft className="w-4 h-4" />
           {t('guide.back')}
         </Button>
-        <Button 
-          variant="outline" 
-          onClick={handlePrintQRCodes}
-          className="gap-2 print:hidden"
-        >
-          <Printer className="w-4 h-4" />
-          {t('guide.printQR')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handlePrintQRCodes}
+            className="gap-2 print:hidden"
+          >
+            <Printer className="w-4 h-4" />
+            {t('guide.printQR')}
+          </Button>
+          <LanguageSwitcher />
+        </div>
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">

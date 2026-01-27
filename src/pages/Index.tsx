@@ -1,22 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic2, Users, Trophy, ArrowRight, Music, Globe, BookOpen } from 'lucide-react';
+import { Mic2, Users, Trophy, ArrowRight, Music, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageContext';
-import { languages } from '@/i18n/translations';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import mammothLogo from '@/assets/mammoth-logo.png';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 export default function Index() {
   const navigate = useNavigate();
-  const { t, language, setLanguage } = useLanguage();
-
-  const currentLang = languages.find(l => l.code === language);
+  const { t } = useLanguage();
 
   const features = [
     {
@@ -65,26 +57,7 @@ export default function Index() {
     <div className="min-h-screen gradient-bg flex flex-col items-center justify-center p-4 relative">
       {/* Language Switcher */}
       <div className="absolute top-4 right-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="gap-2">
-              <span className="text-xl">{currentLang?.flag}</span>
-              <Globe className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {languages.map((lang) => (
-              <DropdownMenuItem
-                key={lang.code}
-                onClick={() => setLanguage(lang.code)}
-                className={language === lang.code ? 'bg-primary/20' : ''}
-              >
-                <span className="mr-2 text-lg">{lang.flag}</span>
-                {lang.name}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <LanguageSwitcher />
       </div>
 
       <motion.div
