@@ -24,25 +24,55 @@ export default function Index() {
   const [checkingSession, setCheckingSession] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        await redirectBasedOnRole(session.user.id);
+      try {
+        console.log('Index: Checking session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Index: Session check error:', error);
+        }
+        
+        if (session?.user && isMounted) {
+          console.log('Index: User found, redirecting based on role...');
+          await redirectBasedOnRole(session.user.id);
+        }
+      } catch (err) {
+        console.error('Index: Unexpected error checking session:', err);
+      } finally {
+        if (isMounted) {
+          console.log('Index: Session check complete');
+          setCheckingSession(false);
+        }
       }
-      setCheckingSession(false);
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
+        console.log('Index: Auth state changed:', event);
+        if (event === 'SIGNED_IN' && session?.user && isMounted) {
           await redirectBasedOnRole(session.user.id);
         }
       }
     );
 
+    // Add a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (isMounted && checkingSession) {
+        console.warn('Index: Session check timeout, forcing render');
+        setCheckingSession(false);
+      }
+    }, 3000);
+
     checkSession();
-    return () => subscription.unsubscribe();
+    
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const redirectBasedOnRole = async (userId: string) => {
