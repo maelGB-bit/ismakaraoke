@@ -409,154 +409,149 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, queueCount, o
         </Button>
       </div>
 
-      {/* Top Bar - Compact Info */}
-      <div className="flex items-center gap-2 p-2 bg-background/80 backdrop-blur-sm border-b border-border/50 z-10">
-        {/* Now Singing */}
-        {isActive && performance && (
-          <motion.div
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            className="flex items-center gap-2 px-3 py-1 glass-card"
-          >
-            <Mic2 className="w-4 h-4 text-primary animate-pulse" />
-            <div className="flex items-center gap-2">
-              <User className="w-3 h-3 text-primary" />
-              <span className="text-sm font-bold font-display neon-text-cyan truncate max-w-[150px]">
-                {performance.cantor}
-              </span>
-            </div>
-            <span className="text-muted-foreground text-xs">•</span>
-            <div className="flex items-center gap-1">
-              <Music className="w-3 h-3 text-secondary" />
-              <span className="text-xs text-foreground/80 truncate max-w-[200px]">
-                {performance.musica}
-              </span>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Score Panel - Compact */}
-        <motion.div
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="flex items-center gap-2 px-3 py-1 glass-card relative"
-        >
-          <Star className="w-4 h-4 text-accent fill-accent" />
-          <span className={`text-xl font-black font-display ${
-            score >= 9 ? 'neon-text-gold' : score >= 7 ? 'neon-text-cyan' : 'text-foreground'
-          }`}>
-            {score.toFixed(1)}
-          </span>
-          <div className="flex items-center gap-1 text-muted-foreground border-l border-border/50 pl-2 ml-1">
-            <Users className="w-3 h-3" />
-            <span className="text-xs">{totalVotes}</span>
-          </div>
-          
-          {/* Vote Effects */}
-          <AnimatePresence>
-            {voteEffects.map((effect) => (
-              <motion.div
-                key={effect.id}
-                initial={{ opacity: 0, scale: 0.5, y: 0 }}
-                animate={{ opacity: 1, scale: 1, y: -30 }}
-                exit={{ opacity: 0, scale: 0.5, y: -50 }}
-                transition={{ duration: 0.5 }}
-                className={`absolute -top-1 right-0 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${
-                  effect.isPositive 
-                    ? 'bg-neon-green/20 text-neon-green border border-neon-green/50' 
-                    : 'bg-destructive/20 text-destructive border border-destructive/50'
-                }`}
-              >
-                {effect.isPositive ? (
-                  <TrendingUp className="w-3 h-3" />
-                ) : (
-                  <TrendingDown className="w-3 h-3" />
-                )}
-                +1
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
-
-        {/* Next in Queue - Compact Button */}
-        <motion.button
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          onClick={handleSelectNext}
-          disabled={!nextInQueue || isLoadingNext}
-          className="flex items-center gap-2 px-3 py-1 glass-card hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
-        >
-          <span className="text-xs uppercase tracking-wider text-muted-foreground">
-            {t('tv.nextUp')}:
-          </span>
-          {isLoadingNext ? (
-            <>
-              <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs text-muted-foreground">{t('waitlist.loading')}</span>
-            </>
-          ) : nextInQueue ? (
-            <>
-              <span className="text-sm font-bold font-display neon-text-gold truncate max-w-[120px]">
-                {nextInQueue.singer_name}
-              </span>
-              <Play className="w-3 h-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-            </>
-          ) : (
-            <span className="text-xs text-muted-foreground">-</span>
+      {/* Top Bar - Two rows for better responsiveness */}
+      <div className="bg-background/80 backdrop-blur-sm border-b border-border/50 z-10">
+        {/* Row 1: Singer Info (Primary - Large & Prominent) */}
+        <div className="flex flex-wrap items-center justify-center gap-3 p-2 border-b border-border/30">
+          {/* Now Singing - Main highlight */}
+          {isActive && performance && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex items-center gap-3 px-4 py-2 glass-card"
+            >
+              <Mic2 className="w-5 h-5 text-primary animate-pulse flex-shrink-0" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0">
+                <span className="text-lg font-black font-display neon-text-cyan truncate">
+                  {performance.cantor}
+                </span>
+                <span className="hidden sm:block text-muted-foreground">•</span>
+                <div className="flex items-center gap-1 min-w-0">
+                  <Music className="w-4 h-4 text-secondary flex-shrink-0" />
+                  <span className="text-sm text-foreground/80 truncate">
+                    {performance.musica}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
           )}
-        </motion.button>
 
-        {/* Queue Stats */}
-        <motion.div
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flex items-center gap-3 px-3 py-1 glass-card"
-        >
-          <div className="flex items-center gap-1 text-muted-foreground">
+          {/* Score Panel - Prominent with enhanced vote effects */}
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="flex items-center gap-3 px-4 py-2 glass-card relative overflow-visible"
+          >
+            <Star className="w-5 h-5 text-accent fill-accent flex-shrink-0" />
+            <span className={`text-2xl font-black font-display ${
+              score >= 9 ? 'neon-text-gold' : score >= 7 ? 'neon-text-cyan' : 'text-foreground'
+            }`}>
+              {score.toFixed(1)}
+            </span>
+            <div className="flex items-center gap-1 text-muted-foreground border-l border-border/50 pl-3 ml-1">
+              <Users className="w-4 h-4" />
+              <span className="text-sm font-medium">{totalVotes} {t('tv.votes')}</span>
+            </div>
+            
+            {/* Vote Effects - More visible */}
+            <AnimatePresence>
+              {voteEffects.map((effect) => (
+                <motion.div
+                  key={effect.id}
+                  initial={{ opacity: 0, scale: 0.3, y: 10 }}
+                  animate={{ opacity: 1, scale: 1.2, y: -40 }}
+                  exit={{ opacity: 0, scale: 0.5, y: -60 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className={`absolute -top-2 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold shadow-lg ${
+                    effect.isPositive 
+                      ? 'bg-neon-green/30 text-neon-green border-2 border-neon-green' 
+                      : 'bg-destructive/30 text-destructive border-2 border-destructive'
+                  }`}
+                >
+                  {effect.isPositive ? (
+                    <TrendingUp className="w-4 h-4" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4" />
+                  )}
+                  +1
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Next in Queue - Prominent button */}
+          <motion.button
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            onClick={handleSelectNext}
+            disabled={!nextInQueue || isLoadingNext}
+            className="flex items-center gap-2 px-4 py-2 glass-card hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+          >
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">
+              {t('tv.nextUp')}:
+            </span>
+            {isLoadingNext ? (
+              <>
+                <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs text-muted-foreground">{t('waitlist.loading')}</span>
+              </>
+            ) : nextInQueue ? (
+              <>
+                <span className="text-base font-bold font-display neon-text-gold truncate max-w-[150px]">
+                  {nextInQueue.singer_name}
+                </span>
+                <Play className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              </>
+            ) : (
+              <span className="text-xs text-muted-foreground">-</span>
+            )}
+          </motion.button>
+        </div>
+
+        {/* Row 2: Coordinator Controls (Secondary - Smaller) */}
+        <div className="flex flex-wrap items-center justify-center gap-2 px-2 py-1.5 text-muted-foreground">
+          {/* Queue Stats */}
+          <div className="flex items-center gap-1 text-xs">
             <Users className="w-3 h-3" />
-            <span className="text-sm font-bold text-foreground">{queueCount}</span>
-            <span className="text-xs">{t('tv.queueCount')}</span>
+            <span className="font-medium text-foreground">{queueCount}</span>
+            <span>{t('tv.queueCount')}</span>
           </div>
+
           {queueCount > 0 && (
             <>
-              <span className="text-muted-foreground text-xs">•</span>
-              <div className="flex items-center gap-1 text-muted-foreground">
+              <span className="text-xs">•</span>
+              <div className="flex items-center gap-1 text-xs">
                 <Clock className="w-3 h-3" />
-                <span className="text-xs">{t('tv.estimatedEnd')}:</span>
-                <span className="text-sm font-bold text-foreground">{estimatedEndTime}</span>
+                <span>{t('tv.estimatedEnd')}:</span>
+                <span className="font-medium text-foreground">{estimatedEndTime}</span>
               </div>
             </>
           )}
-        </motion.div>
 
-        {/* Registration Toggle Button */}
-        <motion.button
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          onClick={handleToggleRegistration}
-          disabled={isTogglingRegistration}
-          className={`flex items-center gap-2 px-3 py-1 glass-card transition-colors disabled:opacity-50 ${
-            isRegistrationOpen 
-              ? 'hover:bg-destructive/10 text-foreground' 
-              : 'hover:bg-primary/10 text-muted-foreground'
-          }`}
-        >
-          {isTogglingRegistration ? (
-            <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-          ) : isRegistrationOpen ? (
-            <Lock className="w-3 h-3" />
-          ) : (
-            <Unlock className="w-3 h-3" />
-          )}
-          <span className="text-xs">
-            {isRegistrationOpen ? t('registration.closeBtn') : t('registration.openBtn')}
-          </span>
-        </motion.button>
+          <span className="text-xs">•</span>
 
+          {/* Registration Toggle */}
+          <button
+            onClick={handleToggleRegistration}
+            disabled={isTogglingRegistration}
+            className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors disabled:opacity-50 ${
+              isRegistrationOpen 
+                ? 'hover:bg-destructive/10 text-foreground' 
+                : 'hover:bg-primary/10'
+            }`}
+          >
+            {isTogglingRegistration ? (
+              <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : isRegistrationOpen ? (
+              <Lock className="w-3 h-3" />
+            ) : (
+              <Unlock className="w-3 h-3" />
+            )}
+            <span>{isRegistrationOpen ? t('registration.closeBtn') : t('registration.openBtn')}</span>
+          </button>
+        </div>
       </div>
 
       {/* Video Area - Full Space */}
