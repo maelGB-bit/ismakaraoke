@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2, AlertCircle } from 'lucide-react';
+import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -545,7 +545,40 @@ function HostContent() {
                   <Menu className="mr-2 h-4 w-4" />{t('host.menu')}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover">
+              <DropdownMenuContent align="end" className="bg-popover min-w-[200px]">
+                {/* License time remaining */}
+                {instance?.expires_at && (
+                  <>
+                    <div className="px-2 py-2 text-xs">
+                      <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                        <Clock className="h-3 w-3" />
+                        <span>Tempo restante</span>
+                      </div>
+                      <div className="font-medium text-foreground">
+                        {(() => {
+                          const now = new Date();
+                          const expires = new Date(instance.expires_at);
+                          const diff = expires.getTime() - now.getTime();
+                          
+                          if (diff <= 0) return <span className="text-destructive">Expirado</span>;
+                          
+                          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                          
+                          if (days > 0) {
+                            return <span className={days <= 1 ? 'text-yellow-500' : 'text-green-500'}>{days}d {hours}h</span>;
+                          } else if (hours > 0) {
+                            return <span className={hours <= 3 ? 'text-yellow-500' : 'text-green-500'}>{hours}h {minutes}min</span>;
+                          } else {
+                            return <span className="text-destructive">{minutes}min</span>;
+                          }
+                        })()}
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem onClick={() => navigate('/')}><Home className="mr-2 h-4 w-4" />{t('host.backToHome')}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
                 <DropdownMenuSeparator />
