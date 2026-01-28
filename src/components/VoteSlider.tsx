@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { Star, Send } from 'lucide-react';
+import { Star, Send, Music } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useLanguage } from '@/i18n/LanguageContext';
@@ -13,6 +14,8 @@ interface VoteSliderProps {
 export function VoteSlider({ onSubmit, isSubmitting }: VoteSliderProps) {
   const [nota, setNota] = useState(7);
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const { instanceCode } = useParams<{ instanceCode?: string }>();
 
   const getScoreColor = (score: number) => {
     if (score <= 3) return 'text-destructive';
@@ -39,10 +42,21 @@ export function VoteSlider({ onSubmit, isSubmitting }: VoteSliderProps) {
           </div>
         </div>
       </div>
-      <Button onClick={() => onSubmit(nota)} disabled={isSubmitting} size="lg" className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 neon-glow-pink">
-        <Send className="mr-2 h-5 w-5" />
-        {isSubmitting ? t('slider.submitting') : t('slider.submitVote')}
-      </Button>
+      <div className="flex flex-col gap-3">
+        <Button onClick={() => onSubmit(nota)} disabled={isSubmitting} size="lg" className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 neon-glow-pink">
+          <Send className="mr-2 h-5 w-5" />
+          {isSubmitting ? t('slider.submitting') : t('slider.submitVote')}
+        </Button>
+        <Button 
+          onClick={() => navigate(instanceCode ? `/inscricao/${instanceCode}` : '/inscricao')} 
+          variant="outline" 
+          size="lg" 
+          className="w-full"
+        >
+          <Music className="mr-2 h-5 w-5" />
+          {t('vote.wantToSing')}
+        </Button>
+      </div>
     </div>
   );
 }
