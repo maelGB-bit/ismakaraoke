@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { LandingFooter } from '@/components/landing/LandingFooter';
 import mammothLogo from '@/assets/mammoth-logo.png';
 
 export default function EntrarSistema() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-landing-light">
       <LandingHeader />
@@ -30,16 +32,15 @@ export default function EntrarSistema() {
               Clique no botão abaixo para acessar o ambiente operacional do Mamute Karaoke.
             </p>
             
-            <Link to="/app">
-              <Button 
-                size="lg" 
-                className="bg-landing-orange hover:bg-landing-orange/90 text-white font-bold text-lg px-8 py-6 rounded-full shadow-lg shadow-landing-orange/30"
-              >
-                <LogIn className="w-5 h-5 mr-2" />
-                Entrar no Sistema
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="bg-landing-orange hover:bg-landing-orange/90 text-white font-bold text-lg px-8 py-6 rounded-full shadow-lg shadow-landing-orange/30"
+              onClick={() => navigate('/app/login')}
+            >
+              <LogIn className="w-5 h-5 mr-2" />
+              Entrar no Sistema
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
           </motion.div>
         </div>
       </main>

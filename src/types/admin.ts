@@ -29,7 +29,7 @@ export interface Coordinator {
 }
 
 export type SubscriptionInterest = 'single_event' | 'weekly' | 'monthly' | 'yearly';
-export type CoordinatorRequestStatus = 'pending' | 'approved' | 'expired' | 'rejected';
+export type CoordinatorRequestStatus = 'pending' | 'approved' | 'expired' | 'rejected' | 'duplicado';
 
 export interface CoordinatorRequest {
   id: string;
@@ -46,6 +46,7 @@ export interface CoordinatorRequest {
   temp_password?: string;
   current_password?: string;
   must_change_password?: boolean;
+  ip_address?: string;
   created_at: string;
   updated_at: string;
 }
@@ -62,9 +63,11 @@ export const STATUS_LABELS: Record<CoordinatorRequestStatus, string> = {
   approved: 'Aprovado',
   expired: 'Expirado',
   rejected: 'Rejeitado',
+  duplicado: 'Duplicado',
 };
 
 export const APPROVAL_DURATIONS = [
+  { value: '1h', label: '1 hora (Teste)', hours: 1 },
   { value: '3h', label: '3 horas', hours: 3 },
   { value: '24h', label: '24 horas', hours: 24 },
   { value: '7d', label: '7 dias', hours: 168 },

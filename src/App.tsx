@@ -16,6 +16,8 @@ import EntrarSistema from "./pages/EntrarSistema";
 
 // App pages (system)
 import Index from "./pages/Index";
+import LoginPage from "./pages/LoginPage";
+import CadastroTeste from "./pages/CadastroTeste";
 import Host from "./pages/Host";
 import HostAuthPage from "./pages/HostAuth";
 import AdminAuthPage from "./pages/AdminAuth";
@@ -47,6 +49,8 @@ const App = () => (
 
             {/* App routes (system) */}
             <Route path="/app" element={<Index />} />
+            <Route path="/app/login" element={<LoginPage />} />
+            <Route path="/app/cadastro" element={<CadastroTeste />} />
             <Route path="/app/host" element={<Host />} />
             <Route path="/app/auth/host" element={<HostAuthPage />} />
             <Route path="/app/auth/admin" element={<AdminAuthPage />} />
