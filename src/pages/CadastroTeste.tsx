@@ -19,6 +19,7 @@ export default function CadastroTeste() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [karaokeName, setKaraokeName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
@@ -27,12 +28,13 @@ export default function CadastroTeste() {
     instanceCode: string;
     expiresAt: string;
     trialHours: number;
+    karaokeName: string;
   } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim() || !email.trim() || !phone.trim()) {
+    if (!name.trim() || !email.trim() || !phone.trim() || !karaokeName.trim()) {
       toast({ title: 'Preencha todos os campos', variant: 'destructive' });
       return;
     }
@@ -52,6 +54,7 @@ export default function CadastroTeste() {
           name: name.trim(),
           email: email.trim().toLowerCase(),
           phone: phone.trim(),
+          karaokeName: karaokeName.trim(),
         },
       });
 
@@ -74,6 +77,7 @@ export default function CadastroTeste() {
         instanceCode: result.instanceCode,
         expiresAt: result.expiresAt,
         trialHours: result.trialHours,
+        karaokeName: result.karaokeName || karaokeName,
       });
       setSubmitted(true);
       toast({ title: 'Teste gratuito criado com sucesso!' });
@@ -146,7 +150,7 @@ export default function CadastroTeste() {
         >
           <div className="glass-card p-6 rounded-xl text-center">
             <CheckCircle className="w-16 h-16 text-neon-green mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-2">Teste Gratuito Criado!</h3>
+            <h3 className="text-xl font-bold mb-2">{trialResult.karaokeName}</h3>
             <p className="text-muted-foreground mb-4">
               Seu teste de {trialResult.trialHours} hora foi ativado com sucesso.
             </p>
@@ -279,6 +283,22 @@ export default function CadastroTeste() {
                 disabled={isSubmitting}
                 maxLength={20}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="karaokeName">Nome do seu Karaokê</Label>
+              <Input
+                id="karaokeName"
+                type="text"
+                value={karaokeName}
+                onChange={(e) => setKaraokeName(e.target.value)}
+                placeholder="Ex: Karaokê do João"
+                disabled={isSubmitting}
+                maxLength={100}
+              />
+              <p className="text-xs text-muted-foreground">
+                Este nome será exibido para os participantes
+              </p>
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>

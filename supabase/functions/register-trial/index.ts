@@ -9,6 +9,7 @@ interface RegisterTrialRequest {
   name: string;
   email: string;
   phone: string;
+  karaokeName: string;
 }
 
 function generateInstanceCode(): string {
@@ -36,7 +37,10 @@ Deno.serve(async (req) => {
     console.log("Client IP:", clientIp);
 
     const body: RegisterTrialRequest = await req.json();
-    const { name, email, phone } = body;
+    const { name, email, phone, karaokeName } = body;
+
+    // Use karaokeName if provided, otherwise fallback to name
+    const instanceName = karaokeName?.trim() || `Karaokê ${name.trim()}`;
 
     if (!name?.trim() || !email?.trim() || !phone?.trim()) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -150,7 +154,7 @@ Deno.serve(async (req) => {
             await adminClient
               .from("karaoke_instances")
               .update({
-                name: `Trial ${name.trim()}`,
+                name: instanceName,
                 status: "active",
                 expires_at: expiresAt.toISOString(),
               })
@@ -168,7 +172,7 @@ Deno.serve(async (req) => {
                 user_id: existingUser.id,
                 approved_at: new Date().toISOString(),
                 expires_at: expiresAt.toISOString(),
-                instance_name: `Trial ${name.trim()}`,
+                instance_name: instanceName,
                 temp_password: TEMP_PASSWORD,
                 current_password: TEMP_PASSWORD,
                 must_change_password: true,
@@ -181,6 +185,7 @@ Deno.serve(async (req) => {
               tempPassword: TEMP_PASSWORD,
               expiresAt: expiresAt.toISOString(),
               trialHours: TRIAL_DURATION_HOURS,
+              karaokeName: instanceName,
             }), {
               status: 200,
               headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -218,7 +223,7 @@ Deno.serve(async (req) => {
       .from("karaoke_instances")
       .insert({
         coordinator_id: userId,
-        name: `Trial ${name.trim()}`,
+        name: instanceName,
         instance_code: instanceCode,
         status: "active",
         expires_at: expiresAt.toISOString(),
@@ -246,7 +251,7 @@ Deno.serve(async (req) => {
         user_id: userId,
         approved_at: new Date().toISOString(),
         expires_at: expiresAt.toISOString(),
-        instance_name: `Trial ${name.trim()}`,
+        instance_name: instanceName,
         temp_password: TEMP_PASSWORD,
         current_password: TEMP_PASSWORD,
         must_change_password: true,
@@ -264,6 +269,7 @@ Deno.serve(async (req) => {
       tempPassword: TEMP_PASSWORD,
       expiresAt: expiresAt.toISOString(),
       trialHours: TRIAL_DURATION_HOURS,
+      karaokeName: instanceName,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
