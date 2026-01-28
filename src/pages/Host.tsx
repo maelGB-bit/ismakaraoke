@@ -283,10 +283,10 @@ function HostContent() {
       setMusica(cleanTitle);
     }
     
-    // If singer name is filled, add to waitlist as next in queue
+    // If singer name is filled, add to waitlist as FIRST in queue (next singer)
     if (cantor.trim()) {
       const songTitle = cleanTitle || musica || title || 'Música';
-      const success = await addToWaitlist(cantor.trim(), url, songTitle);
+      const success = await addToWaitlist(cantor.trim(), url, songTitle, undefined, true);
       if (success) {
         toast({ 
           title: t('waitlist.addedToQueue'), 
