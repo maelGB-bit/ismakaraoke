@@ -246,29 +246,28 @@ export function useWaitlist(instanceId?: string | null) {
 
       const timesSung = previousEntries?.[0]?.times_sung || 0;
 
-      // If insertFirst, we need to shift all existing entries down first
+      // If insertFirst, use negative priority to ensure this entry comes first
+      // Negative priorities are sorted before 0+, so each new insertFirst gets a more negative value
+      let priorityToUse = 999999; // Default: will be rebalanced in fair order
+      
       if (insertFirst) {
-        // Get all current waiting entries
+        // Get the current minimum priority to insert before it
         let query = supabase
           .from('waitlist')
-          .select('id, priority')
+          .select('priority')
           .eq('status', 'waiting')
-          .order('priority', { ascending: true });
+          .order('priority', { ascending: true })
+          .limit(1);
         
         if (instanceId) {
           query = query.eq('karaoke_instance_id', instanceId);
         }
 
-        const { data: currentEntries } = await query;
+        const { data: minPriorityEntry } = await query;
         
-        // Shift all priorities up by 1 to make room at position 0
-        if (currentEntries && currentEntries.length > 0) {
-          await Promise.all(
-            currentEntries.map(e => 
-              supabase.from('waitlist').update({ priority: e.priority + 1 }).eq('id', e.id)
-            )
-          );
-        }
+        // Use a priority that's lower (comes before) the current minimum
+        const currentMin = minPriorityEntry?.[0]?.priority ?? 0;
+        priorityToUse = currentMin - 1;
       }
 
       const insertData = {
@@ -276,7 +275,7 @@ export function useWaitlist(instanceId?: string | null) {
         youtube_url: youtubeUrl,
         song_title: songTitle,
         times_sung: timesSung,
-        priority: insertFirst ? 0 : 999999, // 0 = first, 999999 = will be rebalanced
+        priority: priorityToUse,
         status: 'waiting',
         registered_by: registeredBy?.trim() || null,
         karaoke_instance_id: instanceId || null,
