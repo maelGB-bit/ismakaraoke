@@ -6,6 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+// Cache duration in days
+const CACHE_DURATION_DAYS = 7;
+
 // Piped API instances as fallback
 const PIPED_INSTANCES = [
   'https://pipedapi.kavin.rocks',
@@ -39,6 +42,85 @@ function decrypt(encrypted: string, secret: string): string {
   }
   
   return new TextDecoder().decode(result);
+}
+
+// Get Supabase client with service role
+function getSupabaseClient() {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
+
+// Check cache for existing search results
+async function getCachedResults(query: string): Promise<VideoResult[] | null> {
+  try {
+    const supabase = getSupabaseClient();
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    const { data, error } = await supabase
+      .from('youtube_search_cache')
+      .select('id, results, expires_at, hit_count')
+      .ilike('search_query', normalizedQuery)
+      .single();
+    
+    if (error || !data) {
+      console.log('Cache miss for query:', normalizedQuery);
+      return null;
+    }
+    
+    // Check if cache is expired
+    const expiresAt = new Date(data.expires_at);
+    if (expiresAt < new Date()) {
+      console.log('Cache expired for query:', normalizedQuery);
+      // Delete expired entry
+      await supabase.from('youtube_search_cache').delete().eq('id', data.id);
+      return null;
+    }
+    
+    // Update hit count (fire and forget)
+    supabase
+      .from('youtube_search_cache')
+      .update({ hit_count: data.hit_count + 1 })
+      .eq('id', data.id)
+      .then(() => {});
+    
+    console.log(`Cache HIT for query: "${normalizedQuery}" (hits: ${data.hit_count + 1})`);
+    return data.results as VideoResult[];
+  } catch (error) {
+    console.log('Error checking cache:', error);
+    return null;
+  }
+}
+
+// Save results to cache
+async function saveToCache(query: string, results: VideoResult[]): Promise<void> {
+  try {
+    const supabase = getSupabaseClient();
+    const normalizedQuery = query.toLowerCase().trim();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + CACHE_DURATION_DAYS);
+    
+    const { error } = await supabase
+      .from('youtube_search_cache')
+      .upsert({
+        search_query: normalizedQuery,
+        results: results,
+        expires_at: expiresAt.toISOString(),
+        hit_count: 0,
+        created_at: new Date().toISOString(),
+      }, {
+        onConflict: 'search_query',
+        ignoreDuplicates: false,
+      });
+    
+    if (error) {
+      console.log('Error saving to cache:', error.message);
+    } else {
+      console.log(`Cached results for query: "${normalizedQuery}" (expires: ${expiresAt.toISOString()})`);
+    }
+  } catch (error) {
+    console.log('Error in saveToCache:', error);
+  }
 }
 
 // Get YouTube API keys from database
@@ -264,26 +346,41 @@ serve(async (req) => {
 
     console.log('Searching for:', query);
 
-    // 1. Get API keys: first from database, then from environment as fallback
+    // 1. Check cache first
+    const cachedResults = await getCachedResults(query);
+    if (cachedResults && cachedResults.length > 0) {
+      return new Response(
+        JSON.stringify({ videos: cachedResults, cached: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 2. Get API keys: first from database, then from environment as fallback
     let apiKeys = await getYouTubeKeysFromDB();
     if (apiKeys.length === 0) {
       console.log('No keys in database, checking environment...');
       apiKeys = getYouTubeKeysFromEnv();
     }
 
-    // 2. Try YouTube API with available keys
+    // 3. Try YouTube API with available keys
     let videos = await searchWithYouTubeAPI(query, apiKeys);
     
-    // 3. Fallback to Piped if YouTube API fails
+    // 4. Fallback to Piped if YouTube API fails
     if (videos.length === 0) {
       console.log('YouTube API failed, trying Piped...');
       videos = await searchWithPiped(query);
     }
     
-    // 4. Fallback to Invidious if Piped fails
+    // 5. Fallback to Invidious if Piped fails
     if (videos.length === 0) {
       console.log('Piped failed, trying Invidious...');
       videos = await searchWithInvidious(query);
+    }
+
+    // 6. Save to cache if we got results
+    if (videos.length > 0) {
+      // Fire and forget - don't wait for cache save
+      saveToCache(query, videos).catch(err => console.log('Cache save error:', err));
     }
 
     if (videos.length === 0) {
@@ -297,7 +394,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ videos }),
+      JSON.stringify({ videos, cached: false }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
