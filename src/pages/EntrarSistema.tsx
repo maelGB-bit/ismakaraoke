@@ -4,7 +4,7 @@ import { LogIn, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LandingFooter } from '@/components/landing/LandingFooter';
-import mamuteLogo from '@/assets/mamute-logo.png';
+const mamuteLogo = '/img/mamute-logo.png';
 
 export default function EntrarSistema() {
   const navigate = useNavigate();

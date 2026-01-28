@@ -136,6 +136,45 @@ export type Database = {
           },
         ]
       }
+      hero_carousel_slides: {
+        Row: {
+          created_at: string
+          desktop_image_url: string
+          id: string
+          is_active: boolean
+          link_url: string | null
+          mobile_image_url: string | null
+          sort_order: number
+          tablet_image_url: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          desktop_image_url: string
+          id?: string
+          is_active?: boolean
+          link_url?: string | null
+          mobile_image_url?: string | null
+          sort_order?: number
+          tablet_image_url?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          desktop_image_url?: string
+          id?: string
+          is_active?: boolean
+          link_url?: string | null
+          mobile_image_url?: string | null
+          sort_order?: number
+          tablet_image_url?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       host_settings: {
         Row: {
           created_at: string
@@ -274,6 +313,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_images: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          key: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          key: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          key?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       site_videos: {
         Row: {

@@ -1,6 +1,7 @@
 export { LandingHeader } from './LandingHeader';
 export { LandingFooter } from './LandingFooter';
 export { HeroSection } from './HeroSection';
+export { HeroBannerCarousel } from './HeroBannerCarousel';
 export { HowItWorksSection } from './HowItWorksSection';
 export { MusicVarietySection } from './MusicVarietySection';
 export { BenefitsSection } from './BenefitsSection';
@@ -9,3 +10,4 @@ export { TestimonialsSection } from './TestimonialsSection';
 export { VideoSection } from './VideoSection';
 export { CTASection } from './CTASection';
 export { PlanCard } from './PlanCard';
+export { SiteYouTubePlayer } from './SiteYouTubePlayer';

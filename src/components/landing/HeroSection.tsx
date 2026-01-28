@@ -3,27 +3,12 @@ import { motion } from 'framer-motion';
 import { Play, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SiteYouTubePlayer } from './SiteYouTubePlayer';
+import { HeroBannerCarousel } from './HeroBannerCarousel';
 
 export function HeroSection() {
   return (
     <section className="relative min-h-screen flex flex-col items-center pt-20 pb-16 overflow-hidden">
-      <section className="hero-banner">
-        <picture>
-          <source
-            srcSet="/img/mamute-banner-desktop.png"
-            media="(min-width: 1024px)"
-          />
-          <source
-            srcSet="/img/mamute-banner-tablet.png"
-            media="(min-width: 768px)"
-          />
-          <img
-            src="/img/mamute-banner-mobile.png"
-            alt="Mamute Karaoke - Transforme qualquer evento em um karaokê interativo!"
-            className="hero-banner-image"
-          />
-        </picture>
-      </section>
+      <HeroBannerCarousel />
 
       <div className="container mx-auto px-4 relative z-10 mt-6 space-y-8">
         <div className="max-w-3xl mx-auto text-center text-white/90 space-y-3 text-base sm:text-lg">

@@ -103,25 +103,23 @@ export default function TestarPage() {
               </p>
               <div className="grid sm:grid-cols-2 gap-4">
                 <Button 
-                  variant="outline" 
                   onClick={() => setActiveVideo('coordinator')}
-                  className="h-auto py-4 border-landing-brown/20 hover:border-landing-orange hover:bg-landing-orange/5 text-landing-dark"
+                  className="h-auto py-4 bg-white border-2 border-landing-brown/20 hover:border-landing-orange hover:bg-landing-orange/5 text-landing-dark"
                 >
                   <Play className="w-5 h-5 mr-2 text-landing-orange" />
                   <div className="text-left">
-                    <p className="font-semibold">Coordenador</p>
-                    <p className="text-xs text-landing-dark/50">Como gerenciar o evento</p>
+                    <p className="font-semibold text-landing-dark">Coordenador</p>
+                    <p className="text-xs text-landing-dark/60">Como gerenciar o evento</p>
                   </div>
                 </Button>
                 <Button 
-                  variant="outline" 
                   onClick={() => setActiveVideo('participant')}
-                  className="h-auto py-4 border-landing-brown/20 hover:border-landing-orange hover:bg-landing-orange/5 text-landing-dark"
+                  className="h-auto py-4 bg-white border-2 border-landing-brown/20 hover:border-landing-orange hover:bg-landing-orange/5 text-landing-dark"
                 >
                   <Play className="w-5 h-5 mr-2 text-landing-orange" />
                   <div className="text-left">
-                    <p className="font-semibold">Participante</p>
-                    <p className="text-xs text-landing-dark/50">Como votar e se inscrever</p>
+                    <p className="font-semibold text-landing-dark">Participante</p>
+                    <p className="text-xs text-landing-dark/60">Como votar e se inscrever</p>
                   </div>
                 </Button>
               </div>
