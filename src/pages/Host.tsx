@@ -508,10 +508,17 @@ function HostContent() {
                 <DropdownMenuItem onClick={() => navigate('/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setShowResetDialog(true)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t('host.resetEvent')}</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout}><LogOut className="mr-2 h-4 w-4" />{t('host.logout')}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={logout}
+              className="text-destructive border-destructive/50 hover:bg-destructive/10"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              {t('host.logout')}
+            </Button>
           </div>
           <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center justify-center gap-3"><Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />{instance?.name || t('host.title')}</h1>
           <p className="text-muted-foreground text-sm">{t('host.subtitle')} • {instance?.instance_code}</p>
