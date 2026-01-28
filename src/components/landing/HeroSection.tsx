@@ -26,8 +26,12 @@ export function HeroSection() {
 
       <div className="container mx-auto px-4 relative z-10 mt-6 space-y-8">
         <div className="max-w-3xl mx-auto text-center text-white/90 space-y-3 text-base sm:text-lg">
-          <p>Sem filas, sem papel, sem pularem sua vez e sem confusão. Todos cantam de forma justa!!</p>
-          <p>Um karaokê organizado e divertido para qualquer evento, festa ou até para usar em casa.</p>
+          <p className="text-justify whitespace-nowrap text-orange-200">
+            Sem filas, sem papel, sem pularem sua vez e sem confusão. Todos cantam de forma justa!!
+          </p>
+          <p className="text-sm text-gray-300">
+            Um karaokê organizado e divertido para qualquer evento, festa ou até para usar em casa.
+          </p>
         </div>
 
         <div className="max-w-4xl mx-auto text-center">
