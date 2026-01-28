@@ -190,6 +190,44 @@ export type Database = {
         }
         Relationships: []
       }
+      participants: {
+        Row: {
+          created_at: string
+          device_id: string
+          email: string
+          id: string
+          karaoke_instance_id: string
+          name: string
+          phone: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          email: string
+          id?: string
+          karaoke_instance_id: string
+          name: string
+          phone: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          email?: string
+          id?: string
+          karaoke_instance_id?: string
+          name?: string
+          phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participants_karaoke_instance_id_fkey"
+            columns: ["karaoke_instance_id"]
+            isOneToOne: false
+            referencedRelation: "karaoke_instances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       performances: {
         Row: {
           cantor: string

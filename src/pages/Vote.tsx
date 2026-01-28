@@ -5,6 +5,7 @@ import { Mic2, CheckCircle, Trophy, AlertCircle, Clock, Music } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { VoteSlider } from '@/components/VoteSlider';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
+import { ParticipantRegistrationModal } from '@/components/ParticipantRegistrationModal';
 import { LeaveButton } from '@/components/LeaveButton';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { InstanceNotFound } from '@/components/InstanceNotFound';
@@ -13,6 +14,7 @@ import { useDeviceId } from '@/hooks/useDeviceId';
 import { useWaitlist } from '@/hooks/useWaitlist';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useInstanceByCode } from '@/hooks/useInstanceByCode';
+import { useParticipant } from '@/hooks/useParticipant';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +33,7 @@ export default function Vote() {
   const { entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
   const { profile: userProfile } = useUserProfile();
   const deviceId = useDeviceId();
+  const { participant, loading: participantLoading, registerParticipant } = useParticipant(instanceId, deviceId);
 
   const [hasVoted, setHasVoted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -156,7 +159,7 @@ export default function Vote() {
   }
 
   // Loading state
-  if (loading || checkingVote || instanceLoading) {
+  if (loading || checkingVote || instanceLoading || participantLoading) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
         <div className="glass-card p-8 text-center">
@@ -165,6 +168,19 @@ export default function Vote() {
           </div>
           <p className="text-muted-foreground">{t('vote.loading')}</p>
         </div>
+      </div>
+    );
+  }
+
+  // Show registration modal if participant is not registered
+  if (!participant && instanceId) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <ParticipantRegistrationModal
+          open={true}
+          onRegister={registerParticipant}
+          instanceName={instance?.name}
+        />
       </div>
     );
   }

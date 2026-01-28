@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { InstanceDataExport } from './InstanceDataExport';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAllInstances } from '@/hooks/useKaraokeInstance';
@@ -304,6 +305,7 @@ export function AdminInstances() {
                     {instance.coordinator_id.slice(0, 8)}...
                   </TableCell>
                   <TableCell className="text-right space-x-1">
+                    <InstanceDataExport instance={instance} />
                     <Button variant="ghost" size="icon" onClick={() => openEditDialog(instance)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
