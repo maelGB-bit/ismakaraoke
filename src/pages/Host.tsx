@@ -513,8 +513,8 @@ function HostContent() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center justify-center gap-3"><Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />{t('host.title')}</h1>
-          <p className="text-muted-foreground text-sm">{t('host.subtitle')}</p>
+          <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center justify-center gap-3"><Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />{instance?.name || t('host.title')}</h1>
+          <p className="text-muted-foreground text-sm">{t('host.subtitle')} • {instance?.instance_code}</p>
         </header>
 
         <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
