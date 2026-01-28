@@ -122,12 +122,29 @@ export function HostAuth({ children }: HostAuthProps) {
       // Use 'local' scope to just clear the local session
       // This avoids 403 errors when session was already invalidated server-side
       await supabase.auth.signOut({ scope: 'local' });
-      console.log('[HostAuth] Logout successful');
+      console.log('[HostAuth] Supabase signOut completed');
     } catch (err) {
       console.error('[HostAuth] Logout error (ignored):', err);
-      // Ignore errors - we're logging out anyway
     }
     
+    // Explicitly clear all Supabase-related localStorage items
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('supabase') || key.includes('sb-'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => {
+        console.log('[HostAuth] Removing localStorage key:', key);
+        localStorage.removeItem(key);
+      });
+    } catch (e) {
+      console.error('[HostAuth] Error clearing localStorage:', e);
+    }
+    
+    console.log('[HostAuth] Redirecting to /auth/host');
     // Force redirect and reload to ensure clean state
     window.location.href = '/auth/host';
   };
