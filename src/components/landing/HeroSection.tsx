@@ -24,14 +24,12 @@ export function HeroSection() {
         </picture>
       </section>
 
-      <div className="container mx-auto px-4 relative z-10 mt-6">
+      <div className="container mx-auto px-4 relative z-10 mt-6 space-y-8">
         <div className="max-w-3xl mx-auto text-center text-white/90 space-y-3 text-base sm:text-lg">
           <p>Sem filas, sem papel, sem pularem sua vez e sem confusão. Todos cantam de forma justa!!</p>
           <p>Um karaokê organizado e divertido para qualquer evento, festa ou até para usar em casa.</p>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 relative z-10 mt-8">
         <div className="max-w-4xl mx-auto text-center">
           {/* CTA Buttons */}
           <motion.div
