@@ -27,6 +27,8 @@ export function AdminApiKeys() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [testingKeyId, setTestingKeyId] = useState<string | null>(null);
+  const [testResults, setTestResults] = useState<Record<string, { valid: boolean; message: string }>>({});
   const [testResult, setTestResult] = useState<{ valid: boolean; message: string } | null>(null);
   const [loadingKey, setLoadingKey] = useState(false);
   
@@ -147,6 +149,49 @@ export function AdminApiKeys() {
     }
   };
 
+  // Test a key from the list view
+  const handleTestKeyFromList = async (keyId: string) => {
+    setTestingKeyId(keyId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      // First get the full key
+      const getKeyResponse = await supabase.functions.invoke('api-keys', {
+        body: { action: 'get_key', id: keyId },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (getKeyResponse.error) throw getKeyResponse.error;
+      const fullKey = getKeyResponse.data?.data?.key;
+      
+      if (!fullKey) {
+        setTestResults(prev => ({ ...prev, [keyId]: { valid: false, message: 'Não foi possível obter a chave' } }));
+        return;
+      }
+
+      // Now test the key
+      const response = await supabase.functions.invoke('api-keys', {
+        body: { action: 'test_key', key: fullKey },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (response.error) throw response.error;
+      setTestResults(prev => ({ ...prev, [keyId]: response.data }));
+      
+      toast({
+        title: response.data.valid ? 'Chave válida!' : 'Chave inválida',
+        description: response.data.message,
+        variant: response.data.valid ? 'default' : 'destructive',
+      });
+    } catch (error) {
+      console.error('Error testing API key:', error);
+      setTestResults(prev => ({ ...prev, [keyId]: { valid: false, message: 'Erro ao testar chave' } }));
+    } finally {
+      setTestingKeyId(null);
+    }
+  };
+
   const handleToggleActive = async (id: string, isActive: boolean) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -236,16 +281,32 @@ export function AdminApiKeys() {
               Chaves de API
             </CardTitle>
             <CardDescription>
-              Gerencie as chaves de API usadas no projeto. Você pode colar múltiplas chaves separadas por vírgula.
+              Gerencie as chaves de API usadas no projeto. Cole múltiplas chaves separadas por vírgula para criar várias de uma vez.
             </CardDescription>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setIsDialogOpen(open); }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Nova Chave
+          <div className="flex items-center gap-2">
+            {keys.filter(k => k.provider === 'youtube').length > 0 && (
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  const youtubeKeys = keys.filter(k => k.provider === 'youtube');
+                  for (const key of youtubeKeys) {
+                    await handleTestKeyFromList(key.id);
+                  }
+                }}
+                disabled={testingKeyId !== null}
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                Testar Todas
               </Button>
-            </DialogTrigger>
+            )}
+            <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setIsDialogOpen(open); }}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova Chave
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>{editingId ? 'Editar Chave' : 'Nova Chave de API'}</DialogTitle>
@@ -353,7 +414,8 @@ export function AdminApiKeys() {
                 </Button>
               </DialogFooter>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -374,6 +436,7 @@ export function AdminApiKeys() {
                 <TableHead>Provedor</TableHead>
                 <TableHead>Chave</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Quota</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -393,6 +456,36 @@ export function AdminApiKeys() {
                         {key.is_active ? 'Ativa' : 'Inativa'}
                       </span>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {key.provider === 'youtube' && (
+                      <div className="flex items-center gap-2">
+                        {testingKeyId === key.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        ) : testResults[key.id] ? (
+                          <div className="flex items-center gap-1">
+                            {testResults[key.id].valid ? (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-destructive" />
+                            )}
+                            <span className={`text-xs ${testResults[key.id].valid ? 'text-green-500' : 'text-destructive'}`}>
+                              {testResults[key.id].valid ? 'OK' : 'Sem quota'}
+                            </span>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleTestKeyFromList(key.id)}
+                            className="h-7 text-xs"
+                          >
+                            <Zap className="h-3 w-3 mr-1" />
+                            Testar
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => openEditDialog(key)}>
