@@ -177,10 +177,13 @@ export default function HostAuthPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('[HostAuthPage] handleLogin called', { email, password: '***' });
+    
     // For login, only validate email format and that password is not empty
     try {
       emailSchema.parse(email);
     } catch {
+      console.log('[HostAuthPage] Email validation failed');
       toast({ 
         title: t('auth.invalidEmail') || 'Email inválido', 
         description: t('auth.enterValidEmail') || 'Digite um email válido',
@@ -190,6 +193,7 @@ export default function HostAuthPage() {
     }
 
     if (!password.trim()) {
+      console.log('[HostAuthPage] Password empty');
       toast({ 
         title: 'Senha obrigatória', 
         description: 'Digite sua senha',
@@ -198,12 +202,15 @@ export default function HostAuthPage() {
       return;
     }
 
+    console.log('[HostAuthPage] Starting login...');
     setIsSubmitting(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
+      console.log('[HostAuthPage] Login result:', { user: data.user?.email, error: error?.message });
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
@@ -219,14 +226,19 @@ export default function HostAuthPage() {
       }
 
       if (data.user) {
+        console.log('[HostAuthPage] Login successful, checking role for:', data.user.id);
+        
         // Check if user is a host or coordinator
-        const { data: roleData } = await supabase
+        const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', data.user.id)
           .in('role', ['host', 'coordinator']);
 
+        console.log('[HostAuthPage] Role check result:', { roleData, roleError });
+
         if (!roleData || roleData.length === 0) {
+          console.log('[HostAuthPage] No role found, signing out');
           await supabase.auth.signOut();
           toast({ 
             title: t('auth.notAuthorized') || 'Não autorizado', 
@@ -236,6 +248,8 @@ export default function HostAuthPage() {
           return;
         }
 
+        console.log('[HostAuthPage] Role found, clearing session flag');
+        
         // Clear any session invalidation flags (from force logout)
         try {
           await supabase.functions.invoke('clear-session-flag');
@@ -244,6 +258,7 @@ export default function HostAuthPage() {
           // Don't block login for this
         }
 
+        console.log('[HostAuthPage] Navigating to /host');
         toast({ 
           title: t('auth.accessGranted'), 
           description: t('auth.welcomeHost') 
