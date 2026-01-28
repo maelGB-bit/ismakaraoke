@@ -71,6 +71,21 @@ function HostContent() {
     getNextInQueue,
   } = useWaitlist(instanceId);
 
+  // ALL HOOKS MUST BE DECLARED BEFORE ANY CONDITIONAL RETURNS
+  const { isRegistrationOpen, toggleRegistration } = useEventSettings();
+  
+  const [cantor, setCantor] = useState('');
+  const [musica, setMusica] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [lastHighScore, setLastHighScore] = useState(0);
+  const [currentWaitlistEntryId, setCurrentWaitlistEntryId] = useState<string | null>(null);
+  const [showTVMode, setShowTVMode] = useState(false);
+  const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+
   // Check if user needs to change password
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [checkingPasswordStatus, setCheckingPasswordStatus] = useState(true);
@@ -102,6 +117,8 @@ function HostContent() {
 
     checkPasswordStatus();
   }, [user?.email]);
+
+  const highestScore = ranking.length > 0 ? Math.max(...ranking.map(p => Number(p.nota_media))) : 0;
 
   // Show loading while checking for instance or password status
   if (instanceLoading || checkingPasswordStatus) {
@@ -140,20 +157,6 @@ function HostContent() {
   if (isExpired) {
     return <SubscriptionExpired coordinatorName={user?.email?.split('@')[0]} />;
   }
-
-  const { isRegistrationOpen, toggleRegistration } = useEventSettings();
-
-  const [cantor, setCantor] = useState('');
-  const [musica, setMusica] = useState('');
-  const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [lastHighScore, setLastHighScore] = useState(0);
-  const [currentWaitlistEntryId, setCurrentWaitlistEntryId] = useState<string | null>(null);
-  const [showTVMode, setShowTVMode] = useState(false);
-  const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
-  const highestScore = ranking.length > 0 ? Math.max(...ranking.map(p => Number(p.nota_media))) : 0;
 
   const handleToggleRegistration = async () => {
     if (isTogglingRegistration) return;
@@ -258,7 +261,6 @@ function HostContent() {
     toast({ title: t('host.singerSelected'), description: `${entry.singer_name} - ${entry.song_title}` });
   };
 
-  const [showResetDialog, setShowResetDialog] = useState(false);
 
   const handleResetEvent = async () => {
     try {
