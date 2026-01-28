@@ -48,13 +48,21 @@ export function useActivePerformance(instanceId?: string | null) {
           filter: `karaoke_instance_id=eq.${instanceId}`,
         },
         (payload) => {
+          console.log('[useActivePerformance] Realtime event:', payload.eventType, payload.new);
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const newPerf = payload.new as Performance;
             if (newPerf.status === 'ativa') {
+              // Always update when there's an active performance (handles video changes too)
+              console.log('[useActivePerformance] Updating active performance:', newPerf.id, 'video_changed_at:', newPerf.video_changed_at);
               setPerformance(newPerf);
-            } else if (performance?.id === newPerf.id) {
-              setPerformance(newPerf);
+            } else {
+              // Performance closed or changed status - refetch to get current active one
+              console.log('[useActivePerformance] Performance status changed to:', newPerf.status);
+              fetchActive();
             }
+          } else if (payload.eventType === 'DELETE') {
+            // Performance deleted - refetch
+            fetchActive();
           }
         }
       )
