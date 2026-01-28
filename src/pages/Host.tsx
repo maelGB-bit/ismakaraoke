@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2 } from 'lucide-react';
+import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { YouTubeSearch } from '@/components/YouTubeSearch';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
@@ -86,6 +87,8 @@ function HostContent() {
   const [showTVMode, setShowTVMode] = useState(false);
   const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [insertFirst, setInsertFirst] = useState(true); // Toggle: first in queue or fair order
+  const [showManualInput, setShowManualInput] = useState(false); // Show manual URL input when search fails
 
   // Check if user needs to change password
   const [mustChangePassword, setMustChangePassword] = useState(false);
@@ -283,13 +286,13 @@ function HostContent() {
       setMusica(cleanTitle);
     }
     
-    // If singer name is filled, add to waitlist as FIRST in queue (next singer)
+    // If singer name is filled, add to waitlist based on toggle
     if (cantor.trim()) {
       const songTitle = cleanTitle || musica || title || 'Música';
-      const success = await addToWaitlist(cantor.trim(), url, songTitle, undefined, true);
+      const success = await addToWaitlist(cantor.trim(), url, songTitle, undefined, insertFirst);
       if (success) {
         toast({ 
-          title: t('waitlist.addedToQueue'), 
+          title: insertFirst ? t('host.addedFirst') : t('waitlist.addedToQueue'), 
           description: `${cantor.trim()} - ${songTitle}` 
         });
         // Clear form for next entry
@@ -299,6 +302,10 @@ function HostContent() {
         setLoadedUrl(null);
       }
     }
+  };
+
+  const handleSearchError = () => {
+    setShowManualInput(true);
   };
 
 
@@ -579,41 +586,94 @@ function HostContent() {
           <div className="lg:col-span-8 flex flex-col gap-4">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="glass-card p-4">
               <h2 className="text-lg font-bold font-display mb-3 flex items-center gap-2"><Video className="w-4 h-4 text-secondary" />{t('host.configureRound')}</h2>
-              <div className="grid grid-cols-2 gap-3 mb-3">
+              
+              {/* Singer name and queue position toggle */}
+              <div className="grid grid-cols-1 gap-3 mb-3">
                 <div>
                   <Label htmlFor="cantor" className="text-xs">{t('host.singerName')}</Label>
                   <Input id="cantor" value={cantor} onChange={(e) => setCantor(e.target.value)} placeholder={t('host.singerPlaceholder')} disabled={isRoundActive} className="mt-1 h-8 text-sm" />
                 </div>
-                <div>
-                  <Label htmlFor="musica" className="text-xs">{t('host.song')}</Label>
-                  <Input id="musica" value={musica} onChange={(e) => setMusica(e.target.value)} placeholder={t('host.songPlaceholder')} disabled={isRoundActive} className="mt-1 h-8 text-sm" />
-                </div>
+                
+                {/* Queue position toggle - only show when singer name is filled */}
+                {cantor.trim() && (
+                  <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 border border-border">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium">{t('host.queuePosition')}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {insertFirst ? t('host.insertFirst') : t('host.insertFair')}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{t('host.fairOrder')}</span>
+                      <Switch
+                        checked={insertFirst}
+                        onCheckedChange={setInsertFirst}
+                        disabled={isRoundActive}
+                      />
+                      <span className="text-xs text-muted-foreground">{t('host.firstInQueue')}</span>
+                    </div>
+                  </div>
+                )}
               </div>
+              
+              {/* YouTube Search */}
               <div className="space-y-2">
                 <Label className="text-xs">{t('host.searchYoutube')}</Label>
-                <YouTubeSearch onSelectVideo={handleVideoSelectedFromSearch} disabled={isRoundActive} />
+                <YouTubeSearch onSelectVideo={handleVideoSelectedFromSearch} disabled={isRoundActive} onSearchError={handleSearchError} />
               </div>
-              <div className="flex gap-2 mt-2">
-                <div className="flex-1">
-                  <Label htmlFor="youtube" className="text-xs">{t('host.pasteUrl')}</Label>
-                  <Input id="youtube" value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="mt-1 h-8 text-sm" />
+              
+              {/* Manual input - hidden by default, shows on search error or toggle */}
+              {showManualInput && (
+                <div className="mt-3 p-3 rounded-md border border-amber-500/50 bg-amber-500/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                    <span className="text-xs font-medium text-amber-500">{t('host.searchFailed')}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="musica" className="text-xs">{t('host.song')}</Label>
+                      <Input id="musica" value={musica} onChange={(e) => setMusica(e.target.value)} placeholder={t('host.songPlaceholder')} disabled={isRoundActive} className="mt-1 h-8 text-sm" />
+                    </div>
+                    <div>
+                      <Label htmlFor="youtube" className="text-xs">{t('host.pasteUrl')}</Label>
+                      <Input id="youtube" value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="mt-1 h-8 text-sm" />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-2">
+                    <Button onClick={() => setShowManualInput(false)} variant="ghost" size="sm" className="text-xs h-7">{t('host.hideManual')}</Button>
+                    <Button onClick={handleLoadVideo} variant="secondary" size="sm" className="text-xs h-7">{t('host.load')}</Button>
+                  </div>
                 </div>
-                <Button onClick={handleLoadVideo} variant="secondary" size="sm" className="mt-5">{t('host.load')}</Button>
-                {isRoundActive && loadedUrl && (
+              )}
+              
+              {/* Show manual input toggle when search is working */}
+              {!showManualInput && (
+                <button
+                  onClick={() => setShowManualInput(true)}
+                  className="mt-2 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+                  disabled={isRoundActive}
+                >
+                  {t('host.showManualInput')}
+                </button>
+              )}
+              
+              {/* Video change button during active round */}
+              {isRoundActive && loadedUrl && (
+                <div className="mt-2 flex justify-end">
                   <Button 
                     onClick={() => {
                       const newUrl = prompt(t('tv.changeVideoDesc'));
                       if (newUrl) handleChangeVideo(newUrl);
                     }} 
                     variant="outline" 
-                    size="sm" 
-                    className="mt-5"
+                    size="sm"
                     title={t('tv.changeVideo')}
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="h-4 w-4 mr-1" />
+                    {t('tv.changeVideo')}
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </motion.div>
             <div className="min-h-[300px]"><YouTubePlayer url={loadedUrl} /></div>
             <div className="flex flex-wrap gap-2">

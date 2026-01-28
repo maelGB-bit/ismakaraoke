@@ -19,9 +19,10 @@ interface YouTubeVideo {
 interface YouTubeSearchProps {
   onSelectVideo: (url: string, title?: string) => void;
   disabled?: boolean;
+  onSearchError?: () => void;
 }
 
-export function YouTubeSearch({ onSelectVideo, disabled }: YouTubeSearchProps) {
+export function YouTubeSearch({ onSelectVideo, disabled, onSearchError }: YouTubeSearchProps) {
   const [query, setQuery] = useState('');
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +51,7 @@ export function YouTubeSearch({ onSelectVideo, disabled }: YouTubeSearchProps) {
     } catch (error) {
       console.error('Error searching YouTube:', error);
       toast({ title: t('youtube.searchError'), description: t('youtube.cantSearchVideos'), variant: 'destructive' });
+      onSearchError?.();
     } finally {
       setIsLoading(false);
     }
