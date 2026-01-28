@@ -340,10 +340,17 @@ function HostContent() {
 
 
   const handleResetEvent = async () => {
+    if (!instanceId) {
+      toast({ title: t('host.error'), description: 'No instance selected', variant: 'destructive' });
+      setShowResetDialog(false);
+      return;
+    }
+    
     try {
-      await supabase.from('votes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('performances').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('waitlist').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      // Delete only data for THIS specific instance
+      await supabase.from('votes').delete().eq('karaoke_instance_id', instanceId);
+      await supabase.from('performances').delete().eq('karaoke_instance_id', instanceId);
+      await supabase.from('waitlist').delete().eq('karaoke_instance_id', instanceId);
       setPerformance(null);
       setCantor('');
       setMusica('');
