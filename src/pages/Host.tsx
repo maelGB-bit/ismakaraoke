@@ -509,91 +509,90 @@ function HostContent() {
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="max-w-7xl mx-auto">
         <header className="mb-6">
           {/* Top bar with actions */}
-          <div className="flex flex-wrap justify-end gap-2 mb-4">
-            <Button
-              onClick={handleToggleRegistration}
-              variant="outline"
-              size="sm"
-              disabled={isTogglingRegistration}
-              className={isRegistrationOpen 
-                ? "text-destructive border-destructive/50 hover:bg-destructive/10" 
-                : "text-primary border-primary/50 hover:bg-primary/10"
-              }
-            >
-              {isTogglingRegistration ? (
-                <div className="mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              ) : isRegistrationOpen ? (
-                <Lock className="mr-2 h-4 w-4" />
-              ) : (
-                <Unlock className="mr-2 h-4 w-4" />
-              )}
-              {isRegistrationOpen ? t('registration.closeBtn') : t('registration.openBtn')}
-            </Button>
-            <Button
-              onClick={handleEnterTVMode}
-              variant="outline"
-              size="sm"
-              className="text-primary border-primary/50 hover:bg-primary/10"
-            >
-              <Monitor className="mr-2 h-4 w-4" />
-              {t('tv.modeButton')}
-            </Button>
-            <LanguageSwitcher />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                  <Menu className="mr-2 h-4 w-4" />{t('host.menu')}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover min-w-[200px]">
-                {/* License time remaining */}
-                {instance?.expires_at && (
-                  <>
-                    <div className="px-2 py-2 text-xs">
-                      <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                        <Clock className="h-3 w-3" />
-                        <span>Tempo restante</span>
-                      </div>
-                      <div className="font-medium text-foreground">
-                        {(() => {
-                          const now = new Date();
-                          const expires = new Date(instance.expires_at);
-                          const diff = expires.getTime() - now.getTime();
-                          
-                          if (diff <= 0) return <span className="text-destructive">Expirado</span>;
-                          
-                          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                          
-                          if (days > 0) {
-                            return <span className={days <= 1 ? 'text-yellow-500' : 'text-green-500'}>{days}d {hours}h</span>;
-                          } else if (hours > 0) {
-                            return <span className={hours <= 3 ? 'text-yellow-500' : 'text-green-500'}>{hours}h {minutes}min</span>;
-                          } else {
-                            return <span className="text-destructive">{minutes}min</span>;
-                          }
-                        })()}
-                      </div>
-                    </div>
-                    <DropdownMenuSeparator />
-                  </>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            {/* License time remaining - visible on screen */}
+            {instance?.expires_at && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-card/50 border border-border/50">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Licença:</span>
+                <span className="text-sm font-medium">
+                  {(() => {
+                    const now = new Date();
+                    const expires = new Date(instance.expires_at);
+                    const diff = expires.getTime() - now.getTime();
+                    
+                    if (diff <= 0) return <span className="text-destructive">Expirada</span>;
+                    
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    if (days > 0) {
+                      return <span className={days <= 1 ? 'text-yellow-500' : 'text-green-500'}>{days}d {hours}h</span>;
+                    } else if (hours > 0) {
+                      return <span className={hours <= 3 ? 'text-yellow-500' : 'text-green-500'}>{hours}h {minutes}min</span>;
+                    } else {
+                      return <span className="text-destructive">{minutes}min</span>;
+                    }
+                  })()}
+                </span>
+              </div>
+            )}
+            
+            {/* Right side actions */}
+            <div className="flex flex-wrap items-center gap-2 ml-auto">
+              <Button
+                onClick={handleToggleRegistration}
+                variant="outline"
+                size="sm"
+                disabled={isTogglingRegistration}
+                className={isRegistrationOpen 
+                  ? "text-destructive border-destructive/50 hover:bg-destructive/10" 
+                  : "text-primary border-primary/50 hover:bg-primary/10"
+                }
+              >
+                {isTogglingRegistration ? (
+                  <div className="mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : isRegistrationOpen ? (
+                  <Lock className="mr-2 h-4 w-4" />
+                ) : (
+                  <Unlock className="mr-2 h-4 w-4" />
                 )}
-                <DropdownMenuItem onClick={() => navigate('/')}><Home className="mr-2 h-4 w-4" />{t('host.backToHome')}</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setShowResetDialog(true)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t('host.resetEvent')}</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={logout}
-              className="text-destructive border-destructive/50 hover:bg-destructive/10"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              {t('host.logout')}
-            </Button>
+                {isRegistrationOpen ? t('registration.closeBtn') : t('registration.openBtn')}
+              </Button>
+              <Button
+                onClick={handleEnterTVMode}
+                variant="outline"
+                size="sm"
+                className="text-primary border-primary/50 hover:bg-primary/10"
+              >
+                <Monitor className="mr-2 h-4 w-4" />
+                {t('tv.modeButton')}
+              </Button>
+              <LanguageSwitcher />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Menu className="mr-2 h-4 w-4" />{t('host.menu')}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover">
+                  <DropdownMenuItem onClick={() => navigate('/')}><Home className="mr-2 h-4 w-4" />{t('host.backToHome')}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowResetDialog(true)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t('host.resetEvent')}</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={logout}
+                className="text-destructive border-destructive/50 hover:bg-destructive/10"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                {t('host.logout')}
+              </Button>
+            </div>
           </div>
           {/* Title */}
           <div className="text-center">
