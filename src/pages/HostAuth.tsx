@@ -51,24 +51,23 @@ export default function HostAuthPage() {
         }
       }
 
-      // Check if any hosts OR coordinators exist - if any exist, show login form
-      // Only show signup form if this is the very first user (no hosts exist)
-      const { count: hostCount, error: countError } = await supabase
-        .from('user_roles')
-        .select('*', { count: 'exact', head: true })
-        .in('role', ['host', 'coordinator']);
+      // Use RPC function to check if any hosts exist (bypasses RLS)
+      const { data: hasHosts, error: rpcError } = await supabase
+        .rpc('has_any_hosts');
       
-      if (countError) {
-        console.error('Error checking hosts:', countError);
+      if (rpcError) {
+        console.error('Error checking hosts:', rpcError);
+        // Default to login form on error
+        setHasHosts(true);
+        setIsSignUp(false);
+      } else {
+        // Always default to login form if there are any hosts or coordinators
+        // The signup option is ONLY for the very first host setup
+        setHasHosts(hasHosts ?? false);
+        // Default to login - coordinators are ALWAYS created by admin, they should never see signup
+        // Only show signup if no hosts exist at all (first-time setup)
+        setIsSignUp(!hasHosts);
       }
-      
-      // Always default to login form if there are any hosts or coordinators
-      // The signup option is ONLY for the very first host setup
-      const hasAnyHosts = (hostCount ?? 0) > 0;
-      setHasHosts(hasAnyHosts);
-      // Default to login - coordinators are ALWAYS created by admin, they should never see signup
-      // Only show signup if no hosts exist at all (first-time setup)
-      setIsSignUp(!hasAnyHosts);
     } catch (error) {
       console.error('Error in checkAuthState:', error);
       // Default to login form on error
