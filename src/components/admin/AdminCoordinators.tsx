@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Plus, Trash2, Loader2, Mail, Mic2, Clock } from 'lucide-react';
+import { Users, Plus, Trash2, Loader2, Mail, Mic2, Clock, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,10 +11,13 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Coordinator, KaraokeInstance } from '@/types/admin';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface CoordinatorWithInstance extends Coordinator {
   instance?: KaraokeInstance;
   name?: string;
+  last_access_at?: string | null;
 }
 
 // Helper function to calculate time remaining
@@ -72,10 +75,10 @@ export function AdminCoordinators() {
         .from('karaoke_instances')
         .select('*');
 
-      // Fetch coordinator requests to get names and emails
+      // Fetch coordinator requests to get names, emails and last access
       const { data: requestsData } = await supabase
         .from('coordinator_requests')
-        .select('user_id, name, email, status')
+        .select('user_id, name, email, status, last_access_at')
         .eq('status', 'approved');
 
       const instancesMap = new Map<string, KaraokeInstance>();
@@ -83,14 +86,14 @@ export function AdminCoordinators() {
         instancesMap.set(inst.coordinator_id, inst as KaraokeInstance);
       });
 
-      const requestsMap = new Map<string, { name: string; email: string }>();
+      const requestsMap = new Map<string, { name: string; email: string; last_access_at: string | null }>();
       requestsData?.forEach(req => {
         if (req.user_id) {
-          requestsMap.set(req.user_id, { name: req.name, email: req.email });
+          requestsMap.set(req.user_id, { name: req.name, email: req.email, last_access_at: req.last_access_at });
         }
       });
 
-      // Build coordinators list with names and emails
+      // Build coordinators list with names, emails and last access
       const coords: CoordinatorWithInstance[] = (rolesData || []).map(role => {
         const requestInfo = requestsMap.get(role.user_id);
         return {
@@ -100,6 +103,7 @@ export function AdminCoordinators() {
           role: role.role as 'coordinator',
           created_at: role.created_at,
           instance: instancesMap.get(role.user_id),
+          last_access_at: requestInfo?.last_access_at,
         };
       });
 
@@ -273,6 +277,7 @@ export function AdminCoordinators() {
               <TableRow>
                 <TableHead>Coordenador</TableHead>
                 <TableHead>Instância</TableHead>
+                <TableHead>Último Acesso</TableHead>
                 <TableHead>Tempo Restante</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -298,6 +303,18 @@ export function AdminCoordinators() {
                         </div>
                       ) : (
                         <span className="text-muted-foreground">Sem instância</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {coord.last_access_at ? (
+                        <div className="flex items-center gap-1">
+                          <CalendarClock className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm">
+                            {format(new Date(coord.last_access_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">Nunca acessou</span>
                       )}
                     </TableCell>
                     <TableCell>

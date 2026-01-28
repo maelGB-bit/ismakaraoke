@@ -56,6 +56,7 @@ export type Database = {
           instance_name: string | null
           interest: Database["public"]["Enums"]["subscription_interest"]
           ip_address: string | null
+          last_access_at: string | null
           must_change_password: boolean | null
           name: string
           phone: string
@@ -75,6 +76,7 @@ export type Database = {
           instance_name?: string | null
           interest: Database["public"]["Enums"]["subscription_interest"]
           ip_address?: string | null
+          last_access_at?: string | null
           must_change_password?: boolean | null
           name: string
           phone: string
@@ -94,6 +96,7 @@ export type Database = {
           instance_name?: string | null
           interest?: Database["public"]["Enums"]["subscription_interest"]
           ip_address?: string | null
+          last_access_at?: string | null
           must_change_password?: boolean | null
           name?: string
           phone?: string
