@@ -1,5 +1,6 @@
 import { useSiteVideo } from '@/hooks/useSiteVideos';
-import { Loader2, Play } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import mamuteLogo from '@/assets/mamute-logo.png';
 
 interface SiteYouTubePlayerProps {
   videoKey: string;
@@ -40,9 +41,13 @@ export function SiteYouTubePlayer({ videoKey, className = '', placeholderText }:
       <div className={`aspect-video bg-black/40 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center relative overflow-hidden ${className}`}>
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/40" />
         <div className="relative z-10 text-center px-6">
-          <Play className="w-12 h-12 text-white/30 mx-auto mb-3" />
+          <img 
+            src={mamuteLogo} 
+            alt="Mamute Karaokê" 
+            className="w-24 h-24 mx-auto mb-3 opacity-70"
+          />
           <p className="text-white/60 text-sm">
-            {placeholderText || 'Vídeo não configurado'}
+            {placeholderText || 'Em breve vídeo explicativo'}
           </p>
         </div>
       </div>

@@ -105,22 +105,22 @@ export default function TestarPage() {
                 <Button 
                   variant="outline" 
                   onClick={() => setActiveVideo('coordinator')}
-                  className="h-auto py-4 border-landing-brown/20 hover:border-landing-orange hover:bg-landing-orange/5"
+                  className="h-auto py-4 border-landing-brown/20 hover:border-landing-orange hover:bg-landing-orange/5 text-landing-dark"
                 >
                   <Play className="w-5 h-5 mr-2 text-landing-orange" />
                   <div className="text-left">
-                    <p className="font-semibold text-landing-dark">Coordenador</p>
+                    <p className="font-semibold">Coordenador</p>
                     <p className="text-xs text-landing-dark/50">Como gerenciar o evento</p>
                   </div>
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => setActiveVideo('participant')}
-                  className="h-auto py-4 border-landing-brown/20 hover:border-landing-orange hover:bg-landing-orange/5"
+                  className="h-auto py-4 border-landing-brown/20 hover:border-landing-orange hover:bg-landing-orange/5 text-landing-dark"
                 >
                   <Play className="w-5 h-5 mr-2 text-landing-orange" />
                   <div className="text-left">
-                    <p className="font-semibold text-landing-dark">Participante</p>
+                    <p className="font-semibold">Participante</p>
                     <p className="text-xs text-landing-dark/50">Como votar e se inscrever</p>
                   </div>
                 </Button>
@@ -214,7 +214,7 @@ export default function TestarPage() {
           </DialogHeader>
           <SiteYouTubePlayer 
             videoKey="tutorial_coordinator" 
-            placeholderText="Vídeo do coordenador não configurado"
+            placeholderText="Em breve vídeo explicativo"
           />
         </DialogContent>
       </Dialog>
@@ -229,7 +229,7 @@ export default function TestarPage() {
           </DialogHeader>
           <SiteYouTubePlayer 
             videoKey="tutorial_participant" 
-            placeholderText="Vídeo do participante não configurado"
+            placeholderText="Em breve vídeo explicativo"
           />
         </DialogContent>
       </Dialog>

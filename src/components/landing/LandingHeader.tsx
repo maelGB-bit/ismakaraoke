@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import mammothLogo from '@/assets/mammoth-logo.png';
+import mamuteLogo from '@/assets/mamute-logo.png';
 
 const navItems = [
   { label: 'Como Funciona', href: '/como-funciona' },
@@ -22,9 +22,9 @@ export function LandingHeader() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src={mammothLogo} alt="Mamute Karaoke" className="w-10 h-10 md:w-12 md:h-12" />
+            <img src={mamuteLogo} alt="Mamute Karaokê" className="w-10 h-10 md:w-12 md:h-12" />
             <span className="font-display font-bold text-xl md:text-2xl text-white">
-              Mamute <span className="text-landing-orange">Karaoke</span>
+              Mamute <span className="text-landing-orange">Karaokê</span>
             </span>
           </Link>
 

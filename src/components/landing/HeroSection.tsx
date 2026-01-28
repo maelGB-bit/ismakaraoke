@@ -66,7 +66,7 @@ export function HeroSection() {
           >
             <SiteYouTubePlayer 
               videoKey="hero_video" 
-              placeholderText="Vídeo de apresentação - Configure no painel admin"
+              placeholderText="Em breve vídeo explicativo"
               className="border-2 border-white/10"
             />
           </motion.div>

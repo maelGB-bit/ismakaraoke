@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Instagram, MessageCircle, Mail, HelpCircle } from 'lucide-react';
-import mammothLogo from '@/assets/mammoth-logo.png';
+import mamuteLogo from '@/assets/mamute-logo.png';
 
 export function LandingFooter() {
   return (
@@ -10,9 +10,9 @@ export function LandingFooter() {
           {/* Brand */}
           <div className="md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <img src={mammothLogo} alt="Mamute Karaoke" className="w-10 h-10" />
+              <img src={mamuteLogo} alt="Mamute Karaokê" className="w-10 h-10" />
               <span className="font-display font-bold text-xl text-white">
-                Mamute <span className="text-landing-orange">Karaoke</span>
+                Mamute <span className="text-landing-orange">Karaokê</span>
               </span>
             </Link>
             <p className="text-sm text-white/60">
@@ -114,7 +114,7 @@ export function LandingFooter() {
 
         <div className="border-t border-landing-brown/20 mt-8 pt-8 text-center">
           <p className="text-sm text-white/40">
-            © 2026 Mamute Karaoke — Todos os direitos reservados.
+            © 2026 Mamute Karaokê — Todos os direitos reservados.
           </p>
         </div>
       </div>

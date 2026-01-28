@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Music, Globe, Headphones } from 'lucide-react';
+import { SiteYouTubePlayer } from './SiteYouTubePlayer';
 
 export function MusicVarietySection() {
   return (
@@ -55,16 +56,10 @@ export function MusicVarietySection() {
             viewport={{ once: true }}
             className="lg:w-1/2"
           >
-            {/* Video placeholder */}
-            <div className="aspect-video bg-landing-brown/20 rounded-2xl border-2 border-dashed border-landing-brown/30 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-landing-orange/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Music className="w-8 h-8 text-landing-orange" />
-                </div>
-                <p className="text-white/50">Vídeo demonstrativo</p>
-                <p className="text-white/30 text-sm">(Em breve)</p>
-              </div>
-            </div>
+            <SiteYouTubePlayer 
+              videoKey="music_variety" 
+              placeholderText="Em breve vídeo explicativo"
+            />
           </motion.div>
         </div>
       </div>

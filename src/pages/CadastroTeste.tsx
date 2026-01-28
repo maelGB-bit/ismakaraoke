@@ -9,7 +9,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import mammothLogo from '@/assets/mammoth-logo.png';
+import mamuteLogo from '@/assets/mamute-logo.png';
 
 export default function CadastroTeste() {
   const navigate = useNavigate();
@@ -227,14 +227,14 @@ export default function CadastroTeste() {
           className="inline-block mb-4"
         >
           <div className="relative">
-            <img src={mammothLogo} alt="Mamutts Karaoke" className="w-24 h-24 animate-float" />
+            <img src={mamuteLogo} alt="Mamute Karaokê" className="w-24 h-24 animate-float" />
             <div className="absolute inset-0 w-24 h-24 bg-primary/20 blur-2xl rounded-full" />
           </div>
         </motion.div>
 
         <h1 className="text-4xl md:text-5xl font-black font-display mb-2">
-          <span className="neon-text-pink">MAMUTTS</span>{' '}
-          <span className="neon-text-cyan">KARAOKE</span>
+          <span className="neon-text-pink">MAMUTE</span>{' '}
+          <span className="neon-text-cyan">KARAOKÊ</span>
         </h1>
         <p className="text-muted-foreground">
           Teste gratuito por 1 hora

@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Users, Check, Monitor, ListOrdered, Play, Vote, Trophy } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LandingFooter } from '@/components/landing/LandingFooter';
+import { SiteYouTubePlayer } from '@/components/landing/SiteYouTubePlayer';
 
 const coordinatorSteps = [
   { icon: Settings, title: 'Criar e abrir evento', description: 'Acesse o sistema e crie uma nova sessão de karaokê.' },
@@ -57,7 +57,7 @@ export default function ManualPage() {
               Manual de <span className="text-landing-orange">Uso</span>
             </h1>
             <p className="text-landing-dark/60 text-lg max-w-2xl mx-auto">
-              Aprenda a usar o Mamute Karaoke em poucos minutos.
+              Aprenda a usar o Mamute Karaokê em poucos minutos.
             </p>
           </motion.div>
 
@@ -89,6 +89,16 @@ export default function ManualPage() {
                   <h2 className="text-2xl font-display font-bold text-landing-dark mb-6">
                     Manual do Coordenador
                   </h2>
+                  
+                  {/* Video Section */}
+                  <div className="mb-8">
+                    <SiteYouTubePlayer 
+                      videoKey="tutorial_coordinator" 
+                      placeholderText="Em breve vídeo explicativo"
+                      className="border border-landing-brown/10"
+                    />
+                  </div>
+
                   <p className="text-landing-dark/60 mb-8">
                     O organizador pode controlar todo o evento pelo painel. Requisitos: Notebook/PC + Internet (HDMI opcional para telão).
                   </p>
@@ -121,6 +131,16 @@ export default function ManualPage() {
                   <h2 className="text-2xl font-display font-bold text-landing-dark mb-6">
                     Manual do Usuário
                   </h2>
+
+                  {/* Video Section */}
+                  <div className="mb-8">
+                    <SiteYouTubePlayer 
+                      videoKey="tutorial_participant" 
+                      placeholderText="Em breve vídeo explicativo"
+                      className="border border-landing-brown/10"
+                    />
+                  </div>
+
                   <p className="text-landing-dark/60 mb-8">
                     Participar é muito fácil! Basta ter um celular com acesso à internet.
                   </p>
