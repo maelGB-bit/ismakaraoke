@@ -118,22 +118,28 @@ export function useWaitlist(instanceId?: string | null) {
   };
 
   const fetchWaitingEntries = async (forceRebalance = false) => {
+    // IMPORTANT: Only fetch if we have a valid instanceId to avoid cross-instance data leakage
+    // If no instanceId is provided, return empty list (don't fetch all instances)
+    if (!instanceId) {
+      console.log('[useWaitlist] No instanceId provided, skipping fetch');
+      setEntries([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      let query = supabase
+      console.log('[useWaitlist] Fetching waitlist for instanceId:', instanceId);
+      const { data, error } = await supabase
         .from('waitlist')
         .select('*')
         .eq('status', 'waiting')
+        .eq('karaoke_instance_id', instanceId)
         .order('priority', { ascending: true })
         .order('created_at', { ascending: true });
-      
-      if (instanceId) {
-        query = query.eq('karaoke_instance_id', instanceId);
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       const waiting = (data as WaitlistEntry[]) || [];
+      console.log('[useWaitlist] Fetched', waiting.length, 'entries for instance', instanceId);
       const fair = await applyFairOrderIfNeeded(waiting, forceRebalance);
       setEntries(fair);
     } catch (error) {
@@ -144,19 +150,21 @@ export function useWaitlist(instanceId?: string | null) {
   };
 
   const fetchHistory = async () => {
+    // IMPORTANT: Only fetch if we have a valid instanceId
+    if (!instanceId) {
+      setHistoryEntries([]);
+      setHistoryLoading(false);
+      return;
+    }
+
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('waitlist')
         .select('*')
         .eq('status', 'done')
+        .eq('karaoke_instance_id', instanceId)
         .order('created_at', { ascending: false })
         .limit(50);
-      
-      if (instanceId) {
-        query = query.eq('karaoke_instance_id', instanceId);
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       setHistoryEntries((data as WaitlistEntry[]) || []);

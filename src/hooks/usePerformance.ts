@@ -7,21 +7,25 @@ export function useActivePerformance(instanceId?: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // IMPORTANT: Only fetch if we have a valid instanceId to avoid cross-instance data leakage
+    if (!instanceId) {
+      console.log('[useActivePerformance] No instanceId provided, skipping fetch');
+      setPerformance(null);
+      setLoading(false);
+      return;
+    }
+
     // Fetch initial active performance
     const fetchActive = async () => {
-      let query = supabase
+      console.log('[useActivePerformance] Fetching active performance for instanceId:', instanceId);
+      const { data, error } = await supabase
         .from('performances')
         .select('*')
         .eq('status', 'ativa')
+        .eq('karaoke_instance_id', instanceId)
         .order('created_at', { ascending: false })
-        .limit(1);
-      
-      // Filter by instance if provided
-      if (instanceId) {
-        query = query.eq('karaoke_instance_id', instanceId);
-      }
-
-      const { data, error } = await query.maybeSingle();
+        .limit(1)
+        .maybeSingle();
 
       if (!error && data) {
         setPerformance(data as Performance);
@@ -32,7 +36,7 @@ export function useActivePerformance(instanceId?: string | null) {
     fetchActive();
 
     // Subscribe to realtime updates
-    const channelName = instanceId ? `performances-${instanceId}` : 'performances-realtime';
+    const channelName = `performances-${instanceId}`;
     const channel = supabase
       .channel(channelName)
       .on(
@@ -41,7 +45,7 @@ export function useActivePerformance(instanceId?: string | null) {
           event: '*',
           schema: 'public',
           table: 'performances',
-          ...(instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {}),
+          filter: `karaoke_instance_id=eq.${instanceId}`,
         },
         (payload) => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
@@ -119,19 +123,23 @@ export function useRanking(instanceId?: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // IMPORTANT: Only fetch if we have a valid instanceId
+    if (!instanceId) {
+      console.log('[useRanking] No instanceId provided, skipping fetch');
+      setPerformances([]);
+      setLoading(false);
+      return;
+    }
+
     const fetchRanking = async () => {
-      let query = supabase
+      console.log('[useRanking] Fetching ranking for instanceId:', instanceId);
+      const { data, error } = await supabase
         .from('performances')
         .select('*')
         .eq('status', 'encerrada')
+        .eq('karaoke_instance_id', instanceId)
         .order('nota_media', { ascending: false })
         .order('total_votos', { ascending: false });
-      
-      if (instanceId) {
-        query = query.eq('karaoke_instance_id', instanceId);
-      }
-
-      const { data, error } = await query;
 
       if (!error && data) {
         setPerformances(data as Performance[]);
@@ -142,7 +150,7 @@ export function useRanking(instanceId?: string | null) {
     fetchRanking();
 
     // Subscribe to realtime updates
-    const channelName = instanceId ? `ranking-${instanceId}` : 'ranking-realtime';
+    const channelName = `ranking-${instanceId}`;
     const channel = supabase
       .channel(channelName)
       .on(
@@ -151,7 +159,7 @@ export function useRanking(instanceId?: string | null) {
           event: '*',
           schema: 'public',
           table: 'performances',
-          ...(instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {}),
+          filter: `karaoke_instance_id=eq.${instanceId}`,
         },
         () => {
           fetchRanking();
