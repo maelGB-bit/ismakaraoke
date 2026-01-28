@@ -13,8 +13,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LandingFooter } from '@/components/landing/LandingFooter';
+import { SiteYouTubePlayer } from '@/components/landing/SiteYouTubePlayer';
 
 const preparationSteps = [
   'Assista os vídeos introdutórios',
@@ -27,6 +34,7 @@ const preparationSteps = [
 export default function TestarPage() {
   const navigate = useNavigate();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [activeVideo, setActiveVideo] = useState<'coordinator' | 'participant' | null>(null);
 
   const handleConfirm = () => {
     setShowConfirmDialog(false);
@@ -96,6 +104,7 @@ export default function TestarPage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <Button 
                   variant="outline" 
+                  onClick={() => setActiveVideo('coordinator')}
                   className="h-auto py-4 border-landing-brown/20 hover:border-landing-orange hover:bg-landing-orange/5"
                 >
                   <Play className="w-5 h-5 mr-2 text-landing-orange" />
@@ -106,6 +115,7 @@ export default function TestarPage() {
                 </Button>
                 <Button 
                   variant="outline" 
+                  onClick={() => setActiveVideo('participant')}
                   className="h-auto py-4 border-landing-brown/20 hover:border-landing-orange hover:bg-landing-orange/5"
                 >
                   <Play className="w-5 h-5 mr-2 text-landing-orange" />
@@ -193,6 +203,36 @@ export default function TestarPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Video Modal - Coordinator */}
+      <Dialog open={activeVideo === 'coordinator'} onOpenChange={() => setActiveVideo(null)}>
+        <DialogContent className="max-w-4xl bg-landing-dark border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white font-display">
+              Tutorial para Coordenador
+            </DialogTitle>
+          </DialogHeader>
+          <SiteYouTubePlayer 
+            videoKey="tutorial_coordinator" 
+            placeholderText="Vídeo do coordenador não configurado"
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Video Modal - Participant */}
+      <Dialog open={activeVideo === 'participant'} onOpenChange={() => setActiveVideo(null)}>
+        <DialogContent className="max-w-4xl bg-landing-dark border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white font-display">
+              Tutorial para Participante
+            </DialogTitle>
+          </DialogHeader>
+          <SiteYouTubePlayer 
+            videoKey="tutorial_participant" 
+            placeholderText="Vídeo do participante não configurado"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

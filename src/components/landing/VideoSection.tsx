@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { SiteYouTubePlayer } from './SiteYouTubePlayer';
 
 export function VideoSection() {
   return (
@@ -28,16 +29,10 @@ export function VideoSection() {
           viewport={{ once: true }}
           className="max-w-4xl mx-auto"
         >
-          {/* Video placeholder */}
-          <div className="aspect-video bg-black/40 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/40" />
-            <div className="relative z-10 text-center px-6">
-              <p className="text-white/80 text-lg font-semibold">Aguardando vídeo</p>
-              <p className="text-white/50 text-sm mt-2">
-                Espaço reservado para o player do YouTube. Envie o link para carregar o vídeo.
-              </p>
-            </div>
-          </div>
+          <SiteYouTubePlayer 
+            videoKey="how_it_works" 
+            placeholderText="Vídeo explicativo - Configure no painel admin"
+          />
         </motion.div>
       </div>
     </section>

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Play, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SiteYouTubePlayer } from './SiteYouTubePlayer';
 
 export function HeroSection() {
   return (
@@ -54,6 +55,20 @@ export function HeroSection() {
                 Ver como funciona
               </Button>
             </Link>
+          </motion.div>
+
+          {/* Hero Video */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="mt-10 max-w-3xl mx-auto"
+          >
+            <SiteYouTubePlayer 
+              videoKey="hero_video" 
+              placeholderText="Vídeo de apresentação - Configure no painel admin"
+              className="border-2 border-white/10"
+            />
           </motion.div>
         </div>
       </div>
