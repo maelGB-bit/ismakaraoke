@@ -95,13 +95,20 @@ function HostContent() {
   const [checkingPasswordStatus, setCheckingPasswordStatus] = useState(true);
 
   useEffect(() => {
-    const checkPasswordStatus = async () => {
+    const checkPasswordStatusAndUpdateAccess = async () => {
       if (!user?.email) {
         setCheckingPasswordStatus(false);
         return;
       }
 
       try {
+        // Update last_access_at timestamp
+        await supabase
+          .from('coordinator_requests')
+          .update({ last_access_at: new Date().toISOString() })
+          .eq('email', user.email)
+          .eq('status', 'approved');
+
         const { data, error } = await supabase
           .from('coordinator_requests')
           .select('must_change_password')
@@ -119,7 +126,7 @@ function HostContent() {
       }
     };
 
-    checkPasswordStatus();
+    checkPasswordStatusAndUpdateAccess();
   }, [user?.email]);
 
   const highestScore = ranking.length > 0 ? Math.max(...ranking.map(p => Number(p.nota_media))) : 0;
