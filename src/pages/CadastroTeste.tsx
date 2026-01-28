@@ -58,10 +58,35 @@ export default function CadastroTeste() {
         },
       });
 
-      const result = response.data;
+      console.log('Register trial response:', JSON.stringify({ 
+        data: response.data, 
+        error: response.error 
+      }, null, 2));
+
+      // Try to get result from data or from error context
+      let result = response.data;
+      
+      // If data is null but error has context, try to parse it
+      if (!result && response.error) {
+        // The error message might contain the JSON
+        const errorMessage = response.error.message || '';
+        console.log('Error message:', errorMessage);
+        
+        // Try to extract JSON from error message
+        const jsonMatch = errorMessage.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            result = JSON.parse(jsonMatch[0]);
+            console.log('Parsed result from error:', result);
+          } catch (e) {
+            console.log('Failed to parse JSON from error');
+          }
+        }
+      }
 
       // Check for DUPLICATE_IP first (even on error responses)
       if (result?.code === 'DUPLICATE_IP') {
+        console.log('Duplicate IP detected, setting error:', result.error);
         setDuplicateError(result.error);
         return;
       }
