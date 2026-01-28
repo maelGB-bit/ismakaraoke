@@ -91,7 +91,7 @@ export function useAdminAuthState() {
     setSession(null);
     setIsAdmin(false);
     setIsCoordinator(false);
-    navigate('/auth/admin');
+    navigate('/app/login');
   };
 
   return { user, session, isLoading, isAdmin, isCoordinator, logout };

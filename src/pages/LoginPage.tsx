@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic2, Loader2, LogIn, UserPlus } from 'lucide-react';
+import { Mic2, Loader2, LogIn, UserPlus, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -130,6 +130,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen gradient-bg flex flex-col items-center justify-center p-4 relative">
+      <div className="absolute top-4 left-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+          <Home className="h-4 w-4 mr-2" />
+          Voltar ao início
+        </Button>
+      </div>
       <div className="absolute top-4 right-4">
         <LanguageSwitcher />
       </div>
