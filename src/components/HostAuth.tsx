@@ -144,9 +144,9 @@ export function HostAuth({ children }: HostAuthProps) {
       console.error('[HostAuth] Error clearing localStorage:', e);
     }
     
-    console.log('[HostAuth] Redirecting to /auth/host');
+    console.log('[HostAuth] Redirecting to /app/login');
     // Force redirect and reload to ensure clean state
-    window.location.href = '/auth/host';
+    window.location.href = '/app/login';
   };
 
   // Redirect effect - runs when auth state is determined
