@@ -58,18 +58,20 @@ export default function CadastroTeste() {
         },
       });
 
+      const result = response.data;
+
+      // Check for DUPLICATE_IP first (even on error responses)
+      if (result?.code === 'DUPLICATE_IP') {
+        setDuplicateError(result.error);
+        return;
+      }
+
       if (response.error) {
         throw new Error(response.error.message);
       }
 
-      const result = response.data;
-
-      if (!result.success) {
-        if (result.code === 'DUPLICATE_IP') {
-          setDuplicateError(result.error);
-          return;
-        }
-        throw new Error(result.error || 'Erro ao criar teste');
+      if (!result?.success) {
+        throw new Error(result?.error || 'Erro ao criar teste');
       }
 
       setTrialResult({
@@ -87,6 +89,8 @@ export default function CadastroTeste() {
       
       if (message.includes('EMAIL_EXISTS') || message.includes('já possui')) {
         toast({ title: 'Este email já possui uma solicitação', variant: 'destructive' });
+      } else if (message.includes('DUPLICATE_IP')) {
+        setDuplicateError('Você já realizou um teste gratuito com outro email.');
       } else {
         toast({ title: message, variant: 'destructive' });
       }
