@@ -69,6 +69,7 @@ function HostContent() {
     removeFromWaitlist,
     movePriority,
     getNextInQueue,
+    addToWaitlist,
   } = useWaitlist(instanceId);
 
   // ALL HOOKS MUST BE DECLARED BEFORE ANY CONDITIONAL RETURNS
@@ -265,6 +266,39 @@ function HostContent() {
     setLoadedUrl(entry.youtube_url);
     setCurrentWaitlistEntryId(entry.id);
     toast({ title: t('host.singerSelected'), description: `${entry.singer_name} - ${entry.song_title}` });
+  };
+
+  const handleVideoSelectedFromSearch = async (url: string, title?: string) => {
+    const cleanTitle = title 
+      ? title.replace(/\(.*?(karaoke|versão|version|lyrics|lyric|instrumental).*?\)/gi, '')
+             .replace(/\[.*?(karaoke|versão|version|lyrics|lyric|instrumental).*?\]/gi, '')
+             .replace(/karaoke|versão karaokê/gi, '')
+             .trim()
+             .substring(0, 50)
+      : '';
+    
+    setYoutubeUrl(url);
+    setLoadedUrl(url);
+    if (cleanTitle && !musica) {
+      setMusica(cleanTitle);
+    }
+    
+    // If singer name is filled, add to waitlist as next in queue
+    if (cantor.trim()) {
+      const songTitle = cleanTitle || musica || title || 'Música';
+      const success = await addToWaitlist(cantor.trim(), url, songTitle);
+      if (success) {
+        toast({ 
+          title: t('waitlist.addedToQueue'), 
+          description: `${cantor.trim()} - ${songTitle}` 
+        });
+        // Clear form for next entry
+        setCantor('');
+        setMusica('');
+        setYoutubeUrl('');
+        setLoadedUrl(null);
+      }
+    }
   };
 
 
@@ -557,7 +591,7 @@ function HostContent() {
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">{t('host.searchYoutube')}</Label>
-                <YouTubeSearch onSelectVideo={(url, title) => { setYoutubeUrl(url); setLoadedUrl(url); if (title && !musica) { const cleanTitle = title.replace(/\(.*?(karaoke|versão|version|lyrics|lyric|instrumental).*?\)/gi, '').replace(/\[.*?(karaoke|versão|version|lyrics|lyric|instrumental).*?\]/gi, '').replace(/karaoke|versão karaokê/gi, '').trim(); setMusica(cleanTitle.substring(0, 50)); } }} disabled={isRoundActive} />
+                <YouTubeSearch onSelectVideo={handleVideoSelectedFromSearch} disabled={isRoundActive} />
               </div>
               <div className="flex gap-2 mt-2">
                 <div className="flex-1">

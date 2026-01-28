@@ -155,6 +155,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // Waitlist panel
     'waitlist.title': 'Fila de espera',
+    'waitlist.addedToQueue': '🎤 Adicionado à fila',
     'waitlist.inQueue': 'na fila',
     'waitlist.next': '🎤 Próximo:',
     'waitlist.loading': 'Carregando...',
@@ -519,6 +520,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // Waitlist panel
     'waitlist.title': 'Warteschlange',
+    'waitlist.addedToQueue': '🎤 Zur Warteschlange hinzugefügt',
     'waitlist.inQueue': 'in der Schlange',
     'waitlist.next': '🎤 Nächster:',
     'waitlist.loading': 'Laden...',
@@ -885,6 +887,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // Waitlist panel
     'waitlist.title': 'Waitlist',
+    'waitlist.addedToQueue': '🎤 Added to queue',
     'waitlist.inQueue': 'in queue',
     'waitlist.next': '🎤 Next:',
     'waitlist.loading': 'Loading...',
@@ -1249,6 +1252,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // Waitlist panel
     'waitlist.title': 'Cola de espera',
+    'waitlist.addedToQueue': '🎤 Añadido a la cola',
     'waitlist.inQueue': 'en la cola',
     'waitlist.next': '🎤 Siguiente:',
     'waitlist.loading': 'Cargando...',
@@ -1611,6 +1615,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // Waitlist panel
     'waitlist.title': 'Bekleme listesi',
+    'waitlist.addedToQueue': '🎤 Sıraya eklendi',
     'waitlist.inQueue': 'sırada',
     'waitlist.next': '🎤 Sonraki:',
     'waitlist.loading': 'Yükleniyor...',
@@ -1973,6 +1978,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // Waitlist panel
     'waitlist.title': '順番待ち',
+    'waitlist.addedToQueue': '🎤 順番待ちに追加されました',
     'waitlist.inQueue': '順番待ち中',
     'waitlist.next': '🎤 次:',
     'waitlist.loading': '読み込み中...',
