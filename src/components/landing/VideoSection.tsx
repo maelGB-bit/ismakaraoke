@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion';
+import { Play } from 'lucide-react';
+import mammothLogo from '@/assets/mammoth-logo.png';
 
 export function VideoSection() {
   return (
@@ -29,13 +31,20 @@ export function VideoSection() {
           className="max-w-4xl mx-auto"
         >
           {/* Video placeholder */}
-          <div className="aspect-video bg-black/40 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/40" />
-            <div className="relative z-10 text-center px-6">
-              <p className="text-white/80 text-lg font-semibold">Aguardando vídeo</p>
-              <p className="text-white/50 text-sm mt-2">
-                Espaço reservado para o player do YouTube. Envie o link para carregar o vídeo.
-              </p>
+          <div className="aspect-video bg-landing-brown/20 rounded-2xl border-2 border-dashed border-landing-brown/30 flex items-center justify-center relative overflow-hidden group cursor-pointer hover:border-landing-orange/50 transition-colors">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            
+            <div className="relative z-10 text-center">
+              <div className="w-20 h-20 bg-landing-orange rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-landing-orange/30">
+                <Play className="w-8 h-8 text-white ml-1" />
+              </div>
+              <img 
+                src={mammothLogo} 
+                alt="Mamute" 
+                className="w-16 h-16 mx-auto mb-4 opacity-50"
+              />
+              <p className="text-white/70 font-medium">Vídeo do mascote explicando</p>
+              <p className="text-white/40 text-sm">(Em breve)</p>
             </div>
           </div>
         </motion.div>
