@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // Simple encryption using XOR with a key derived from the secret
@@ -51,7 +51,7 @@ serve(async (req) => {
       });
     }
 
-    // Create client with user's token
+    // Create client with service role key
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Verify user is admin
@@ -80,7 +80,6 @@ serve(async (req) => {
       });
     }
 
-    const url = new URL(req.url);
     const method = req.method;
 
     // GET /api-keys - List all API keys
@@ -93,24 +92,47 @@ serve(async (req) => {
       if (error) throw error;
 
       // Mask the keys - only show last 4 chars
-      const maskedData = data?.map(key => ({
-        ...key,
-        key_preview: key.encrypted_key ? `****${decrypt(key.encrypted_key, encryptionSecret).slice(-4)}` : '****',
-        encrypted_key: undefined,
-      }));
+      const maskedData = data?.map(key => {
+        let keyPreview = '****';
+        try {
+          if (key.encrypted_key) {
+            const decrypted = decrypt(key.encrypted_key, encryptionSecret);
+            keyPreview = `****${decrypted.slice(-4)}`;
+          }
+        } catch (e) {
+          console.log('Error decrypting key for preview:', e);
+        }
+        return {
+          ...key,
+          key_preview: keyPreview,
+          encrypted_key: undefined,
+        };
+      });
 
       return new Response(JSON.stringify({ data: maskedData }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    // Parse body for POST, PATCH, DELETE
+    let body: Record<string, unknown> = {};
+    if (method !== 'GET') {
+      try {
+        const text = await req.text();
+        if (text) {
+          body = JSON.parse(text);
+        }
+      } catch (e) {
+        console.log('No JSON body provided or invalid JSON');
+      }
+    }
+
     // POST /api-keys - Create new API key
     if (method === 'POST') {
-      const body = await req.json();
-      const { name, provider, key } = body;
+      const { name, provider, key } = body as { name?: string; provider?: string; key?: string };
 
       if (!name || !provider || !key) {
-        return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+        return new Response(JSON.stringify({ error: 'Missing required fields: name, provider, key' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -134,8 +156,9 @@ serve(async (req) => {
 
     // PATCH /api-keys/:id - Update API key
     if (method === 'PATCH') {
-      const body = await req.json();
-      const { id, name, provider, is_active } = body;
+      const { id, name, provider, is_active, key: newKey } = body as { 
+        id?: string; name?: string; provider?: string; is_active?: boolean; key?: string;
+      };
 
       if (!id) {
         return new Response(JSON.stringify({ error: 'Missing id' }), {
@@ -148,6 +171,7 @@ serve(async (req) => {
       if (name !== undefined) updateData.name = name;
       if (provider !== undefined) updateData.provider = provider;
       if (is_active !== undefined) updateData.is_active = is_active;
+      if (newKey !== undefined) updateData.encrypted_key = encrypt(newKey, encryptionSecret);
 
       const { data, error } = await supabase
         .from('api_keys')
@@ -165,8 +189,7 @@ serve(async (req) => {
 
     // DELETE /api-keys/:id - Delete API key
     if (method === 'DELETE') {
-      const body = await req.json();
-      const { id } = body;
+      const { id } = body as { id?: string };
 
       if (!id) {
         return new Response(JSON.stringify({ error: 'Missing id' }), {
@@ -183,34 +206,6 @@ serve(async (req) => {
       if (error) throw error;
 
       return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // GET active key for provider
-    if (method === 'GET' && url.searchParams.has('provider')) {
-      const provider = url.searchParams.get('provider');
-      
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('encrypted_key')
-        .eq('provider', provider)
-        .eq('is_active', true)
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (!data) {
-        return new Response(JSON.stringify({ error: 'No active key found for provider' }), {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const decryptedKey = decrypt(data.encrypted_key, encryptionSecret);
-
-      return new Response(JSON.stringify({ key: decryptedKey }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

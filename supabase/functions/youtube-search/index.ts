@@ -1,8 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // Piped API instances as fallback
@@ -27,18 +28,77 @@ interface VideoResult {
   url: string;
 }
 
-// Try YouTube Data API with multiple keys
-async function searchWithYouTubeAPI(query: string): Promise<VideoResult[]> {
+// Simple decryption using XOR with a key derived from the secret
+function decrypt(encrypted: string, secret: string): string {
+  const keyBytes = new TextEncoder().encode(secret);
+  const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
+  const result = new Uint8Array(encryptedBytes.length);
+  
+  for (let i = 0; i < encryptedBytes.length; i++) {
+    result[i] = encryptedBytes[i] ^ keyBytes[i % keyBytes.length];
+  }
+  
+  return new TextDecoder().decode(result);
+}
+
+// Get YouTube API keys from database
+async function getYouTubeKeysFromDB(): Promise<string[]> {
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const encryptionSecret = supabaseServiceKey.slice(0, 32);
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data, error } = await supabase
+      .from('api_keys')
+      .select('encrypted_key')
+      .eq('provider', 'youtube')
+      .eq('is_active', true)
+      .order('created_at', { ascending: true });
+    
+    if (error) {
+      console.log('Error fetching API keys from DB:', error.message);
+      return [];
+    }
+    
+    if (!data || data.length === 0) {
+      console.log('No YouTube API keys found in database');
+      return [];
+    }
+    
+    const keys: string[] = [];
+    for (const row of data) {
+      try {
+        const decrypted = decrypt(row.encrypted_key, encryptionSecret);
+        if (decrypted) keys.push(decrypted);
+      } catch (e) {
+        console.log('Error decrypting key:', e);
+      }
+    }
+    
+    return keys;
+  } catch (error) {
+    console.log('Error in getYouTubeKeysFromDB:', error);
+    return [];
+  }
+}
+
+// Get YouTube API keys from environment (fallback)
+function getYouTubeKeysFromEnv(): string[] {
   const apiKeysRaw = Deno.env.get('YOUTUBE_API_KEY');
-  if (!apiKeysRaw) {
-    console.log('No YOUTUBE_API_KEY configured');
+  if (!apiKeysRaw) return [];
+  return apiKeysRaw.split(',').map(k => k.trim()).filter(k => k.length > 0);
+}
+
+// Try YouTube Data API with multiple keys
+async function searchWithYouTubeAPI(query: string, apiKeys: string[]): Promise<VideoResult[]> {
+  if (apiKeys.length === 0) {
+    console.log('No YouTube API keys available');
     return [];
   }
 
-  // Support multiple keys separated by comma
-  const apiKeys = apiKeysRaw.split(',').map(k => k.trim()).filter(k => k.length > 0);
   console.log(`Found ${apiKeys.length} YouTube API key(s)`);
-
   const searchQuery = query + ' karaoke';
 
   for (let i = 0; i < apiKeys.length; i++) {
@@ -204,16 +264,23 @@ serve(async (req) => {
 
     console.log('Searching for:', query);
 
-    // 1. Try YouTube API with multiple keys
-    let videos = await searchWithYouTubeAPI(query);
+    // 1. Get API keys: first from database, then from environment as fallback
+    let apiKeys = await getYouTubeKeysFromDB();
+    if (apiKeys.length === 0) {
+      console.log('No keys in database, checking environment...');
+      apiKeys = getYouTubeKeysFromEnv();
+    }
+
+    // 2. Try YouTube API with available keys
+    let videos = await searchWithYouTubeAPI(query, apiKeys);
     
-    // 2. Fallback to Piped if YouTube API fails
+    // 3. Fallback to Piped if YouTube API fails
     if (videos.length === 0) {
       console.log('YouTube API failed, trying Piped...');
       videos = await searchWithPiped(query);
     }
     
-    // 3. Fallback to Invidious if Piped fails
+    // 4. Fallback to Invidious if Piped fails
     if (videos.length === 0) {
       console.log('Piped failed, trying Invidious...');
       videos = await searchWithInvidious(query);

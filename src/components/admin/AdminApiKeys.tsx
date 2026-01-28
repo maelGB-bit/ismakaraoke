@@ -75,9 +75,14 @@ export function AdminApiKeys() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      const body = editingId 
+      const body: Record<string, unknown> = editingId 
         ? { id: editingId, name, provider }
         : { name, provider, key: apiKey };
+      
+      // If editing and a new key is provided, include it
+      if (editingId && apiKey.trim()) {
+        body.key = apiKey;
+      }
 
       const response = await supabase.functions.invoke('api-keys', {
         method: editingId ? 'PATCH' : 'POST',
@@ -212,31 +217,33 @@ export function AdminApiKeys() {
                     </SelectContent>
                   </Select>
                 </div>
-                {!editingId && (
-                  <div className="space-y-2">
-                    <Label htmlFor="key">Chave de API</Label>
-                    <div className="relative">
-                      <Input
-                        id="key"
-                        type={showKey ? 'text' : 'password'}
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        placeholder="Cole a chave aqui"
-                        className="pr-10"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowKey(!showKey)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      A chave será criptografada e nunca mais será exibida por completo.
-                    </p>
+                <div className="space-y-2">
+                  <Label htmlFor="key">
+                    {editingId ? 'Nova Chave de API (deixe em branco para manter a atual)' : 'Chave de API'}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="key"
+                      type={showKey ? 'text' : 'password'}
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder={editingId ? 'Cole a nova chave aqui para alterar' : 'Cole a chave aqui'}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowKey(!showKey)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
-                )}
+                  <p className="text-xs text-muted-foreground">
+                    {editingId 
+                      ? 'A nova chave será criptografada. Deixe em branco para manter a chave atual.'
+                      : 'A chave será criptografada e nunca mais será exibida por completo.'}
+                  </p>
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={resetForm}>Cancelar</Button>
