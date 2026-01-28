@@ -27,7 +27,7 @@ export function TargetAudienceSection() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
-            Para quem é o <span className="text-landing-orange">Mamute Karaoke</span>?
+            Para quem é o <span className="text-landing-orange">Mamute Karaokê</span>?
           </h2>
           <p className="text-white/60 max-w-2xl mx-auto">
             Uma solução versátil que se adapta a qualquer tipo de evento ou ocasião.

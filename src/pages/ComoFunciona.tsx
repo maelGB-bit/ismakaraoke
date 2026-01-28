@@ -50,7 +50,7 @@ export default function ComoFunciona() {
             className="text-center mb-16"
           >
             <h1 className="text-4xl md:text-5xl font-display font-bold text-landing-dark mb-4">
-              Como o Mamute Karaoke <span className="text-landing-orange">funciona</span>
+              Como o Mamute Karaokê <span className="text-landing-orange">funciona</span>
             </h1>
             <p className="text-landing-dark/60 text-lg max-w-2xl mx-auto">
               Tecnologia simples + experiência divertida = eventos memoráveis

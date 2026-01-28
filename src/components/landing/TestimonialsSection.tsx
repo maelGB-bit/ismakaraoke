@@ -5,7 +5,7 @@ const testimonials = [
   {
     name: 'Ana Paula Silva',
     role: 'Organizadora de Eventos',
-    content: 'O Mamute Karaoke transformou completamente nossos eventos! Os participantes adoram e ficam muito mais engajados.',
+    content: 'O Mamute Karaokê transformou completamente nossos eventos! Os participantes adoram e ficam muito mais engajados.',
     rating: 5,
   },
   {
@@ -54,7 +54,7 @@ export function TestimonialsSection() {
             O que nossos <span className="text-landing-orange">clientes</span> dizem
           </h2>
           <p className="text-landing-dark/60 max-w-2xl mx-auto">
-            Milhares de pessoas já transformaram seus eventos com o Mamute Karaoke.
+            Milhares de pessoas já transformaram seus eventos com o Mamute Karaokê.
           </p>
         </motion.div>
 

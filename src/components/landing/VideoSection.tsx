@@ -31,7 +31,7 @@ export function VideoSection() {
         >
           <SiteYouTubePlayer 
             videoKey="how_it_works" 
-            placeholderText="Vídeo explicativo - Configure no painel admin"
+            placeholderText="Em breve vídeo explicativo"
           />
         </motion.div>
       </div>

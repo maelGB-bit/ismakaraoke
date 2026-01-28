@@ -31,7 +31,7 @@ export function BenefitsSection() {
             Benefícios para <span className="text-landing-orange">Todos</span>
           </h2>
           <p className="text-landing-dark/60 max-w-2xl mx-auto">
-            Seja você o organizador ou participante, o Mamute Karaoke traz vantagens para todos.
+            Seja você o organizador ou participante, o Mamute Karaokê traz vantagens para todos.
           </p>
         </motion.div>
 

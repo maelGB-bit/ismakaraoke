@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import mammothLogo from '@/assets/mammoth-logo.png';
+import mamuteLogo from '@/assets/mamute-logo.png';
 import { INTEREST_LABELS, type SubscriptionInterest } from '@/types/admin';
 
 interface SubscriptionExpiredProps {
@@ -33,10 +33,10 @@ export function SubscriptionExpired({ coordinatorName }: SubscriptionExpiredProp
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
       >
-        <img src={mammothLogo} alt="Mamutts Karaoke" className="w-20 h-20 mx-auto mb-4" />
+        <img src={mamuteLogo} alt="Mamute Karaokê" className="w-20 h-20 mx-auto mb-4" />
         <h1 className="text-3xl font-black font-display mb-2">
-          <span className="neon-text-pink">MAMUTTS</span>{' '}
-          <span className="neon-text-cyan">KARAOKE</span>
+          <span className="neon-text-pink">MAMUTE</span>{' '}
+          <span className="neon-text-cyan">KARAOKÊ</span>
         </h1>
       </motion.div>
 

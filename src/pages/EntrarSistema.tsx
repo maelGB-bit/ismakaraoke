@@ -4,7 +4,7 @@ import { LogIn, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LandingFooter } from '@/components/landing/LandingFooter';
-import mammothLogo from '@/assets/mammoth-logo.png';
+import mamuteLogo from '@/assets/mamute-logo.png';
 
 export default function EntrarSistema() {
   const navigate = useNavigate();
@@ -21,15 +21,15 @@ export default function EntrarSistema() {
             className="max-w-lg mx-auto text-center"
           >
             <img 
-              src={mammothLogo} 
-              alt="Mamute Karaoke" 
+              src={mamuteLogo} 
+              alt="Mamute Karaokê" 
               className="w-24 h-24 mx-auto mb-6"
             />
             <h1 className="text-3xl md:text-4xl font-display font-bold text-landing-dark mb-4">
               Entrar no <span className="text-landing-orange">Sistema</span>
             </h1>
             <p className="text-landing-dark/60 mb-8">
-              Clique no botão abaixo para acessar o ambiente operacional do Mamute Karaoke.
+              Clique no botão abaixo para acessar o ambiente operacional do Mamute Karaokê.
             </p>
             
             <Button 
