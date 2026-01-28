@@ -9,9 +9,10 @@ interface PlanCardProps {
   duration: string;
   ideal: string;
   buttonText: string;
+  href?: string;
   isPopular?: boolean;
   isPro?: boolean;
-  onSelect: () => void;
+  onSelect?: () => void;
 }
 
 const features = [
@@ -31,6 +32,7 @@ export function PlanCard({
   duration,
   ideal,
   buttonText,
+  href,
   isPopular,
   isPro,
   onSelect,
@@ -133,19 +135,35 @@ export function PlanCard({
       </ul>
 
       {/* Button */}
-      <Button
-        onClick={onSelect}
-        className={cn(
-          'w-full font-semibold',
-          isPro
-            ? 'bg-white text-landing-orange hover:bg-white/90'
-            : isPopular
-            ? 'bg-landing-orange text-white hover:bg-landing-orange/90'
-            : 'bg-landing-dark/10 text-landing-dark hover:bg-landing-dark/20'
-        )}
-      >
-        {buttonText}
-      </Button>
+      {href ? (
+        <Button
+          asChild
+          className={cn(
+            'w-full font-semibold',
+            isPro
+              ? 'bg-white text-landing-orange hover:bg-white/90'
+              : isPopular
+              ? 'bg-landing-orange text-white hover:bg-landing-orange/90'
+              : 'bg-landing-dark/10 text-landing-dark hover:bg-landing-dark/20'
+          )}
+        >
+          <a href={href}>{buttonText}</a>
+        </Button>
+      ) : (
+        <Button
+          onClick={onSelect}
+          className={cn(
+            'w-full font-semibold',
+            isPro
+              ? 'bg-white text-landing-orange hover:bg-white/90'
+              : isPopular
+              ? 'bg-landing-orange text-white hover:bg-landing-orange/90'
+              : 'bg-landing-dark/10 text-landing-dark hover:bg-landing-dark/20'
+          )}
+        >
+          {buttonText}
+        </Button>
+      )}
     </div>
   );
 }

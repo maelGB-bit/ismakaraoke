@@ -11,6 +11,7 @@ const plans = [
     duration: '1 hora',
     ideal: 'Testar rapidamente o sistema',
     buttonText: 'Começar grátis',
+    href: 'https://mamutekaraoke.com.br/app/cadastro',
     isPopular: false,
     isPro: false,
   },
