@@ -8,17 +8,23 @@ export function useKaraokeInstance(coordinatorId?: string) {
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
+    console.log('[useKaraokeInstance] coordinatorId:', coordinatorId);
+    
     if (!coordinatorId) {
+      console.log('[useKaraokeInstance] No coordinatorId, setting loading false');
       setLoading(false);
       return;
     }
 
     const fetchInstance = async () => {
+      console.log('[useKaraokeInstance] Fetching instance for:', coordinatorId);
       const { data, error } = await supabase
         .from('karaoke_instances')
         .select('*')
         .eq('coordinator_id', coordinatorId)
         .maybeSingle();
+
+      console.log('[useKaraokeInstance] Query result:', { data, error });
 
       if (!error && data) {
         const inst = data as KaraokeInstance;
