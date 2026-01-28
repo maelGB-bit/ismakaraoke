@@ -5,7 +5,7 @@ import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home,
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { YouTubeSearch } from '@/components/YouTubeSearch';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
@@ -594,24 +594,29 @@ function HostContent() {
                   <Input id="cantor" value={cantor} onChange={(e) => setCantor(e.target.value)} placeholder={t('host.singerPlaceholder')} disabled={isRoundActive} className="mt-1 h-8 text-sm" />
                 </div>
                 
-                {/* Queue position toggle - only show when singer name is filled */}
+                {/* Queue position selection - only show when singer name is filled */}
                 {cantor.trim() && (
-                  <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 border border-border">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-medium">{t('host.queuePosition')}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {insertFirst ? t('host.insertFirst') : t('host.insertFair')}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{t('host.fairOrder')}</span>
-                      <Switch
-                        checked={insertFirst}
-                        onCheckedChange={setInsertFirst}
-                        disabled={isRoundActive}
-                      />
-                      <span className="text-xs text-muted-foreground">{t('host.firstInQueue')}</span>
-                    </div>
+                  <div className="p-3 rounded-md bg-muted/50 border border-border">
+                    <span className="text-xs font-medium mb-2 block">{t('host.queuePosition')}</span>
+                    <RadioGroup
+                      value={insertFirst ? 'first' : 'fair'}
+                      onValueChange={(value) => setInsertFirst(value === 'first')}
+                      disabled={isRoundActive}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="first" id="position-first" />
+                        <Label htmlFor="position-first" className="text-sm font-normal cursor-pointer">
+                          🎤 {t('host.insertFirst')}
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="fair" id="position-fair" />
+                        <Label htmlFor="position-fair" className="text-sm font-normal cursor-pointer">
+                          ⚖️ {t('host.insertFair')}
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 )}
               </div>
