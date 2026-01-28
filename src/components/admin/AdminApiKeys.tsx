@@ -40,6 +40,7 @@ export function AdminApiKeys() {
       if (!session) return;
 
       const response = await supabase.functions.invoke('api-keys', {
+        body: { action: 'list' },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -76,8 +77,8 @@ export function AdminApiKeys() {
       if (!session) throw new Error('Not authenticated');
 
       const body: Record<string, unknown> = editingId 
-        ? { id: editingId, name, provider }
-        : { name, provider, key: apiKey };
+        ? { action: 'update', id: editingId, name, provider }
+        : { action: 'create', name, provider, key: apiKey };
       
       // If editing and a new key is provided, include it
       if (editingId && apiKey.trim()) {
@@ -85,7 +86,6 @@ export function AdminApiKeys() {
       }
 
       const response = await supabase.functions.invoke('api-keys', {
-        method: editingId ? 'PATCH' : 'POST',
         body,
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -111,8 +111,7 @@ export function AdminApiKeys() {
       if (!session) throw new Error('Not authenticated');
 
       await supabase.functions.invoke('api-keys', {
-        method: 'PATCH',
-        body: { id, is_active: !isActive },
+        body: { action: 'update', id, is_active: !isActive },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -134,8 +133,7 @@ export function AdminApiKeys() {
       if (!session) throw new Error('Not authenticated');
 
       await supabase.functions.invoke('api-keys', {
-        method: 'DELETE',
-        body: { id },
+        body: { action: 'delete', id },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },

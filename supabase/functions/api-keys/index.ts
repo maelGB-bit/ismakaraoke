@@ -80,10 +80,24 @@ serve(async (req) => {
       });
     }
 
-    const method = req.method;
+    // Parse body
+    let body: Record<string, unknown> = {};
+    try {
+      const rawBody = await req.text();
+      console.log('Raw body:', rawBody ? rawBody.substring(0, 200) : 'empty');
+      
+      if (rawBody && rawBody.trim()) {
+        body = JSON.parse(rawBody);
+      }
+    } catch (e) {
+      console.log('Body parsing error:', e);
+    }
 
-    // GET /api-keys - List all API keys
-    if (method === 'GET') {
+    const action = (body.action as string) || 'list';
+    console.log('Action:', action);
+
+    // LIST - Get all API keys
+    if (action === 'list') {
       const { data, error } = await supabase
         .from('api_keys')
         .select('id, name, provider, is_active, created_at, updated_at, encrypted_key')
@@ -114,31 +128,8 @@ serve(async (req) => {
       });
     }
 
-    // Parse body for POST, PATCH, DELETE
-    let body: Record<string, unknown> = {};
-    if (method === 'POST' || method === 'PATCH' || method === 'DELETE') {
-      try {
-        const contentType = req.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          const text = await req.text();
-          if (text && text.trim()) {
-            body = JSON.parse(text);
-          }
-        } else {
-          // Try to read anyway for backwards compatibility
-          const text = await req.text();
-          if (text && text.trim()) {
-            body = JSON.parse(text);
-          }
-        }
-      } catch (e) {
-        console.log('Body parsing error:', e);
-        // Continue with empty body - individual handlers will validate
-      }
-    }
-
-    // POST /api-keys - Create new API key
-    if (method === 'POST') {
+    // CREATE - Create new API key
+    if (action === 'create') {
       const { name, provider, key } = body as { name?: string; provider?: string; key?: string };
 
       if (!name || !provider || !key) {
@@ -164,8 +155,8 @@ serve(async (req) => {
       });
     }
 
-    // PATCH /api-keys/:id - Update API key
-    if (method === 'PATCH') {
+    // UPDATE - Update API key
+    if (action === 'update') {
       const { id, name, provider, is_active, key: newKey } = body as { 
         id?: string; name?: string; provider?: string; is_active?: boolean; key?: string;
       };
@@ -181,7 +172,9 @@ serve(async (req) => {
       if (name !== undefined) updateData.name = name;
       if (provider !== undefined) updateData.provider = provider;
       if (is_active !== undefined) updateData.is_active = is_active;
-      if (newKey !== undefined) updateData.encrypted_key = encrypt(newKey, encryptionSecret);
+      if (newKey !== undefined && newKey.trim()) {
+        updateData.encrypted_key = encrypt(newKey, encryptionSecret);
+      }
 
       const { data, error } = await supabase
         .from('api_keys')
@@ -197,8 +190,8 @@ serve(async (req) => {
       });
     }
 
-    // DELETE /api-keys/:id - Delete API key
-    if (method === 'DELETE') {
+    // DELETE - Delete API key
+    if (action === 'delete') {
       const { id } = body as { id?: string };
 
       if (!id) {
@@ -220,8 +213,8 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
+    return new Response(JSON.stringify({ error: 'Unknown action' }), {
+      status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
