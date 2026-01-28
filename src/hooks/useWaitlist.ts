@@ -239,6 +239,25 @@ export function useWaitlist(instanceId?: string | null) {
 
   const addToWaitlist = async (singerName: string, youtubeUrl: string, songTitle: string, registeredBy?: string, insertFirst = false) => {
     try {
+      // Check if registration is open for this instance (skip for coordinator insertions)
+      if (!insertFirst && instanceId) {
+        const { data: settings } = await supabase
+          .from('event_settings')
+          .select('registration_open')
+          .eq('karaoke_instance_id', instanceId)
+          .maybeSingle();
+        
+        // If settings exist and registration is closed, block the submission
+        if (settings && settings.registration_open === false) {
+          toast({ 
+            title: t('registration.closed'), 
+            description: t('registration.closedMessage'),
+            variant: 'destructive' 
+          });
+          return false;
+        }
+      }
+
       // Check rate limiting (skip for coordinator insertions that go first)
       if (!insertFirst) {
         const lastSubmission = localStorage.getItem(RATE_LIMIT_KEY);
