@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Plus, Trash2, Loader2, Mail, Mic2 } from 'lucide-react';
+import { Users, Plus, Trash2, Loader2, Mail, Mic2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,36 @@ import type { Coordinator, KaraokeInstance } from '@/types/admin';
 
 interface CoordinatorWithInstance extends Coordinator {
   instance?: KaraokeInstance;
+  name?: string;
+}
+
+// Helper function to calculate time remaining
+function getTimeRemaining(expiresAt: string | null): { text: string; color: string } {
+  if (!expiresAt) return { text: '-', color: 'text-muted-foreground' };
+  
+  const now = new Date();
+  const expires = new Date(expiresAt);
+  const diff = expires.getTime() - now.getTime();
+  
+  if (diff <= 0) return { text: 'Expirado', color: 'text-destructive' };
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (days > 0) {
+    return { 
+      text: `${days}d ${hours}h`, 
+      color: days <= 1 ? 'text-yellow-500' : 'text-green-500' 
+    };
+  } else if (hours > 0) {
+    return { 
+      text: `${hours}h ${minutes}min`, 
+      color: hours <= 3 ? 'text-yellow-500' : 'text-green-500' 
+    };
+  } else {
+    return { text: `${minutes}min`, color: 'text-destructive' };
+  }
 }
 
 export function AdminCoordinators() {
@@ -42,20 +72,36 @@ export function AdminCoordinators() {
         .from('karaoke_instances')
         .select('*');
 
+      // Fetch coordinator requests to get names and emails
+      const { data: requestsData } = await supabase
+        .from('coordinator_requests')
+        .select('user_id, name, email, status')
+        .eq('status', 'approved');
+
       const instancesMap = new Map<string, KaraokeInstance>();
       instancesData?.forEach(inst => {
         instancesMap.set(inst.coordinator_id, inst as KaraokeInstance);
       });
 
-      // Get user emails from auth (we need to use admin API or store emails separately)
-      // For now, we'll show user IDs
-      const coords: CoordinatorWithInstance[] = (rolesData || []).map(role => ({
-        id: role.user_id,
-        email: role.user_id.slice(0, 8) + '...', // Placeholder - will be replaced
-        role: role.role as 'coordinator',
-        created_at: role.created_at,
-        instance: instancesMap.get(role.user_id),
-      }));
+      const requestsMap = new Map<string, { name: string; email: string }>();
+      requestsData?.forEach(req => {
+        if (req.user_id) {
+          requestsMap.set(req.user_id, { name: req.name, email: req.email });
+        }
+      });
+
+      // Build coordinators list with names and emails
+      const coords: CoordinatorWithInstance[] = (rolesData || []).map(role => {
+        const requestInfo = requestsMap.get(role.user_id);
+        return {
+          id: role.user_id,
+          email: requestInfo?.email || role.user_id.slice(0, 8) + '...',
+          name: requestInfo?.name,
+          role: role.role as 'coordinator',
+          created_at: role.created_at,
+          instance: instancesMap.get(role.user_id),
+        };
+      });
 
       setCoordinators(coords);
     } catch (error) {
@@ -225,47 +271,64 @@ export function AdminCoordinators() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID do Usuário</TableHead>
+                <TableHead>Coordenador</TableHead>
                 <TableHead>Instância</TableHead>
+                <TableHead>Tempo Restante</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Criado em</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {coordinators.map((coord) => (
-                <TableRow key={coord.id}>
-                  <TableCell className="font-mono text-sm">{coord.id.slice(0, 8)}...</TableCell>
-                  <TableCell>
-                    {coord.instance ? (
-                      <div className="flex items-center gap-2">
-                        <Mic2 className="h-4 w-4 text-primary" />
-                        <span>{coord.instance.name}</span>
-                        <Badge variant="outline" className="text-xs">{coord.instance.instance_code}</Badge>
+              {coordinators.map((coord) => {
+                const timeRemaining = getTimeRemaining(coord.instance?.expires_at || null);
+                return (
+                  <TableRow key={coord.id}>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{coord.name || 'Sem nome'}</span>
+                        <span className="text-xs text-muted-foreground">{coord.email}</span>
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground">Sem instância</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {coord.instance ? (
-                      <Badge variant={coord.instance.status === 'active' ? 'default' : 'secondary'}>
-                        {coord.instance.status === 'active' ? 'Ativo' : coord.instance.status === 'paused' ? 'Pausado' : 'Fechado'}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">-</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(coord.created_at).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteCoordinator(coord.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell>
+                      {coord.instance ? (
+                        <div className="flex items-center gap-2">
+                          <Mic2 className="h-4 w-4 text-primary" />
+                          <span>{coord.instance.name}</span>
+                          <Badge variant="outline" className="text-xs">{coord.instance.instance_code}</Badge>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">Sem instância</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {coord.instance?.expires_at ? (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          <span className={`text-sm font-medium ${timeRemaining.color}`}>
+                            {timeRemaining.text}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {coord.instance ? (
+                        <Badge variant={coord.instance.status === 'active' ? 'default' : 'secondary'}>
+                          {coord.instance.status === 'active' ? 'Ativo' : coord.instance.status === 'paused' ? 'Pausado' : 'Fechado'}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">-</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteCoordinator(coord.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}
