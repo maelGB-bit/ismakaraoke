@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,16 +46,39 @@ import {
 
 function HostContent() {
   const navigate = useNavigate();
+  const { instanceCode } = useParams<{ instanceCode?: string }>();
   const { toast } = useToast();
   const { t } = useLanguage();
   const { logout, user } = useHostAuth();
   
-  console.log('[HostContent] Rendering with user:', user?.id, user?.email);
+  console.log('[HostContent] Rendering with user:', user?.id, user?.email, 'instanceCode:', instanceCode);
   
-  // Get the coordinator's karaoke instance
-  const { instance, loading: instanceLoading, isExpired } = useKaraokeInstance(user?.id);
+  // Check if user is admin (for accessing any instance by code)
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(!!instanceCode);
   
-  console.log('[HostContent] Instance:', { instance, instanceLoading, isExpired, userId: user?.id });
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!instanceCode) {
+        setAdminLoading(false);
+        return;
+      }
+      
+      const { data } = await supabase.rpc('is_admin');
+      setIsAdmin(!!data);
+      setAdminLoading(false);
+    };
+    
+    checkAdmin();
+  }, [instanceCode]);
+  
+  // Get the coordinator's karaoke instance OR admin-specified instance by code
+  const { instance, loading: instanceLoading, isExpired } = useKaraokeInstance({
+    coordinatorId: instanceCode ? undefined : user?.id, // If we have instanceCode, don't use user ID
+    instanceCode: instanceCode // Pass instanceCode for admin access
+  });
+  
+  console.log('[HostContent] Instance:', { instance, instanceLoading, isExpired, userId: user?.id, instanceCode, isAdmin });
   
   const instanceId = instance?.id || null;
   

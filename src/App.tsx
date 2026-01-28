@@ -52,6 +52,7 @@ const App = () => (
             <Route path="/app/login" element={<LoginPage />} />
             <Route path="/app/cadastro" element={<CadastroTeste />} />
             <Route path="/app/host" element={<Host />} />
+            <Route path="/app/host/:instanceCode" element={<Host />} />
             <Route path="/app/auth/host" element={<HostAuthPage />} />
             <Route path="/app/auth/admin" element={<AdminAuthPage />} />
             <Route path="/app/admin" element={<Admin />} />
