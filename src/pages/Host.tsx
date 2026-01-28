@@ -49,8 +49,13 @@ function HostContent() {
   const { t } = useLanguage();
   const { logout, user } = useHostAuth();
   
+  console.log('[HostContent] Rendering with user:', user?.id, user?.email);
+  
   // Get the coordinator's karaoke instance
   const { instance, loading: instanceLoading, isExpired } = useKaraokeInstance(user?.id);
+  
+  console.log('[HostContent] Instance:', { instance, instanceLoading, isExpired, userId: user?.id });
+  
   const instanceId = instance?.id || null;
   
   const { performance, setPerformance } = useActivePerformance(instanceId);

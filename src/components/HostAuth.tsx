@@ -32,16 +32,26 @@ export function HostAuth({ children }: HostAuthProps) {
   const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('[HostAuth] Auth state changed:', event, session?.user?.email);
+        
+        if (!isMounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         // Defer role check with setTimeout to avoid deadlock
         if (session?.user) {
+          // Keep loading while we check the role
+          setIsLoading(true);
           setTimeout(() => {
-            checkHostRole(session.user.id);
+            if (isMounted) {
+              checkHostRole(session.user.id);
+            }
           }, 0);
         } else {
           setIsHost(false);
@@ -52,6 +62,9 @@ export function HostAuth({ children }: HostAuthProps) {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+      
+      console.log('[HostAuth] Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -62,11 +75,15 @@ export function HostAuth({ children }: HostAuthProps) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const checkHostRole = async (userId: string) => {
     try {
+      console.log('[HostAuth] Checking role for user:', userId);
       // Check for both 'host' and 'coordinator' roles
       const { data, error } = await supabase
         .from('user_roles')
@@ -74,19 +91,21 @@ export function HostAuth({ children }: HostAuthProps) {
         .eq('user_id', userId)
         .in('role', ['host', 'coordinator']);
 
+      console.log('[HostAuth] Role check result:', { data, error });
+
       if (error) {
-        console.error('Error checking host role:', error);
+        console.error('[HostAuth] Error checking host role:', error);
         setIsHost(false);
       } else {
-        setIsHost(data && data.length > 0);
+        const hasRole = data && data.length > 0;
+        console.log('[HostAuth] Setting isHost to:', hasRole);
+        setIsHost(hasRole);
       }
-
-      // Note: session_invalidated flag is now cleared during login
-      // so we don't need to check it here anymore
     } catch (err) {
-      console.error('Error checking host role:', err);
+      console.error('[HostAuth] Error checking host role:', err);
       setIsHost(false);
     } finally {
+      console.log('[HostAuth] Setting isLoading to false');
       setIsLoading(false);
     }
   };
@@ -101,7 +120,11 @@ export function HostAuth({ children }: HostAuthProps) {
 
   // Redirect effect - runs when auth state is determined
   useEffect(() => {
+    console.log('[HostAuth] Redirect check:', { isLoading, user: user?.email, session: !!session, isHost });
+    
+    // Only redirect when loading is complete and we know the auth state
     if (!isLoading && (!user || !session || !isHost)) {
+      console.log('[HostAuth] Redirecting to /auth/host');
       navigate('/auth/host', { replace: true });
     }
   }, [isLoading, user, session, isHost, navigate]);
