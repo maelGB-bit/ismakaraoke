@@ -243,7 +243,19 @@ export function AdminCoordinatorRequests() {
 
   const pendingRequests = requests.filter(r => r.status === 'pending');
   const duplicateRequests = requests.filter(r => r.status === 'duplicado');
-  const approvedRequests = requests.filter(r => r.status === 'approved');
+  
+  // Separate approved into active (not expired) and expired, sort active by time remaining
+  const allApprovedRequests = requests.filter(r => r.status === 'approved');
+  const activeApprovedRequests = allApprovedRequests
+    .filter(r => !r.expires_at || new Date(r.expires_at) > new Date())
+    .sort((a, b) => {
+      if (!a.expires_at) return 1;
+      if (!b.expires_at) return -1;
+      return new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime();
+    });
+  const expiredApprovedRequests = allApprovedRequests
+    .filter(r => r.expires_at && new Date(r.expires_at) <= new Date());
+  
   const otherRequests = requests.filter(r => r.status === 'expired' || r.status === 'rejected');
   const deletedRequests = requests.filter(r => r.status === 'deleted_by_admin');
 
@@ -385,12 +397,12 @@ export function AdminCoordinatorRequests() {
                 </div>
               )}
 
-              {/* Approved Requests */}
-              {approvedRequests.length > 0 && (
+              {/* Active Approved Requests */}
+              {activeApprovedRequests.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                     <Check className="h-5 w-5 text-green-500" />
-                    Aprovados
+                    Aprovados Ativos ({activeApprovedRequests.length})
                   </h3>
                   <Table>
                     <TableHeader>
@@ -404,9 +416,7 @@ export function AdminCoordinatorRequests() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {approvedRequests.map((request) => {
-                        const isExpired = request.expires_at && new Date(request.expires_at) < new Date();
-                        // Find duplicate emails with same IP
+                      {activeApprovedRequests.map((request) => {
                         const duplicateEmailsForIp = request.ip_address 
                           ? duplicateRequests
                               .filter(d => d.ip_address === request.ip_address)
@@ -414,7 +424,7 @@ export function AdminCoordinatorRequests() {
                           : [];
                         
                         return (
-                          <TableRow key={request.id} className={`cursor-pointer hover:bg-muted/50 ${isExpired ? 'opacity-60' : ''}`} onClick={() => setDetailsModal({ open: true, request })}>
+                          <TableRow key={request.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setDetailsModal({ open: true, request })}>
                             <TableCell className="font-medium">{request.name}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
@@ -449,7 +459,7 @@ export function AdminCoordinatorRequests() {
                               )}
                             </TableCell>
                             <TableCell>
-                              <Badge variant={isExpired ? 'destructive' : 'default'}>
+                              <Badge variant="default">
                                 {request.expires_at ? getTimeRemaining(request.expires_at) : '-'}
                               </Badge>
                             </TableCell>
@@ -468,6 +478,47 @@ export function AdminCoordinatorRequests() {
                           </TableRow>
                         );
                       })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {/* Expired Approved Requests */}
+              {expiredApprovedRequests.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-destructive">
+                    <Clock className="h-5 w-5" />
+                    Aprovados Expirados ({expiredApprovedRequests.length})
+                  </h3>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Instância</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {expiredApprovedRequests.map((request) => (
+                        <TableRow key={request.id} className="cursor-pointer hover:bg-muted/50 opacity-60" onClick={() => setDetailsModal({ open: true, request })}>
+                          <TableCell className="font-medium">{request.name}</TableCell>
+                          <TableCell>{request.email}</TableCell>
+                          <TableCell>{request.instance_name || '-'}</TableCell>
+                          <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
+                            <Button size="icon" variant="ghost" onClick={() => setDetailsModal({ open: true, request })}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="default" onClick={() => handleRenew(request)}>
+                              <RefreshCw className="h-4 w-4 mr-1" />
+                              Renovar
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => handleDelete(request.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </div>

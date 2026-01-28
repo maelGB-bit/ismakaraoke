@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mic2, Plus, Pencil, Trash2, Loader2, ExternalLink, QrCode } from 'lucide-react';
+import { Mic2, Plus, Pencil, Trash2, Loader2, ExternalLink, QrCode, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -279,44 +279,135 @@ export function AdminInstances() {
             )}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Código</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Coordenador</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {instances.map((instance) => (
-                <TableRow key={instance.id}>
-                  <TableCell className="font-medium">{instance.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="font-mono">{instance.instance_code}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={instance.status === 'active' ? 'default' : instance.status === 'paused' ? 'secondary' : 'destructive'}>
-                      {instance.status === 'active' ? 'Ativo' : instance.status === 'paused' ? 'Pausado' : 'Fechado'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-mono text-sm text-muted-foreground">
-                    {instance.coordinator_id.slice(0, 8)}...
-                  </TableCell>
-                  <TableCell className="text-right space-x-1">
-                    <InstanceDataExport instance={instance} />
-                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(instance)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(instance.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="space-y-6">
+            {(() => {
+              const getTimeRemainingMs = (expiresAt: string | undefined) => {
+                if (!expiresAt) return Infinity;
+                return new Date(expiresAt).getTime() - new Date().getTime();
+              };
+              
+              const activeInstances = instances
+                .filter(i => i.status === 'active' && (!i.expires_at || new Date(i.expires_at) > new Date()))
+                .sort((a, b) => getTimeRemainingMs(a.expires_at) - getTimeRemainingMs(b.expires_at));
+              
+              const inactiveInstances = instances
+                .filter(i => i.status !== 'active' || (i.expires_at && new Date(i.expires_at) <= new Date()));
+              
+              const formatTimeRemaining = (expiresAt: string | undefined) => {
+                if (!expiresAt) return '-';
+                const diff = new Date(expiresAt).getTime() - new Date().getTime();
+                if (diff <= 0) return 'Expirado';
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const days = Math.floor(hours / 24);
+                if (days > 0) return `${days}d ${hours % 24}h`;
+                if (hours > 0) return `${hours}h`;
+                return '<1h';
+              };
+
+              return (
+                <>
+                  {activeInstances.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-green-600">
+                        <Mic2 className="h-5 w-5" />
+                        Instâncias Ativas ({activeInstances.length})
+                      </h3>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>Código</TableHead>
+                            <TableHead>Tempo Restante</TableHead>
+                            <TableHead>Coordenador</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {activeInstances.map((instance) => (
+                            <TableRow key={instance.id}>
+                              <TableCell className="font-medium">{instance.name}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="font-mono">{instance.instance_code}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-sm font-medium text-green-600">
+                                    {formatTimeRemaining(instance.expires_at)}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-mono text-sm text-muted-foreground">
+                                {instance.coordinator_id.slice(0, 8)}...
+                              </TableCell>
+                              <TableCell className="text-right space-x-1">
+                                <InstanceDataExport instance={instance} />
+                                <Button variant="ghost" size="icon" onClick={() => openEditDialog(instance)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(instance.id)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+
+                  {inactiveInstances.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-muted-foreground">
+                        <Mic2 className="h-5 w-5" />
+                        Inativas / Expiradas ({inactiveInstances.length})
+                      </h3>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>Código</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Coordenador</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {inactiveInstances.map((instance) => (
+                            <TableRow key={instance.id} className="opacity-60">
+                              <TableCell className="font-medium">{instance.name}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="font-mono">{instance.instance_code}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="destructive">
+                                  {instance.expires_at && new Date(instance.expires_at) <= new Date() 
+                                    ? 'Expirado' 
+                                    : instance.status === 'paused' ? 'Pausado' : 'Fechado'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="font-mono text-sm text-muted-foreground">
+                                {instance.coordinator_id.slice(0, 8)}...
+                              </TableCell>
+                              <TableCell className="text-right space-x-1">
+                                <InstanceDataExport instance={instance} />
+                                <Button variant="ghost" size="icon" onClick={() => openEditDialog(instance)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(instance.id)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
         )}
       </CardContent>
     </Card>
