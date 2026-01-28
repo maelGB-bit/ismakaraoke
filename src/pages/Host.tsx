@@ -466,8 +466,9 @@ function HostContent() {
 
       <ConfettiEffect trigger={showConfetti} />
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="max-w-7xl mx-auto">
-        <header className="text-center mb-6 relative">
-          <div className="absolute right-0 top-0 flex gap-2">
+        <header className="mb-6">
+          {/* Top bar with actions */}
+          <div className="flex flex-wrap justify-end gap-2 mb-4">
             <Button
               onClick={handleToggleRegistration}
               variant="outline"
@@ -503,7 +504,7 @@ function HostContent() {
                   <Menu className="mr-2 h-4 w-4" />{t('host.menu')}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-popover">
                 <DropdownMenuItem onClick={() => navigate('/')}><Home className="mr-2 h-4 w-4" />{t('host.backToHome')}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -520,8 +521,11 @@ function HostContent() {
               {t('host.logout')}
             </Button>
           </div>
-          <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center justify-center gap-3"><Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />{instance?.name || t('host.title')}</h1>
-          <p className="text-muted-foreground text-sm">{t('host.subtitle')} • {instance?.instance_code}</p>
+          {/* Title */}
+          <div className="text-center">
+            <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center justify-center gap-3"><Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />{instance?.name || t('host.title')}</h1>
+            <p className="text-muted-foreground text-sm">{t('host.subtitle')} • {instance?.instance_code}</p>
+          </div>
         </header>
 
         <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
