@@ -487,6 +487,33 @@ export type Database = {
           },
         ]
       }
+      youtube_search_cache: {
+        Row: {
+          created_at: string
+          expires_at: string
+          hit_count: number
+          id: string
+          results: Json
+          search_query: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          hit_count?: number
+          id?: string
+          results: Json
+          search_query: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          hit_count?: number
+          id?: string
+          results?: Json
+          search_query?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
