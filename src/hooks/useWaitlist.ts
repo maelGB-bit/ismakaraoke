@@ -246,16 +246,37 @@ export function useWaitlist(instanceId?: string | null) {
 
       const timesSung = previousEntries?.[0]?.times_sung || 0;
 
-      // If insertFirst, set priority to -1 to be before everyone else
-      // Otherwise, set to 999999 to be rebalanced by fair order
-      const priority = insertFirst ? -1 : 999999;
+      // If insertFirst, we need to shift all existing entries down first
+      if (insertFirst) {
+        // Get all current waiting entries
+        let query = supabase
+          .from('waitlist')
+          .select('id, priority')
+          .eq('status', 'waiting')
+          .order('priority', { ascending: true });
+        
+        if (instanceId) {
+          query = query.eq('karaoke_instance_id', instanceId);
+        }
+
+        const { data: currentEntries } = await query;
+        
+        // Shift all priorities up by 1 to make room at position 0
+        if (currentEntries && currentEntries.length > 0) {
+          await Promise.all(
+            currentEntries.map(e => 
+              supabase.from('waitlist').update({ priority: e.priority + 1 }).eq('id', e.id)
+            )
+          );
+        }
+      }
 
       const insertData = {
         singer_name: singerName.trim(),
         youtube_url: youtubeUrl,
         song_title: songTitle,
         times_sung: timesSung,
-        priority,
+        priority: insertFirst ? 0 : 999999, // 0 = first, 999999 = will be rebalanced
         status: 'waiting',
         registered_by: registeredBy?.trim() || null,
         karaoke_instance_id: instanceId || null,
@@ -268,41 +289,14 @@ export function useWaitlist(instanceId?: string | null) {
       // Update rate limit timestamp on successful submission (only for regular insertions)
       if (!insertFirst) {
         localStorage.setItem(RATE_LIMIT_KEY, Date.now().toString());
+        // Rebalance with fair order for regular insertions
+        await fetchWaitingEntries(true);
+      } else {
+        // Just refetch without rebalancing for coordinator insertions
+        await fetchWaitingEntries(false);
       }
       
       toast({ title: t('signup.signupConfirmed'), description: t('signup.addedToQueue') });
-
-      // Rebalance after insert
-      // If insertFirst, we need to shift all others down and put this one at 0
-      if (insertFirst) {
-        // Just refetch - the -1 priority will naturally sort first
-        await fetchWaitingEntries(false);
-        // Then normalize priorities
-        const updatedEntries = entries.length > 0 ? entries : [];
-        // Refetch to get the new entry
-        let query = supabase
-          .from('waitlist')
-          .select('*')
-          .eq('status', 'waiting')
-          .order('priority', { ascending: true })
-          .order('created_at', { ascending: true });
-        
-        if (instanceId) {
-          query = query.eq('karaoke_instance_id', instanceId);
-        }
-
-        const { data } = await query;
-        if (data && data.length > 0) {
-          // Normalize priorities to 0, 1, 2, ...
-          await Promise.all(
-            data.map((e, idx) => supabase.from('waitlist').update({ priority: idx }).eq('id', e.id))
-          );
-          setEntries(data.map((e, idx) => ({ ...e, priority: idx })) as WaitlistEntry[]);
-        }
-      } else {
-        // Rebalance with fair order for regular insertions
-        await fetchWaitingEntries(true);
-      }
       
       return true;
     } catch (error) {
