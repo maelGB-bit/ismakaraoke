@@ -60,10 +60,11 @@ Deno.serve(async (req) => {
 
     if (existingEmail) {
       return new Response(JSON.stringify({ 
+        success: false,
         error: "Este email já possui uma solicitação",
         code: "EMAIL_EXISTS"
       }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -95,11 +96,12 @@ Deno.serve(async (req) => {
       }
 
       return new Response(JSON.stringify({ 
+        success: false,
         error: "Você já realizou um teste gratuito com outro email. Para continuar usando o sistema, escolha um dos nossos planos.",
         code: "DUPLICATE_IP",
         existingEmail: existingIpTrials[0].email.replace(/(.{2})(.*)(@.*)/, "$1***$3")
       }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
