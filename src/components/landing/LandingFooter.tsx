@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Instagram, MessageCircle, Mail, HelpCircle } from 'lucide-react';
-import mamuteLogo from '@/assets/mamute-logo.png';
+const mamuteLogo = '/img/mamute-logo.png';
 
 export function LandingFooter() {
   return (

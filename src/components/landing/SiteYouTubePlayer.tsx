@@ -1,6 +1,6 @@
 import { useSiteVideo } from '@/hooks/useSiteVideos';
 import { Loader2 } from 'lucide-react';
-import mamuteLogo from '@/assets/mamute-logo.png';
+const mamuteLogo = '/img/mamute-logo.png';
 
 interface SiteYouTubePlayerProps {
   videoKey: string;

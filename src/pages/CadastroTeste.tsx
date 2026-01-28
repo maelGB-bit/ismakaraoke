@@ -9,7 +9,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import mamuteLogo from '@/assets/mamute-logo.png';
+const mamuteLogo = '/img/mamute-logo.png';
 
 export default function CadastroTeste() {
   const navigate = useNavigate();

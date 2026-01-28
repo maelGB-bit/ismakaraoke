@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import mamuteLogo from '@/assets/mamute-logo.png';
+const mamuteLogo = '/img/mamute-logo.png';
 import { INTEREST_LABELS, type SubscriptionInterest } from '@/types/admin';
 
 interface SubscriptionExpiredProps {
