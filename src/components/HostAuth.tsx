@@ -112,33 +112,24 @@ export function HostAuth({ children }: HostAuthProps) {
 
   const logout = async () => {
     console.log('[HostAuth] Logout initiated');
+    
+    // Clear local state first - this ensures UI updates immediately
+    setUser(null);
+    setSession(null);
+    setIsHost(false);
+    
     try {
-      // Clear local state first
-      setUser(null);
-      setSession(null);
-      setIsHost(false);
-      
-      // Sign out from Supabase with global scope to clear all sessions
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
-      
-      if (error) {
-        console.error('[HostAuth] Logout error:', error);
-      }
-      
-      console.log('[HostAuth] Logout successful, redirecting...');
-      
-      // Force navigation and page reload to clear any cached state
-      navigate('/auth/host', { replace: true });
-      
-      // Small delay then reload to ensure clean state
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // Use 'local' scope to just clear the local session
+      // This avoids 403 errors when session was already invalidated server-side
+      await supabase.auth.signOut({ scope: 'local' });
+      console.log('[HostAuth] Logout successful');
     } catch (err) {
-      console.error('[HostAuth] Logout exception:', err);
-      // Force reload anyway on error
-      window.location.href = '/auth/host';
+      console.error('[HostAuth] Logout error (ignored):', err);
+      // Ignore errors - we're logging out anyway
     }
+    
+    // Force redirect and reload to ensure clean state
+    window.location.href = '/auth/host';
   };
 
   // Redirect effect - runs when auth state is determined
