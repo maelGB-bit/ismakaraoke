@@ -55,6 +55,7 @@ export type Database = {
           id: string
           instance_name: string | null
           interest: Database["public"]["Enums"]["subscription_interest"]
+          ip_address: string | null
           must_change_password: boolean | null
           name: string
           phone: string
@@ -73,6 +74,7 @@ export type Database = {
           id?: string
           instance_name?: string | null
           interest: Database["public"]["Enums"]["subscription_interest"]
+          ip_address?: string | null
           must_change_password?: boolean | null
           name: string
           phone: string
@@ -91,6 +93,7 @@ export type Database = {
           id?: string
           instance_name?: string | null
           interest?: Database["public"]["Enums"]["subscription_interest"]
+          ip_address?: string | null
           must_change_password?: boolean | null
           name?: string
           phone?: string
@@ -370,6 +373,7 @@ export type Database = {
         | "approved"
         | "expired"
         | "rejected"
+        | "duplicado"
       subscription_interest: "single_event" | "weekly" | "monthly" | "yearly"
     }
     CompositeTypes: {
@@ -504,6 +508,7 @@ export const Constants = {
         "approved",
         "expired",
         "rejected",
+        "duplicado",
       ],
       subscription_interest: ["single_event", "weekly", "monthly", "yearly"],
     },

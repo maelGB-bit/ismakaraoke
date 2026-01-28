@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock, Check, X, Trash2, Loader2, RefreshCw, UserPlus, Link as LinkIcon, Copy, Eye } from 'lucide-react';
+import { Clock, Check, X, Trash2, Loader2, RefreshCw, UserPlus, Link as LinkIcon, Copy, Eye, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,6 +42,8 @@ function getStatusBadgeVariant(status: CoordinatorRequestStatus, expiresAt?: str
     case 'pending': return 'secondary';
     case 'expired': return 'destructive';
     case 'rejected': return 'outline';
+    case 'duplicado': return 'destructive';
+    default: return 'outline';
   }
 }
 
@@ -231,6 +233,7 @@ export function AdminCoordinatorRequests() {
   };
 
   const pendingRequests = requests.filter(r => r.status === 'pending');
+  const duplicateRequests = requests.filter(r => r.status === 'duplicado');
   const approvedRequests = requests.filter(r => r.status === 'approved');
   const otherRequests = requests.filter(r => r.status === 'expired' || r.status === 'rejected');
 
@@ -305,6 +308,64 @@ export function AdminCoordinatorRequests() {
                             </Button>
                             <Button size="sm" variant="outline" onClick={() => handleReject(request.id)}>
                               <X className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {/* Duplicate Requests - IP already used */}
+              {duplicateRequests.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-500" />
+                    Duplicados (IP já utilizado)
+                  </h3>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Celular</TableHead>
+                        <TableHead>IP</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {duplicateRequests.map((request) => (
+                        <TableRow 
+                          key={request.id} 
+                          className="cursor-pointer hover:bg-muted/50 bg-amber-500/10 border-amber-500/30" 
+                          onClick={() => setDetailsModal({ open: true, request })}
+                        >
+                          <TableCell className="font-medium">{request.name}</TableCell>
+                          <TableCell>{request.email}</TableCell>
+                          <TableCell>{request.phone}</TableCell>
+                          <TableCell>
+                            <code className="text-xs bg-muted px-2 py-1 rounded">
+                              {request.ip_address || 'N/A'}
+                            </code>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(request.created_at).toLocaleDateString('pt-BR')}
+                          </TableCell>
+                          <TableCell className="text-right space-x-2" onClick={(e) => e.stopPropagation()}>
+                            <Button size="icon" variant="ghost" onClick={() => setDetailsModal({ open: true, request })}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" onClick={() => openApprovalDialog(request)}>
+                              <Check className="h-4 w-4 mr-1" />
+                              Aprovar
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => handleReject(request.id)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => handleDelete(request.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </TableCell>
                         </TableRow>

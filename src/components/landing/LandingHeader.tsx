@@ -41,7 +41,7 @@ export function LandingHeader() {
                 {item.label}
               </Link>
             ))}
-            <Link to="/app">
+            <Link to="/app/login">
               <Button className="bg-landing-orange hover:bg-landing-orange/90 text-white font-semibold">
                 Entrar no Sistema
               </Button>
@@ -75,7 +75,7 @@ export function LandingHeader() {
                 {item.label}
               </Link>
             ))}
-            <Link to="/app" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/app/login" onClick={() => setIsMenuOpen(false)}>
               <Button className="w-full bg-landing-orange hover:bg-landing-orange/90 text-white font-semibold mt-2">
                 Entrar no Sistema
               </Button>

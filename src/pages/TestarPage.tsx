@@ -30,8 +30,8 @@ export default function TestarPage() {
 
   const handleConfirm = () => {
     setShowConfirmDialog(false);
-    // Redirect to the interest form in the system
-    navigate('/app');
+    // Redirect to the trial registration page
+    navigate('/app/cadastro');
   };
 
   return (
