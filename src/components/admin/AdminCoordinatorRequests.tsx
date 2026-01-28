@@ -43,6 +43,7 @@ function getStatusBadgeVariant(status: CoordinatorRequestStatus, expiresAt?: str
     case 'expired': return 'destructive';
     case 'rejected': return 'outline';
     case 'duplicado': return 'destructive';
+    case 'deleted_by_admin': return 'outline';
     default: return 'outline';
   }
 }
@@ -53,9 +54,10 @@ export function AdminCoordinatorRequests() {
   const [loading, setLoading] = useState(true);
   
   // Approval dialog state
-  const [approvalDialog, setApprovalDialog] = useState<{ open: boolean; request: CoordinatorRequest | null }>({
+  const [approvalDialog, setApprovalDialog] = useState<{ open: boolean; request: CoordinatorRequest | null; isRenewal?: boolean }>({
     open: false,
     request: null,
+    isRenewal: false,
   });
   const [instanceName, setInstanceName] = useState('');
   const [duration, setDuration] = useState('24h');
@@ -108,9 +110,9 @@ export function AdminCoordinatorRequests() {
     fetchRequests();
   }, []);
 
-  const openApprovalDialog = (request: CoordinatorRequest) => {
-    setApprovalDialog({ open: true, request });
-    setInstanceName(`Karaoke ${request.name.split(' ')[0]}`);
+  const openApprovalDialog = (request: CoordinatorRequest, isRenewal: boolean = false) => {
+    setApprovalDialog({ open: true, request, isRenewal });
+    setInstanceName(request.instance_name || `Karaoke ${request.name.split(' ')[0]}`);
     setDuration('24h');
   };
 
@@ -122,6 +124,7 @@ export function AdminCoordinatorRequests() {
 
     setIsApproving(true);
     const request = approvalDialog.request;
+    const isRenewal = approvalDialog.isRenewal || false;
 
     try {
       // Get duration in hours
@@ -129,8 +132,6 @@ export function AdminCoordinatorRequests() {
       const durationHours = durationConfig?.hours || 24;
 
       // Call edge function to create coordinator (keeps admin session intact)
-      const { data: session } = await supabase.auth.getSession();
-      
       const response = await supabase.functions.invoke('create-coordinator', {
         body: {
           email: request.email,
@@ -138,6 +139,7 @@ export function AdminCoordinatorRequests() {
           instanceName: instanceName.trim(),
           durationHours,
           requestId: request.id,
+          isRenewal,
         },
       });
 
@@ -151,12 +153,19 @@ export function AdminCoordinatorRequests() {
         throw new Error(result.error || 'Erro ao criar coordenador');
       }
 
-      toast({ 
-        title: 'Coordenador aprovado!',
-        description: `Instância ${result.instanceCode} criada. Senha temporária: ${result.tempPassword}`,
-      });
+      if (isRenewal && result.passwordKept) {
+        toast({ 
+          title: 'Licença renovada!',
+          description: `Instância ${result.instanceCode} atualizada. Senha mantida.`,
+        });
+      } else {
+        toast({ 
+          title: 'Coordenador aprovado!',
+          description: `Instância ${result.instanceCode} criada. Senha temporária: ${result.tempPassword}`,
+        });
+      }
 
-      setApprovalDialog({ open: false, request: null });
+      setApprovalDialog({ open: false, request: null, isRenewal: false });
       fetchRequests();
     } catch (error: unknown) {
       console.error('Error approving coordinator:', error);
@@ -211,7 +220,7 @@ export function AdminCoordinatorRequests() {
   };
 
   const handleRenew = async (request: CoordinatorRequest) => {
-    openApprovalDialog(request);
+    openApprovalDialog(request, true); // isRenewal = true
   };
 
   const copyInstanceLink = (request: CoordinatorRequest) => {
@@ -236,6 +245,7 @@ export function AdminCoordinatorRequests() {
   const duplicateRequests = requests.filter(r => r.status === 'duplicado');
   const approvedRequests = requests.filter(r => r.status === 'approved');
   const otherRequests = requests.filter(r => r.status === 'expired' || r.status === 'rejected');
+  const deletedRequests = requests.filter(r => r.status === 'deleted_by_admin');
 
   return (
     <>
@@ -488,9 +498,54 @@ export function AdminCoordinatorRequests() {
                               {STATUS_LABELS[request.status]}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                          <TableCell className="text-right space-x-1" onClick={(e) => e.stopPropagation()}>
                             <Button size="icon" variant="ghost" onClick={() => setDetailsModal({ open: true, request })}>
                               <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => openApprovalDialog(request, false)}>
+                              <RefreshCw className="h-4 w-4 mr-1" />
+                              Recriar
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => handleDelete(request.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {/* Deleted by Admin */}
+              {deletedRequests.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 text-muted-foreground flex items-center gap-2">
+                    <Trash2 className="h-5 w-5" />
+                    Deletados pelo Admin
+                  </h3>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Instância Anterior</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {deletedRequests.map((request) => (
+                        <TableRow key={request.id} className="opacity-60 cursor-pointer hover:bg-muted/50" onClick={() => setDetailsModal({ open: true, request })}>
+                          <TableCell>{request.name}</TableCell>
+                          <TableCell>{request.email}</TableCell>
+                          <TableCell>{request.instance_name || '-'}</TableCell>
+                          <TableCell className="text-right space-x-1" onClick={(e) => e.stopPropagation()}>
+                            <Button size="icon" variant="ghost" onClick={() => setDetailsModal({ open: true, request })}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="default" onClick={() => openApprovalDialog(request, false)}>
+                              <RefreshCw className="h-4 w-4 mr-1" />
+                              Recriar Acesso
                             </Button>
                             <Button size="icon" variant="ghost" onClick={() => handleDelete(request.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />

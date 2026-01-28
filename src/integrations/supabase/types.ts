@@ -514,6 +514,7 @@ export type Database = {
         | "expired"
         | "rejected"
         | "duplicado"
+        | "deleted_by_admin"
       subscription_interest: "single_event" | "weekly" | "monthly" | "yearly"
     }
     CompositeTypes: {
@@ -649,6 +650,7 @@ export const Constants = {
         "expired",
         "rejected",
         "duplicado",
+        "deleted_by_admin",
       ],
       subscription_interest: ["single_event", "weekly", "monthly", "yearly"],
     },

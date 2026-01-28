@@ -169,11 +169,17 @@ export function AdminCoordinators() {
     }
   };
 
-  const handleDeleteCoordinator = async (id: string) => {
+  const handleDeleteCoordinator = async (id: string, email: string) => {
     if (!confirm('Tem certeza que deseja remover este coordenador? A instância associada também será removida.')) return;
 
     try {
-      // Delete role (cascade will delete instance)
+      // First, update the coordinator_request to deleted_by_admin status
+      await supabase
+        .from('coordinator_requests')
+        .update({ status: 'deleted_by_admin' })
+        .eq('user_id', id);
+
+      // Delete role
       const { error } = await supabase
         .from('user_roles')
         .delete()
@@ -182,14 +188,14 @@ export function AdminCoordinators() {
 
       if (error) throw error;
 
-      // Also delete the instance if exists
+      // Delete the instance
       await supabase
         .from('karaoke_instances')
         .delete()
         .eq('coordinator_id', id);
 
       setCoordinators(coordinators.filter(c => c.id !== id));
-      toast({ title: 'Coordenador removido' });
+      toast({ title: 'Coordenador removido', description: 'A solicitação foi movida para "Deletados pelo Admin"' });
     } catch (error) {
       console.error('Error deleting coordinator:', error);
       toast({ title: 'Erro ao remover coordenador', variant: 'destructive' });
@@ -339,7 +345,7 @@ export function AdminCoordinators() {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteCoordinator(coord.id)}>
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteCoordinator(coord.id, coord.email)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>

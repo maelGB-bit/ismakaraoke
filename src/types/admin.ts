@@ -29,7 +29,7 @@ export interface Coordinator {
 }
 
 export type SubscriptionInterest = 'single_event' | 'weekly' | 'monthly' | 'yearly';
-export type CoordinatorRequestStatus = 'pending' | 'approved' | 'expired' | 'rejected' | 'duplicado';
+export type CoordinatorRequestStatus = 'pending' | 'approved' | 'expired' | 'rejected' | 'duplicado' | 'deleted_by_admin';
 
 export interface CoordinatorRequest {
   id: string;
@@ -64,6 +64,7 @@ export const STATUS_LABELS: Record<CoordinatorRequestStatus, string> = {
   expired: 'Expirado',
   rejected: 'Rejeitado',
   duplicado: 'Duplicado',
+  deleted_by_admin: 'Deletado',
 };
 
 export const APPROVAL_DURATIONS = [

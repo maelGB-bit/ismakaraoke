@@ -11,6 +11,7 @@ interface CreateCoordinatorRequest {
   instanceName: string;
   durationHours: number;
   requestId: string;
+  isRenewal?: boolean; // If true, don't reset password
 }
 
 function generateInstanceCode(): string {
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
 
     // Parse request body
     const body: CreateCoordinatorRequest = await req.json();
-    const { email, name, instanceName, durationHours, requestId } = body;
+    const { email, name, instanceName, durationHours, requestId, isRenewal } = body;
 
     if (!email || !instanceName || !durationHours || !requestId) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -81,21 +82,30 @@ Deno.serve(async (req) => {
       console.log("User already exists:", existingUser.id);
       userId = existingUser.id;
       
-      // Reset password to fixed temp password and clear session_invalidated flag
-      const { error: updatePasswordError } = await adminClient.auth.admin.updateUserById(userId, {
-        password: TEMP_PASSWORD,
-        app_metadata: { session_invalidated: false }
-      });
-      
-      if (updatePasswordError) {
-        console.error("Password update error:", updatePasswordError);
-        return new Response(JSON.stringify({ error: "Failed to reset password" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      // Only reset password if NOT a renewal (new approval or recreating deleted user)
+      if (!isRenewal) {
+        // Reset password to fixed temp password and clear session_invalidated flag
+        const { error: updatePasswordError } = await adminClient.auth.admin.updateUserById(userId, {
+          password: TEMP_PASSWORD,
+          app_metadata: { session_invalidated: false }
         });
+        
+        if (updatePasswordError) {
+          console.error("Password update error:", updatePasswordError);
+          return new Response(JSON.stringify({ error: "Failed to reset password" }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        
+        console.log("Password reset successfully for user:", userId);
+      } else {
+        // Just clear session_invalidated flag on renewal
+        await adminClient.auth.admin.updateUserById(userId, {
+          app_metadata: { session_invalidated: false }
+        });
+        console.log("Renewed user without password reset:", userId);
       }
-      
-      console.log("Password reset successfully for user:", userId);
       
       // Check if they already have a coordinator role
       const { data: existingRole } = await adminClient
@@ -137,20 +147,25 @@ Deno.serve(async (req) => {
           })
           .eq("id", existingInstance.id);
 
-        // Update request status with must_change_password = true
+        // Update request status - only set password fields if NOT a renewal
+        const updateData: Record<string, unknown> = {
+          status: "approved",
+          user_id: userId,
+          approved_at: new Date().toISOString(),
+          approved_by: callerUser?.id || null,
+          expires_at: expiresAt.toISOString(),
+          instance_name: instanceName.trim(),
+        };
+
+        if (!isRenewal) {
+          updateData.temp_password = TEMP_PASSWORD;
+          updateData.current_password = TEMP_PASSWORD;
+          updateData.must_change_password = true;
+        }
+
         await adminClient
           .from("coordinator_requests")
-          .update({
-            status: "approved",
-            user_id: userId,
-            approved_at: new Date().toISOString(),
-            approved_by: callerUser?.id || null,
-            expires_at: expiresAt.toISOString(),
-            instance_name: instanceName.trim(),
-            temp_password: TEMP_PASSWORD,
-            current_password: TEMP_PASSWORD,
-            must_change_password: true,
-          })
+          .update(updateData)
           .eq("id", requestId);
 
         return new Response(
@@ -158,9 +173,10 @@ Deno.serve(async (req) => {
             success: true,
             userId,
             instanceCode: existingInstance.instance_code,
-            tempPassword: TEMP_PASSWORD,
+            tempPassword: isRenewal ? null : TEMP_PASSWORD,
             expiresAt: expiresAt.toISOString(),
             renewed: true,
+            passwordKept: isRenewal,
           }),
           {
             status: 200,
