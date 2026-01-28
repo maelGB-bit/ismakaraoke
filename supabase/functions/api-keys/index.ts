@@ -116,14 +116,24 @@ serve(async (req) => {
 
     // Parse body for POST, PATCH, DELETE
     let body: Record<string, unknown> = {};
-    if (method !== 'GET') {
+    if (method === 'POST' || method === 'PATCH' || method === 'DELETE') {
       try {
-        const text = await req.text();
-        if (text) {
-          body = JSON.parse(text);
+        const contentType = req.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const text = await req.text();
+          if (text && text.trim()) {
+            body = JSON.parse(text);
+          }
+        } else {
+          // Try to read anyway for backwards compatibility
+          const text = await req.text();
+          if (text && text.trim()) {
+            body = JSON.parse(text);
+          }
         }
       } catch (e) {
-        console.log('No JSON body provided or invalid JSON');
+        console.log('Body parsing error:', e);
+        // Continue with empty body - individual handlers will validate
       }
     }
 
