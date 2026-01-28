@@ -48,7 +48,7 @@ export function VoteSlider({ onSubmit, isSubmitting }: VoteSliderProps) {
           {isSubmitting ? t('slider.submitting') : t('slider.submitVote')}
         </Button>
         <Button 
-          onClick={() => navigate(instanceCode ? `/inscricao/${instanceCode}` : '/inscricao')} 
+          onClick={() => navigate(instanceCode ? `/app/inscricao/${instanceCode}` : '/app/inscricao')} 
           variant="outline" 
           size="lg" 
           className="w-full"

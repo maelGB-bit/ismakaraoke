@@ -12,8 +12,8 @@ export function QRCodeDisplay({ compact = false, instanceCode }: QRCodeDisplayPr
   const baseUrl = window.location.origin;
   // If instanceCode is provided, link to instance-specific vote page
   const voteUrl = instanceCode 
-    ? `${baseUrl}/vote/${instanceCode}` 
-    : `${baseUrl}/vote`;
+    ? `${baseUrl}/app/vote/${instanceCode}` 
+    : `${baseUrl}/app/vote`;
 
   if (compact) {
     return (

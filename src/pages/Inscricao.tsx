@@ -246,7 +246,7 @@ export default function Inscricao() {
       setSelectedVideo(null);
       
       // Navigate to voting page
-      navigate(instanceCode ? `/vote/${instanceCode}` : '/vote');
+      navigate(instanceCode ? `/app/vote/${instanceCode}` : '/app/vote');
     }
   };
 
@@ -313,7 +313,7 @@ export default function Inscricao() {
             </p>
             <div className="flex gap-3 mt-6">
               <Button
-                onClick={() => navigate(instanceCode ? `/vote/${instanceCode}` : '/vote')}
+                onClick={() => navigate(instanceCode ? `/app/vote/${instanceCode}` : '/app/vote')}
                 variant="outline"
                 className="flex-1"
               >
@@ -321,7 +321,7 @@ export default function Inscricao() {
                 {t('signup.goToVoting')}
               </Button>
               <Button
-                onClick={() => navigate(instanceCode ? `/ranking/${instanceCode}` : '/ranking')}
+                onClick={() => navigate(instanceCode ? `/app/ranking/${instanceCode}` : '/app/ranking')}
                 variant="outline"
                 className="flex-1"
               >

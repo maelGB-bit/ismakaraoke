@@ -16,7 +16,7 @@ function AdminContent() {
 
   useEffect(() => {
     if (!isLoading && (!user || !isAdmin)) {
-      navigate('/auth/admin');
+      navigate('/app/auth/admin');
     }
   }, [isLoading, user, isAdmin, navigate]);
 

@@ -94,7 +94,7 @@ export default function Ranking() {
         {/* Action Button */}
         <div className="flex justify-center">
           <Button
-            onClick={() => navigate(instanceCode ? `/vote/${instanceCode}` : '/vote')}
+            onClick={() => navigate(instanceCode ? `/app/vote/${instanceCode}` : '/app/vote')}
             size="lg"
             className="w-full max-w-md"
           >

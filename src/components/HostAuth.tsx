@@ -155,8 +155,8 @@ export function HostAuth({ children }: HostAuthProps) {
     
     // Only redirect when loading is complete and we know the auth state
     if (!isLoading && (!user || !session || !isHost)) {
-      console.log('[HostAuth] Redirecting to /auth/host');
-      navigate('/auth/host', { replace: true });
+      console.log('[HostAuth] Redirecting to /app/auth/host');
+      navigate('/app/auth/host', { replace: true });
     }
   }, [isLoading, user, session, isHost, navigate]);
 
