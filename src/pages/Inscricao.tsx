@@ -54,7 +54,7 @@ export default function Inscricao() {
   const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
   const { performance } = useActivePerformance(instanceId);
   const { profile, loading: profileLoading, saveProfile } = useUserProfile();
-  const { isRegistrationOpen, loading: settingsLoading } = useEventSettings();
+  const { isRegistrationOpen, loading: settingsLoading } = useEventSettings(instanceId);
   
   const [singerName, setSingerName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');

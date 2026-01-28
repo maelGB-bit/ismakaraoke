@@ -104,23 +104,34 @@ export type Database = {
       event_settings: {
         Row: {
           id: string
+          karaoke_instance_id: string | null
           registration_open: boolean
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           id?: string
+          karaoke_instance_id?: string | null
           registration_open?: boolean
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           id?: string
+          karaoke_instance_id?: string | null
           registration_open?: boolean
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "event_settings_karaoke_instance_id_fkey"
+            columns: ["karaoke_instance_id"]
+            isOneToOne: false
+            referencedRelation: "karaoke_instances"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       host_settings: {
         Row: {

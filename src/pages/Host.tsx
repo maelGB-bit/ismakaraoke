@@ -74,7 +74,7 @@ function HostContent() {
   } = useWaitlist(instanceId);
 
   // ALL HOOKS MUST BE DECLARED BEFORE ANY CONDITIONAL RETURNS
-  const { isRegistrationOpen, toggleRegistration } = useEventSettings();
+  const { isRegistrationOpen, toggleRegistration } = useEventSettings(instanceId);
   
   const [cantor, setCantor] = useState('');
   const [musica, setMusica] = useState('');
@@ -492,6 +492,7 @@ function HostContent() {
             nextInQueue={trueNextInQueue}
             youtubeUrl={loadedUrl}
             queueCount={waitlistEntries.filter(e => e.status === 'waiting').length}
+            instanceId={instanceId}
             onExit={async () => {
               // End voting when exiting TV mode
               if (isRoundActive && performance) {
