@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Mic2, Plus, Pencil, Trash2, Loader2, ExternalLink, QrCode, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Mic2, Plus, Pencil, Trash2, Loader2, Clock, Radio, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,8 +15,17 @@ import { useToast } from '@/hooks/use-toast';
 import { useAllInstances } from '@/hooks/useKaraokeInstance';
 import type { KaraokeInstance } from '@/types/admin';
 
+interface InstanceLiveStatus {
+  [instanceId: string]: boolean;
+}
+
+interface CoordinatorEmail {
+  [coordinatorId: string]: string;
+}
+
 export function AdminInstances() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { instances, loading, refetch } = useAllInstances();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,6 +39,10 @@ export function AdminInstances() {
   
   // Available coordinators (without instance)
   const [availableCoordinators, setAvailableCoordinators] = useState<{ id: string }[]>([]);
+  
+  // Live status and coordinator emails
+  const [liveStatus, setLiveStatus] = useState<InstanceLiveStatus>({});
+  const [coordinatorEmails, setCoordinatorEmails] = useState<CoordinatorEmail>({});
 
   const fetchAvailableCoordinators = async () => {
     try {
@@ -55,8 +68,71 @@ export function AdminInstances() {
     }
   };
 
+  const fetchLiveStatus = async () => {
+    if (instances.length === 0) return;
+    
+    const instanceIds = instances.map(i => i.id);
+    
+    // Check for waitlist entries
+    const { data: waitlistData } = await supabase
+      .from('waitlist')
+      .select('karaoke_instance_id')
+      .in('karaoke_instance_id', instanceIds)
+      .eq('status', 'waiting');
+    
+    // Check for active performances
+    const { data: performanceData } = await supabase
+      .from('performances')
+      .select('karaoke_instance_id')
+      .in('karaoke_instance_id', instanceIds)
+      .eq('status', 'ativa');
+    
+    const liveInstanceIds = new Set([
+      ...(waitlistData || []).map(w => w.karaoke_instance_id),
+      ...(performanceData || []).map(p => p.karaoke_instance_id)
+    ]);
+    
+    const statusMap: InstanceLiveStatus = {};
+    instanceIds.forEach(id => {
+      statusMap[id] = liveInstanceIds.has(id);
+    });
+    
+    setLiveStatus(statusMap);
+  };
+
+  const fetchCoordinatorEmails = async () => {
+    if (instances.length === 0) return;
+    
+    const coordinatorIds = [...new Set(instances.map(i => i.coordinator_id))];
+    
+    const { data } = await supabase
+      .from('coordinator_requests')
+      .select('user_id, email')
+      .in('user_id', coordinatorIds);
+    
+    const emailMap: CoordinatorEmail = {};
+    (data || []).forEach(r => {
+      if (r.user_id) emailMap[r.user_id] = r.email;
+    });
+    
+    setCoordinatorEmails(emailMap);
+  };
+
   useEffect(() => {
     fetchAvailableCoordinators();
+    fetchLiveStatus();
+    fetchCoordinatorEmails();
+  }, [instances]);
+  
+  // Realtime subscription for live status
+  useEffect(() => {
+    const channel = supabase
+      .channel('instance-live-status')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'waitlist' }, fetchLiveStatus)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'performances' }, fetchLiveStatus)
+      .subscribe();
+    
+    return () => { supabase.removeChannel(channel); };
   }, [instances]);
 
   const generateInstanceCode = () => {
@@ -317,8 +393,9 @@ export function AdminInstances() {
                           <TableRow>
                             <TableHead>Nome</TableHead>
                             <TableHead>Código</TableHead>
+                            <TableHead>Status</TableHead>
                             <TableHead>Tempo Restante</TableHead>
-                            <TableHead>Coordenador</TableHead>
+                            <TableHead>Email do Coordenador</TableHead>
                             <TableHead className="text-right">Ações</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -327,7 +404,27 @@ export function AdminInstances() {
                             <TableRow key={instance.id}>
                               <TableCell className="font-medium">{instance.name}</TableCell>
                               <TableCell>
-                                <Badge variant="outline" className="font-mono">{instance.instance_code}</Badge>
+                                <Badge 
+                                  variant="outline" 
+                                  className="font-mono cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                                  onClick={() => navigate(`/app/host/${instance.instance_code}`)}
+                                  title="Clique para acessar o painel do coordenador"
+                                >
+                                  {instance.instance_code}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {liveStatus[instance.id] ? (
+                                  <Badge className="bg-green-500 text-white flex items-center gap-1 w-fit">
+                                    <Radio className="h-3 w-3 animate-pulse" />
+                                    LIVE
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="secondary" className="flex items-center gap-1 w-fit">
+                                    <WifiOff className="h-3 w-3" />
+                                    Offline
+                                  </Badge>
+                                )}
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1">
@@ -337,8 +434,8 @@ export function AdminInstances() {
                                   </span>
                                 </div>
                               </TableCell>
-                              <TableCell className="font-mono text-sm text-muted-foreground">
-                                {instance.coordinator_id.slice(0, 8)}...
+                              <TableCell className="text-sm">
+                                {coordinatorEmails[instance.coordinator_id] || instance.coordinator_id.slice(0, 8) + '...'}
                               </TableCell>
                               <TableCell className="text-right space-x-1">
                                 <InstanceDataExport instance={instance} />
@@ -368,7 +465,7 @@ export function AdminInstances() {
                             <TableHead>Nome</TableHead>
                             <TableHead>Código</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead>Coordenador</TableHead>
+                            <TableHead>Email do Coordenador</TableHead>
                             <TableHead className="text-right">Ações</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -386,8 +483,8 @@ export function AdminInstances() {
                                     : instance.status === 'paused' ? 'Pausado' : 'Fechado'}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="font-mono text-sm text-muted-foreground">
-                                {instance.coordinator_id.slice(0, 8)}...
+                              <TableCell className="text-sm">
+                                {coordinatorEmails[instance.coordinator_id] || instance.coordinator_id.slice(0, 8) + '...'}
                               </TableCell>
                               <TableCell className="text-right space-x-1">
                                 <InstanceDataExport instance={instance} />
