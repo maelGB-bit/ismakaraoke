@@ -120,6 +120,21 @@ function HostContent() {
 
   const highestScore = ranking.length > 0 ? Math.max(...ranking.map(p => Number(p.nota_media))) : 0;
 
+  // Effect for confetti on high scores - MUST be before conditional returns
+  useEffect(() => {
+    if (performance && performance.status === 'ativa') {
+      const currentScore = Number(performance.nota_media);
+      if (currentScore > highestScore && currentScore > lastHighScore && performance.total_votos >= 3) {
+        setShowConfetti(true);
+        setLastHighScore(currentScore);
+        setTimeout(() => setShowConfetti(false), 100);
+      }
+    }
+  }, [performance?.nota_media, highestScore, lastHighScore]);
+
+  // ============ CONDITIONAL RETURNS START HERE ============
+  // All hooks MUST be declared above this line
+  
   // Show loading while checking for instance or password status
   if (instanceLoading || checkingPasswordStatus) {
     return (
@@ -158,6 +173,8 @@ function HostContent() {
     return <SubscriptionExpired coordinatorName={user?.email?.split('@')[0]} />;
   }
 
+  // ============ HANDLER FUNCTIONS (after conditional returns is OK) ============
+
   const handleToggleRegistration = async () => {
     if (isTogglingRegistration) return;
     setIsTogglingRegistration(true);
@@ -169,17 +186,6 @@ function HostContent() {
     }
     setIsTogglingRegistration(false);
   };
-
-  useEffect(() => {
-    if (performance && performance.status === 'ativa') {
-      const currentScore = Number(performance.nota_media);
-      if (currentScore > highestScore && currentScore > lastHighScore && performance.total_votos >= 3) {
-        setShowConfetti(true);
-        setLastHighScore(currentScore);
-        setTimeout(() => setShowConfetti(false), 100);
-      }
-    }
-  }, [performance?.nota_media, highestScore, lastHighScore]);
 
   const handleLoadVideo = () => {
     setLoadedUrl(youtubeUrl);
