@@ -82,27 +82,39 @@ export function useWaitlist(instanceId?: string | null) {
   const { t } = useLanguage();
 
   const applyFairOrderIfNeeded = async (waitingEntries: WaitlistEntry[], forceRebalance = false) => {
-    // Check if host has manually set priorities (non-default values that are sequential from 0)
-    // If priorities are already sequential 0,1,2,3... and not high like 999999, skip rebalance
-    const hasManualOrder = waitingEntries.length > 0 && 
-      waitingEntries.every((e, idx) => e.priority === idx);
+    // Separate coordinator insertions (negative priority) from regular entries
+    const coordinatorEntries = waitingEntries.filter(e => e.priority < 0);
+    const regularEntries = waitingEntries.filter(e => e.priority >= 0);
     
-    if (hasManualOrder && !forceRebalance) {
+    // Sort coordinator entries by priority (most negative = most recent = first)
+    coordinatorEntries.sort((a, b) => a.priority - b.priority);
+    
+    // Check if regular entries have manual order (sequential from some base)
+    const hasManualOrder = regularEntries.length > 0 && 
+      regularEntries.every((e, idx) => e.priority === idx || e.priority === idx + coordinatorEntries.length);
+    
+    if (hasManualOrder && !forceRebalance && coordinatorEntries.length === 0) {
       // Host has already set the order, respect it
       return waitingEntries;
     }
 
-    const fair = buildFairOrder(waitingEntries);
-    const needsUpdate = fair.some((e, idx) => e.priority !== idx);
-    if (!needsUpdate) return fair;
+    // Apply fair order only to regular entries (not coordinator insertions)
+    const fair = forceRebalance ? buildFairOrder(regularEntries) : regularEntries;
+    
+    // Combine: coordinator entries first, then fair/regular entries
+    const combined = [...coordinatorEntries, ...fair];
+    
+    // Check if we need to update priorities to be sequential
+    const needsUpdate = combined.some((e, idx) => e.priority !== idx);
+    if (!needsUpdate) return combined;
 
     // Persist priorities as sequential integers to make ordering deterministic.
     await Promise.all(
-      fair.map((e, idx) => supabase.from('waitlist').update({ priority: idx }).eq('id', e.id))
+      combined.map((e, idx) => supabase.from('waitlist').update({ priority: idx }).eq('id', e.id))
     );
 
     // Return with updated priorities locally
-    return fair.map((e, idx) => ({ ...e, priority: idx }));
+    return combined.map((e, idx) => ({ ...e, priority: idx }));
   };
 
   const fetchWaitingEntries = async (forceRebalance = false) => {
