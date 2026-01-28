@@ -217,20 +217,22 @@ export function useWaitlist(instanceId?: string | null) {
   const RATE_LIMIT_KEY = 'waitlist_last_submission';
   const RATE_LIMIT_MS = 60000; // 1 minute
 
-  const addToWaitlist = async (singerName: string, youtubeUrl: string, songTitle: string, registeredBy?: string) => {
+  const addToWaitlist = async (singerName: string, youtubeUrl: string, songTitle: string, registeredBy?: string, insertFirst = false) => {
     try {
-      // Check rate limiting
-      const lastSubmission = localStorage.getItem(RATE_LIMIT_KEY);
-      if (lastSubmission) {
-        const timeSince = Date.now() - parseInt(lastSubmission, 10);
-        if (timeSince < RATE_LIMIT_MS) {
-          const waitSeconds = Math.ceil((RATE_LIMIT_MS - timeSince) / 1000);
-          toast({ 
-            title: t('signup.waitMoment'), 
-            description: `${t('signup.waitSeconds')} ${waitSeconds}s`,
-            variant: 'destructive' 
-          });
-          return false;
+      // Check rate limiting (skip for coordinator insertions that go first)
+      if (!insertFirst) {
+        const lastSubmission = localStorage.getItem(RATE_LIMIT_KEY);
+        if (lastSubmission) {
+          const timeSince = Date.now() - parseInt(lastSubmission, 10);
+          if (timeSince < RATE_LIMIT_MS) {
+            const waitSeconds = Math.ceil((RATE_LIMIT_MS - timeSince) / 1000);
+            toast({ 
+              title: t('signup.waitMoment'), 
+              description: `${t('signup.waitSeconds')} ${waitSeconds}s`,
+              variant: 'destructive' 
+            });
+            return false;
+          }
         }
       }
 
@@ -244,13 +246,16 @@ export function useWaitlist(instanceId?: string | null) {
 
       const timesSung = previousEntries?.[0]?.times_sung || 0;
 
+      // If insertFirst, set priority to -1 to be before everyone else
+      // Otherwise, set to 999999 to be rebalanced by fair order
+      const priority = insertFirst ? -1 : 999999;
+
       const insertData = {
         singer_name: singerName.trim(),
         youtube_url: youtubeUrl,
         song_title: songTitle,
         times_sung: timesSung,
-        // priority will be rebalanced to a fair order right after insert
-        priority: 999999,
+        priority,
         status: 'waiting',
         registered_by: registeredBy?.trim() || null,
         karaoke_instance_id: instanceId || null,
@@ -260,13 +265,45 @@ export function useWaitlist(instanceId?: string | null) {
 
       if (error) throw error;
       
-      // Update rate limit timestamp on successful submission
-      localStorage.setItem(RATE_LIMIT_KEY, Date.now().toString());
+      // Update rate limit timestamp on successful submission (only for regular insertions)
+      if (!insertFirst) {
+        localStorage.setItem(RATE_LIMIT_KEY, Date.now().toString());
+      }
       
       toast({ title: t('signup.signupConfirmed'), description: t('signup.addedToQueue') });
 
-      // Rebalance after every insert to keep fairness (force rebalance because new entry was added)
-      await fetchWaitingEntries(true);
+      // Rebalance after insert
+      // If insertFirst, we need to shift all others down and put this one at 0
+      if (insertFirst) {
+        // Just refetch - the -1 priority will naturally sort first
+        await fetchWaitingEntries(false);
+        // Then normalize priorities
+        const updatedEntries = entries.length > 0 ? entries : [];
+        // Refetch to get the new entry
+        let query = supabase
+          .from('waitlist')
+          .select('*')
+          .eq('status', 'waiting')
+          .order('priority', { ascending: true })
+          .order('created_at', { ascending: true });
+        
+        if (instanceId) {
+          query = query.eq('karaoke_instance_id', instanceId);
+        }
+
+        const { data } = await query;
+        if (data && data.length > 0) {
+          // Normalize priorities to 0, 1, 2, ...
+          await Promise.all(
+            data.map((e, idx) => supabase.from('waitlist').update({ priority: idx }).eq('id', e.id))
+          );
+          setEntries(data.map((e, idx) => ({ ...e, priority: idx })) as WaitlistEntry[]);
+        }
+      } else {
+        // Rebalance with fair order for regular insertions
+        await fetchWaitingEntries(true);
+      }
+      
       return true;
     } catch (error) {
       console.error('Error adding to waitlist:', error);
