@@ -314,7 +314,7 @@ function EventGuideContent() {
         >
           <Button 
             size="lg" 
-            onClick={() => navigate('/host')}
+            onClick={() => navigate('/app/host')}
             className="font-bold bg-primary hover:bg-primary/90 neon-glow-pink"
           >
             <Mic2 className="mr-2 h-5 w-5" />

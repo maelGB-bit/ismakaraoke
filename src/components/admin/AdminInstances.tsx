@@ -154,11 +154,11 @@ export function AdminInstances() {
   };
 
   const getVoteUrl = (code: string) => {
-    return `${window.location.origin}/vote/${code}`;
+    return `${window.location.origin}/app/vote/${code}`;
   };
 
   const getSignupUrl = (code: string) => {
-    return `${window.location.origin}/inscricao/${code}`;
+    return `${window.location.origin}/app/inscricao/${code}`;
   };
 
   return (

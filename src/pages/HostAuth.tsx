@@ -46,7 +46,7 @@ export default function HostAuthPage() {
           .in('role', ['host', 'coordinator']);
 
         if (roleData && roleData.length > 0) {
-          navigate('/host', { replace: true });
+          navigate('/app/host', { replace: true });
           return;
         }
       }
@@ -120,7 +120,7 @@ export default function HostAuthPage() {
 
     setIsSubmitting(true);
     try {
-      const redirectUrl = `${window.location.origin}/host`;
+      const redirectUrl = `${window.location.origin}/app/host`;
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -159,7 +159,7 @@ export default function HostAuthPage() {
           title: t('auth.accountCreated') || '🎤 Conta criada!', 
           description: t('auth.welcomeHost') 
         });
-        navigate('/host');
+        navigate('/app/host');
       }
     } catch (error: any) {
       console.error('Error signing up:', error);
@@ -236,12 +236,12 @@ export default function HostAuthPage() {
           .maybeSingle();
 
         if (adminRole) {
-          console.log('[HostAuthPage] Admin role found, redirecting to /admin');
+          console.log('[HostAuthPage] Admin role found, redirecting to /app/admin');
           toast({ 
             title: t('auth.accessGranted'), 
             description: 'Bem-vindo, Administrador!' 
           });
-          navigate('/admin', { replace: true });
+          navigate('/app/admin', { replace: true });
           return;
         }
         
@@ -275,12 +275,12 @@ export default function HostAuthPage() {
           // Don't block login for this
         }
 
-        console.log('[HostAuthPage] Navigating to /host');
+        console.log('[HostAuthPage] Navigating to /app/host');
         toast({ 
           title: t('auth.accessGranted'), 
           description: t('auth.welcomeHost') 
         });
-        navigate('/host', { replace: true });
+        navigate('/app/host', { replace: true });
       }
     } catch (error: any) {
       console.error('Error logging in:', error);

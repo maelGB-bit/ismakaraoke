@@ -222,7 +222,7 @@ export function AdminCoordinatorRequests() {
         .maybeSingle()
         .then(({ data }) => {
           if (data) {
-            const link = `${window.location.origin}/inscricao/${data.instance_code}`;
+            const link = `${window.location.origin}/app/inscricao/${data.instance_code}`;
             navigator.clipboard.writeText(link);
             toast({ title: 'Link copiado!' });
           }

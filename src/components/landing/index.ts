@@ -1,0 +1,11 @@
+export { LandingHeader } from './LandingHeader';
+export { LandingFooter } from './LandingFooter';
+export { HeroSection } from './HeroSection';
+export { HowItWorksSection } from './HowItWorksSection';
+export { MusicVarietySection } from './MusicVarietySection';
+export { BenefitsSection } from './BenefitsSection';
+export { TargetAudienceSection } from './TargetAudienceSection';
+export { TestimonialsSection } from './TestimonialsSection';
+export { VideoSection } from './VideoSection';
+export { CTASection } from './CTASection';
+export { PlanCard } from './PlanCard';

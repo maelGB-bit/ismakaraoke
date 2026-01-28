@@ -184,11 +184,11 @@ export default function Vote() {
             {t('vote.noActiveVoting')}
           </p>
           <div className="flex flex-col gap-3 mb-6">
-            <Button onClick={() => navigate(instanceCode ? `/inscricao/${instanceCode}` : '/inscricao')} className="w-full">
+            <Button onClick={() => navigate(instanceCode ? `/app/inscricao/${instanceCode}` : '/app/inscricao')} className="w-full">
               <Music className="mr-2 h-4 w-4" />
               {t('vote.wantToSing')}
             </Button>
-            <Button onClick={() => navigate(instanceCode ? `/ranking/${instanceCode}` : '/ranking')} variant="outline" className="w-full">
+            <Button onClick={() => navigate(instanceCode ? `/app/ranking/${instanceCode}` : '/app/ranking')} variant="outline" className="w-full">
               <Trophy className="mr-2 h-4 w-4" />
               {t('vote.showRanking')}
             </Button>
@@ -310,14 +310,14 @@ export default function Vote() {
               </p>
               <div className="flex flex-col gap-3">
                 <Button
-                  onClick={() => navigate(instanceCode ? `/inscricao/${instanceCode}` : '/inscricao')}
+                  onClick={() => navigate(instanceCode ? `/app/inscricao/${instanceCode}` : '/app/inscricao')}
                   className="w-full"
                 >
                   <Music className="mr-2 h-4 w-4" />
                   {t('vote.wantToSing')}
                 </Button>
                 <Button
-                  onClick={() => navigate(instanceCode ? `/ranking/${instanceCode}` : '/ranking')}
+                  onClick={() => navigate(instanceCode ? `/app/ranking/${instanceCode}` : '/app/ranking')}
                   variant="outline"
                   className="w-full"
                 >

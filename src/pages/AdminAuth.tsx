@@ -40,10 +40,10 @@ export default function AdminAuthPage() {
       const roles = roleData?.map(r => r.role) || [];
       
       if (roles.includes('admin')) {
-        navigate('/admin');
+        navigate('/app/admin');
         return;
       } else if (roles.includes('coordinator')) {
-        navigate('/host');
+        navigate('/app/host');
         return;
       }
     }
@@ -105,10 +105,10 @@ export default function AdminAuthPage() {
 
         if (roles.includes('admin')) {
           toast({ title: 'Acesso concedido', description: 'Bem-vindo, Administrador!' });
-          navigate('/admin');
+          navigate('/app/admin');
         } else if (roles.includes('coordinator')) {
           toast({ title: 'Acesso concedido', description: 'Bem-vindo, Coordenador!' });
-          navigate('/host');
+          navigate('/app/host');
         } else {
           await supabase.auth.signOut();
           toast({ 

@@ -68,6 +68,12 @@ export default {
           purple: "hsl(var(--neon-purple))",
           green: "hsl(var(--neon-green))",
         },
+        landing: {
+          orange: "hsl(var(--landing-orange))",
+          brown: "hsl(var(--landing-brown))",
+          dark: "hsl(var(--landing-dark))",
+          light: "hsl(var(--landing-light))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
