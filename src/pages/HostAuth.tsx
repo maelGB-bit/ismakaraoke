@@ -228,6 +228,24 @@ export default function HostAuthPage() {
       if (data.user) {
         console.log('[HostAuthPage] Login successful, checking role for:', data.user.id);
         
+        // First check if user is admin - redirect to admin page
+        const { data: adminRole } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+
+        if (adminRole) {
+          console.log('[HostAuthPage] Admin role found, redirecting to /admin');
+          toast({ 
+            title: t('auth.accessGranted'), 
+            description: 'Bem-vindo, Administrador!' 
+          });
+          navigate('/admin', { replace: true });
+          return;
+        }
+        
         // Check if user is a host or coordinator
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
