@@ -199,6 +199,26 @@
       hsl(27 20% 8%) 50%,
       hsl(var(--landing-dark)) 100%);
   }
+
+  .hero-banner {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .hero-banner picture,
+  .hero-banner-image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-banner-image {
+      max-height: 640px;
+      object-fit: cover;
+    }
+  }
 }
 
 @layer utilities {

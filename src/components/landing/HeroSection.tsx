@@ -2,66 +2,30 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Play, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import mammothLogo from '@/assets/mammoth-logo.png';
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center pt-20 pb-16 overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-landing-gradient" />
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-landing-orange/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-landing-brown/10 rounded-full blur-3xl" />
+    <section className="relative min-h-screen flex flex-col items-center pt-20 pb-16 overflow-hidden">
+      <section className="hero-banner">
+        <picture>
+          <source
+            srcSet="/img/mamute-banner-desktop.png"
+            media="(min-width: 1024px)"
+          />
+          <source
+            srcSet="/img/mamute-banner-tablet.png"
+            media="(min-width: 768px)"
+          />
+          <img
+            src="/img/mamute-banner-mobile.png"
+            alt="Mamute Karaoke - Transforme qualquer evento em um karaokê interativo!"
+            className="hero-banner-image"
+          />
+        </picture>
+      </section>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 relative z-10 mt-8">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Mascot */}
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', duration: 0.8 }}
-            className="mb-8"
-          >
-            <div className="relative inline-block">
-              <img 
-                src={mammothLogo} 
-                alt="Mamute Karaoke" 
-                className="w-24 h-24 md:w-32 md:h-32 mx-auto animate-float"
-              />
-              <div className="absolute inset-0 bg-landing-orange/30 blur-2xl rounded-full" />
-            </div>
-          </motion.div>
-
-          {/* Title */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-display font-black text-white mb-6 leading-tight"
-          >
-            Transforme qualquer evento em um{' '}
-            <span className="text-landing-orange">karaokê interativo!</span>
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-lg md:text-xl text-white/70 mb-4 max-w-2xl mx-auto"
-          >
-            Cante, vote e participe usando apenas o seu celular — sem filas, sem papel e sem confusão.
-          </motion.p>
-
-          {/* Positioning */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-md text-white/50 mb-8 max-w-xl mx-auto italic"
-          >
-            Um karaokê organizado e divertido para qualquer evento, festa ou até para usar em casa.
-          </motion.p>
-
           {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
