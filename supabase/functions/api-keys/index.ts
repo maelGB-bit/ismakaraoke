@@ -128,6 +128,103 @@ serve(async (req) => {
       });
     }
 
+    // GET_KEY - Get full decrypted key for editing
+    if (action === 'get_key') {
+      const { id } = body as { id?: string };
+
+      if (!id) {
+        return new Response(JSON.stringify({ error: 'Missing id' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('id, name, provider, encrypted_key')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      let decryptedKey = '';
+      try {
+        if (data.encrypted_key) {
+          decryptedKey = decrypt(data.encrypted_key, encryptionSecret);
+        }
+      } catch (e) {
+        console.log('Error decrypting key:', e);
+      }
+
+      return new Response(JSON.stringify({ 
+        data: { 
+          id: data.id, 
+          name: data.name, 
+          provider: data.provider,
+          key: decryptedKey 
+        } 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // TEST_KEY - Test if a YouTube API key is valid and has quota
+    if (action === 'test_key') {
+      const { key } = body as { key?: string };
+
+      if (!key) {
+        return new Response(JSON.stringify({ error: 'Missing key' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      try {
+        const testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${key}`;
+        const response = await fetch(testUrl, { signal: AbortSignal.timeout(10000) });
+        
+        if (response.ok) {
+          return new Response(JSON.stringify({ 
+            valid: true, 
+            message: 'Chave válida e com quota disponível' 
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        } else {
+          const errorData = await response.json();
+          const errorReason = errorData?.error?.errors?.[0]?.reason || 'unknown';
+          const errorMessage = errorData?.error?.message || 'Erro desconhecido';
+          
+          let message = 'Chave inválida';
+          if (errorReason === 'quotaExceeded' || errorReason === 'dailyLimitExceeded') {
+            message = 'Quota diária excedida';
+          } else if (errorReason === 'keyInvalid') {
+            message = 'Chave inválida ou expirada';
+          } else if (errorReason === 'accessNotConfigured') {
+            message = 'API do YouTube não habilitada para esta chave';
+          } else {
+            message = errorMessage;
+          }
+          
+          return new Response(JSON.stringify({ 
+            valid: false, 
+            message,
+            reason: errorReason
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Erro de conexão';
+        return new Response(JSON.stringify({ 
+          valid: false, 
+          message: `Erro ao testar: ${msg}` 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     // CREATE - Create new API key
     if (action === 'create') {
       const { name, provider, key } = body as { name?: string; provider?: string; key?: string };
