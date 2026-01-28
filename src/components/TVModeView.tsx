@@ -26,6 +26,7 @@ interface TVModeViewProps {
   nextInQueue: WaitlistEntry | null;
   youtubeUrl: string | null;
   queueCount: number;
+  instanceId: string | null;
   onExit: () => void;
   onSelectNext: () => void;
   onChangeVideo?: (newUrl: string, newSongTitle?: string) => Promise<void>;
@@ -59,10 +60,10 @@ interface YouTubeVideo {
   url: string;
 }
 
-export function TVModeView({ performance, nextInQueue, youtubeUrl, queueCount, onExit, onSelectNext, onChangeVideo }: TVModeViewProps) {
+export function TVModeView({ performance, nextInQueue, youtubeUrl, queueCount, instanceId, onExit, onSelectNext, onChangeVideo }: TVModeViewProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { isRegistrationOpen, toggleRegistration } = useEventSettings();
+  const { isRegistrationOpen, toggleRegistration } = useEventSettings(instanceId);
   const isActive = performance?.status === 'ativa';
   const score = performance ? Number(performance.nota_media) : 0;
   const totalVotes = performance?.total_votos || 0;
