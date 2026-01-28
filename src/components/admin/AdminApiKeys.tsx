@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Key, Plus, Pencil, Trash2, Loader2, Check, X, Eye, EyeOff } from 'lucide-react';
+import { Key, Plus, Pencil, Trash2, Loader2, Eye, EyeOff, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { ApiKey } from '@/types/admin';
@@ -26,6 +26,9 @@ export function AdminApiKeys() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ valid: boolean; message: string } | null>(null);
+  const [loadingKey, setLoadingKey] = useState(false);
   
   // Form state
   const [name, setName] = useState('');
@@ -66,7 +69,7 @@ export function AdminApiKeys() {
       return;
     }
 
-    if (!editingId && !apiKey.trim()) {
+    if (!apiKey.trim()) {
       toast({ title: 'Digite a chave de API', variant: 'destructive' });
       return;
     }
@@ -76,25 +79,34 @@ export function AdminApiKeys() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      const body: Record<string, unknown> = editingId 
-        ? { action: 'update', id: editingId, name, provider }
-        : { action: 'create', name, provider, key: apiKey };
+      // Check if key contains multiple keys separated by comma
+      const keysToCreate = apiKey.split(',').map(k => k.trim()).filter(k => k.length > 0);
       
-      // If editing and a new key is provided, include it
-      if (editingId && apiKey.trim()) {
-        body.key = apiKey;
+      if (editingId) {
+        // Update existing key
+        const response = await supabase.functions.invoke('api-keys', {
+          body: { action: 'update', id: editingId, name, provider, key: keysToCreate[0] },
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (response.error) throw response.error;
+        toast({ title: 'Chave atualizada!' });
+      } else {
+        // Create new keys - if multiple, create one for each
+        for (let i = 0; i < keysToCreate.length; i++) {
+          const keyName = keysToCreate.length > 1 ? `${name} ${i + 1}` : name;
+          const response = await supabase.functions.invoke('api-keys', {
+            body: { action: 'create', name: keyName, provider, key: keysToCreate[i] },
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          });
+          if (response.error) throw response.error;
+        }
+        toast({ 
+          title: keysToCreate.length > 1 
+            ? `${keysToCreate.length} chaves criadas!` 
+            : 'Chave criada!' 
+        });
       }
 
-      const response = await supabase.functions.invoke('api-keys', {
-        body,
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (response.error) throw response.error;
-
-      toast({ title: editingId ? 'Chave atualizada!' : 'Chave criada!' });
       resetForm();
       fetchKeys();
     } catch (error) {
@@ -105,6 +117,36 @@ export function AdminApiKeys() {
     }
   };
 
+  const handleTestKey = async () => {
+    if (!apiKey.trim()) {
+      toast({ title: 'Digite uma chave para testar', variant: 'destructive' });
+      return;
+    }
+
+    // Test only the first key if multiple
+    const keyToTest = apiKey.split(',')[0].trim();
+
+    setIsTesting(true);
+    setTestResult(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await supabase.functions.invoke('api-keys', {
+        body: { action: 'test_key', key: keyToTest },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (response.error) throw response.error;
+      setTestResult(response.data);
+    } catch (error) {
+      console.error('Error testing API key:', error);
+      setTestResult({ valid: false, message: 'Erro ao testar chave' });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   const handleToggleActive = async (id: string, isActive: boolean) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -112,9 +154,7 @@ export function AdminApiKeys() {
 
       await supabase.functions.invoke('api-keys', {
         body: { action: 'update', id, is_active: !isActive },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
       setKeys(keys.map(k => k.id === id ? { ...k, is_active: !isActive } : k));
@@ -134,9 +174,7 @@ export function AdminApiKeys() {
 
       await supabase.functions.invoke('api-keys', {
         body: { action: 'delete', id },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
       setKeys(keys.filter(k => k.id !== id));
@@ -153,14 +191,39 @@ export function AdminApiKeys() {
     setApiKey('');
     setShowKey(false);
     setEditingId(null);
+    setTestResult(null);
     setIsDialogOpen(false);
   };
 
-  const openEditDialog = (key: ApiKey) => {
+  const openEditDialog = async (key: ApiKey) => {
     setName(key.name);
     setProvider(key.provider);
     setEditingId(key.id);
+    setApiKey('');
+    setTestResult(null);
+    setLoadingKey(true);
     setIsDialogOpen(true);
+
+    // Fetch the full key for editing
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await supabase.functions.invoke('api-keys', {
+        body: { action: 'get_key', id: key.id },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (response.error) throw response.error;
+      if (response.data?.data?.key) {
+        setApiKey(response.data.data.key);
+      }
+    } catch (error) {
+      console.error('Error fetching key:', error);
+      toast({ title: 'Erro ao carregar chave', variant: 'destructive' });
+    } finally {
+      setLoadingKey(false);
+    }
   };
 
   return (
@@ -173,7 +236,7 @@ export function AdminApiKeys() {
               Chaves de API
             </CardTitle>
             <CardDescription>
-              Gerencie as chaves de API usadas no projeto
+              Gerencie as chaves de API usadas no projeto. Você pode colar múltiplas chaves separadas por vírgula.
             </CardDescription>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setIsDialogOpen(open); }}>
@@ -183,13 +246,13 @@ export function AdminApiKeys() {
                 Nova Chave
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>{editingId ? 'Editar Chave' : 'Nova Chave de API'}</DialogTitle>
                 <DialogDescription>
                   {editingId 
-                    ? 'Edite o nome ou provedor da chave. A chave em si não pode ser alterada.'
-                    : 'Adicione uma nova chave de API ao sistema.'}
+                    ? 'Edite a chave de API. A chave será recriptografada ao salvar.'
+                    : 'Adicione uma nova chave de API. Cole múltiplas chaves separadas por vírgula para criar várias de uma vez.'}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
@@ -216,32 +279,72 @@ export function AdminApiKeys() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="key">
-                    {editingId ? 'Nova Chave de API (deixe em branco para manter a atual)' : 'Chave de API'}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="key"
-                      type={showKey ? 'text' : 'password'}
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                      placeholder={editingId ? 'Cole a nova chave aqui para alterar' : 'Cole a chave aqui'}
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowKey(!showKey)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {editingId 
-                      ? 'A nova chave será criptografada. Deixe em branco para manter a chave atual.'
-                      : 'A chave será criptografada e nunca mais será exibida por completo.'}
-                  </p>
+                  <Label htmlFor="key">Chave(s) de API</Label>
+                  {loadingKey ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="relative">
+                        <Textarea
+                          id="key"
+                          value={showKey ? apiKey : apiKey.replace(/./g, '•')}
+                          onChange={(e) => setApiKey(showKey ? e.target.value : apiKey)}
+                          onFocus={() => setShowKey(true)}
+                          placeholder="Cole a chave aqui (ou múltiplas separadas por vírgula)"
+                          className="min-h-[100px] font-mono text-sm pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowKey(!showKey)}
+                          className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                        >
+                          {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {apiKey.includes(',') 
+                          ? `${apiKey.split(',').filter(k => k.trim()).length} chaves detectadas`
+                          : 'Cole múltiplas chaves separadas por vírgula para criar várias de uma vez'}
+                      </p>
+                    </>
+                  )}
                 </div>
+                
+                {/* Test button for YouTube keys */}
+                {provider === 'youtube' && apiKey.trim() && (
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleTestKey}
+                      disabled={isTesting}
+                      className="w-full"
+                    >
+                      {isTesting ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Zap className="h-4 w-4 mr-2" />
+                      )}
+                      Testar Chave
+                    </Button>
+                    {testResult && (
+                      <div className={`flex items-center gap-2 p-3 rounded-md text-sm ${
+                        testResult.valid 
+                          ? 'bg-green-500/10 text-green-500 border border-green-500/20' 
+                          : 'bg-destructive/10 text-destructive border border-destructive/20'
+                      }`}>
+                        {testResult.valid ? (
+                          <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                        ) : (
+                          <XCircle className="h-4 w-4 flex-shrink-0" />
+                        )}
+                        <span>{testResult.message}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={resetForm}>Cancelar</Button>
