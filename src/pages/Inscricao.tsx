@@ -344,7 +344,7 @@ export default function Inscricao() {
               id="singer-name"
               value={singerName}
               onChange={(e) => setSingerName(e.target.value)}
-              placeholder={t('signup.namePlaceholder')}
+              placeholder={registerForOther ? t('signup.newSingerPlaceholder') : t('signup.namePlaceholder')}
               className="text-lg"
               disabled={!registerForOther && !!profile}
             />
