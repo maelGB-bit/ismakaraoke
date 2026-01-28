@@ -257,6 +257,11 @@ export default function Vote() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center py-6"
       >
+        {instance?.name && (
+          <p className="text-sm text-muted-foreground mb-2 uppercase tracking-widest">
+            {instance.name}
+          </p>
+        )}
         <h1 className="text-3xl font-black font-display neon-text-pink flex items-center justify-center gap-2">
           <Mic2 className="w-8 h-8" />
           {t('vote.voteNow')}
