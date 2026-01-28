@@ -387,7 +387,8 @@ export function AdminCoordinatorRequests() {
                       <TableRow>
                         <TableHead>Nome</TableHead>
                         <TableHead>Instância</TableHead>
-                        <TableHead>Aprovado em</TableHead>
+                        <TableHead>IP</TableHead>
+                        <TableHead>Emails Duplicados</TableHead>
                         <TableHead>Tempo restante</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
@@ -395,6 +396,13 @@ export function AdminCoordinatorRequests() {
                     <TableBody>
                       {approvedRequests.map((request) => {
                         const isExpired = request.expires_at && new Date(request.expires_at) < new Date();
+                        // Find duplicate emails with same IP
+                        const duplicateEmailsForIp = request.ip_address 
+                          ? duplicateRequests
+                              .filter(d => d.ip_address === request.ip_address)
+                              .map(d => d.email)
+                          : [];
+                        
                         return (
                           <TableRow key={request.id} className={`cursor-pointer hover:bg-muted/50 ${isExpired ? 'opacity-60' : ''}`} onClick={() => setDetailsModal({ open: true, request })}>
                             <TableCell className="font-medium">{request.name}</TableCell>
@@ -412,10 +420,23 @@ export function AdminCoordinatorRequests() {
                                 </Button>
                               </div>
                             </TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {request.approved_at 
-                                ? new Date(request.approved_at).toLocaleDateString('pt-BR')
-                                : '-'}
+                            <TableCell>
+                              <code className="text-xs bg-muted px-2 py-1 rounded">
+                                {request.ip_address || 'N/A'}
+                              </code>
+                            </TableCell>
+                            <TableCell>
+                              {duplicateEmailsForIp.length > 0 ? (
+                                <div className="flex flex-col gap-1">
+                                  {duplicateEmailsForIp.map((email, idx) => (
+                                    <Badge key={idx} variant="destructive" className="text-xs w-fit">
+                                      {email}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">-</span>
+                              )}
                             </TableCell>
                             <TableCell>
                               <Badge variant={isExpired ? 'destructive' : 'default'}>
