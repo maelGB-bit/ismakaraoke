@@ -2,27 +2,52 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { KaraokeInstance } from '@/types/admin';
 
-export function useKaraokeInstance(coordinatorId?: string) {
+interface UseKaraokeInstanceOptions {
+  coordinatorId?: string;
+  instanceCode?: string;
+}
+
+export function useKaraokeInstance(coordinatorIdOrOptions?: string | UseKaraokeInstanceOptions, instanceCode?: string) {
   const [instance, setInstance] = useState<KaraokeInstance | null>(null);
   const [loading, setLoading] = useState(true);
   const [isExpired, setIsExpired] = useState(false);
 
+  // Handle both old API (coordinatorId) and new API (options object or two params)
+  let coordinatorId: string | undefined;
+  let code: string | undefined;
+  
+  if (typeof coordinatorIdOrOptions === 'object') {
+    coordinatorId = coordinatorIdOrOptions.coordinatorId;
+    code = coordinatorIdOrOptions.instanceCode;
+  } else {
+    coordinatorId = coordinatorIdOrOptions;
+    code = instanceCode;
+  }
+
   useEffect(() => {
-    console.log('[useKaraokeInstance] coordinatorId:', coordinatorId);
+    console.log('[useKaraokeInstance] coordinatorId:', coordinatorId, 'instanceCode:', code);
     
-    if (!coordinatorId) {
-      console.log('[useKaraokeInstance] No coordinatorId, setting loading false');
+    // Need either coordinatorId or instanceCode
+    if (!coordinatorId && !code) {
+      console.log('[useKaraokeInstance] No coordinatorId or instanceCode, setting loading false');
       setLoading(false);
       return;
     }
 
     const fetchInstance = async () => {
-      console.log('[useKaraokeInstance] Fetching instance for:', coordinatorId);
-      const { data, error } = await supabase
-        .from('karaoke_instances')
-        .select('*')
-        .eq('coordinator_id', coordinatorId)
-        .maybeSingle();
+      console.log('[useKaraokeInstance] Fetching instance for:', { coordinatorId, code });
+      
+      let query = supabase.from('karaoke_instances').select('*');
+      
+      if (code) {
+        // Fetch by instance code (for admin access)
+        query = query.eq('instance_code', code);
+      } else if (coordinatorId) {
+        // Fetch by coordinator ID (for coordinator access)
+        query = query.eq('coordinator_id', coordinatorId);
+      }
+      
+      const { data, error } = await query.maybeSingle();
 
       console.log('[useKaraokeInstance] Query result:', { data, error });
 
@@ -42,15 +67,21 @@ export function useKaraokeInstance(coordinatorId?: string) {
     fetchInstance();
 
     // Subscribe to realtime updates
+    const filter = code 
+      ? `instance_code=eq.${code}` 
+      : `coordinator_id=eq.${coordinatorId}`;
+    
+    const channelName = code ? `instance-code-${code}` : `instance-${coordinatorId}`;
+    
     const channel = supabase
-      .channel(`instance-${coordinatorId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'karaoke_instances',
-          filter: `coordinator_id=eq.${coordinatorId}`,
+          filter,
         },
         (payload) => {
           if (payload.eventType === 'DELETE') {
@@ -71,7 +102,7 @@ export function useKaraokeInstance(coordinatorId?: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [coordinatorId]);
+  }, [coordinatorId, code]);
 
   return { instance, loading, isExpired };
 }
