@@ -278,82 +278,163 @@ export function AdminCoordinators() {
             <p>Nenhum coordenador cadastrado</p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Coordenador</TableHead>
-                <TableHead>Instância</TableHead>
-                <TableHead>Último Acesso</TableHead>
-                <TableHead>Tempo Restante</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {coordinators.map((coord) => {
-                const timeRemaining = getTimeRemaining(coord.instance?.expires_at || null);
-                return (
-                  <TableRow key={coord.id}>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{coord.name || 'Sem nome'}</span>
-                        <span className="text-xs text-muted-foreground">{coord.email}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {coord.instance ? (
-                        <div className="flex items-center gap-2">
-                          <Mic2 className="h-4 w-4 text-primary" />
-                          <span>{coord.instance.name}</span>
-                          <Badge variant="outline" className="text-xs">{coord.instance.instance_code}</Badge>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">Sem instância</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {coord.last_access_at ? (
-                        <div className="flex items-center gap-1">
-                          <CalendarClock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">
-                            {format(new Date(coord.last_access_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">Nunca acessou</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {coord.instance?.expires_at ? (
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className={`text-sm font-medium ${timeRemaining.color}`}>
-                            {timeRemaining.text}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {coord.instance ? (
-                        <Badge variant={coord.instance.status === 'active' ? 'default' : 'secondary'}>
-                          {coord.instance.status === 'active' ? 'Ativo' : coord.instance.status === 'paused' ? 'Pausado' : 'Fechado'}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">-</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteCoordinator(coord.id, coord.email)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <div className="space-y-6">
+            {/* Active Coordinators */}
+            {(() => {
+              const activeCoords = coordinators
+                .filter(c => c.instance && (!c.instance.expires_at || new Date(c.instance.expires_at) > new Date()))
+                .sort((a, b) => {
+                  if (!a.instance?.expires_at) return 1;
+                  if (!b.instance?.expires_at) return -1;
+                  return new Date(a.instance.expires_at).getTime() - new Date(b.instance.expires_at).getTime();
+                });
+              
+              const inactiveCoords = coordinators
+                .filter(c => !c.instance || (c.instance.expires_at && new Date(c.instance.expires_at) <= new Date()));
+
+              return (
+                <>
+                  {activeCoords.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-green-600">
+                        <Users className="h-5 w-5" />
+                        Ativos ({activeCoords.length})
+                      </h3>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Coordenador</TableHead>
+                            <TableHead>Instância</TableHead>
+                            <TableHead>Último Acesso</TableHead>
+                            <TableHead>Tempo Restante</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {activeCoords.map((coord) => {
+                            const timeRemaining = getTimeRemaining(coord.instance?.expires_at || null);
+                            return (
+                              <TableRow key={coord.id}>
+                                <TableCell>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{coord.name || 'Sem nome'}</span>
+                                    <span className="text-xs text-muted-foreground">{coord.email}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  {coord.instance ? (
+                                    <div className="flex items-center gap-2">
+                                      <Mic2 className="h-4 w-4 text-primary" />
+                                      <span>{coord.instance.name}</span>
+                                      <Badge variant="outline" className="text-xs">{coord.instance.instance_code}</Badge>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted-foreground">Sem instância</span>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {coord.last_access_at ? (
+                                    <div className="flex items-center gap-1">
+                                      <CalendarClock className="h-3 w-3 text-muted-foreground" />
+                                      <span className="text-sm">
+                                        {format(new Date(coord.last_access_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted-foreground text-sm">Nunca acessou</span>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {coord.instance?.expires_at ? (
+                                    <div className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3 text-muted-foreground" />
+                                      <span className={`text-sm font-medium ${timeRemaining.color}`}>
+                                        {timeRemaining.text}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted-foreground">-</span>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="default">Ativo</Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Button variant="ghost" size="icon" onClick={() => handleDeleteCoordinator(coord.id, coord.email)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+
+                  {inactiveCoords.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-muted-foreground">
+                        <Users className="h-5 w-5" />
+                        Inativos / Expirados ({inactiveCoords.length})
+                      </h3>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Coordenador</TableHead>
+                            <TableHead>Instância</TableHead>
+                            <TableHead>Último Acesso</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {inactiveCoords.map((coord) => (
+                            <TableRow key={coord.id} className="opacity-60">
+                              <TableCell>
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{coord.name || 'Sem nome'}</span>
+                                  <span className="text-xs text-muted-foreground">{coord.email}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {coord.instance ? (
+                                  <div className="flex items-center gap-2">
+                                    <Mic2 className="h-4 w-4 text-muted-foreground" />
+                                    <span>{coord.instance.name}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground">Sem instância</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {coord.last_access_at ? (
+                                  <span className="text-sm">
+                                    {format(new Date(coord.last_access_at), "dd/MM/yyyy", { locale: ptBR })}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground text-sm">Nunca</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="destructive">Expirado</Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button variant="ghost" size="icon" onClick={() => handleDeleteCoordinator(coord.id, coord.email)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
         )}
       </CardContent>
     </Card>
