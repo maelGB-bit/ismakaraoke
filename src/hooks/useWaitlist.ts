@@ -258,7 +258,7 @@ export function useWaitlist(instanceId?: string | null) {
         }
       }
 
-      // Check rate limiting (skip for coordinator insertions that go first)
+      // Check rate limiting (skip for coordinator insertions - they can add freely)
       if (!insertFirst) {
         const lastSubmission = localStorage.getItem(RATE_LIMIT_KEY);
         if (lastSubmission) {
@@ -275,11 +275,14 @@ export function useWaitlist(instanceId?: string | null) {
         }
       }
 
-      // Get how many times this singer has sung before
+      // For coordinator insertions (insertFirst), use the singerName for fair order calculation
+      // This ensures the typed name is considered for times_sung, not the coordinator's name
+      const nameForFairOrder = singerName.trim();
+      // Get how many times this singer has sung before (using the typed name for fair order)
       const { data: previousEntries } = await supabase
         .from('waitlist')
         .select('times_sung')
-        .ilike('singer_name', singerName.trim())
+        .ilike('singer_name', nameForFairOrder)
         .order('times_sung', { ascending: false })
         .limit(1);
 

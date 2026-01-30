@@ -8,6 +8,7 @@ import { TargetAudienceSection } from '@/components/landing/TargetAudienceSectio
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { VideoSection } from '@/components/landing/VideoSection';
 import { CTASection } from '@/components/landing/CTASection';
+import { MonthlyRanking } from '@/components/landing/MonthlyRanking';
 
 export default function LandingPage() {
   return (
@@ -22,6 +23,7 @@ export default function LandingPage() {
         <TestimonialsSection />
         <VideoSection />
         <CTASection />
+        <MonthlyRanking />
       </main>
       <LandingFooter />
     </div>

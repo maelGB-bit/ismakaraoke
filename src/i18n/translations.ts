@@ -260,6 +260,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // QR Code
     'qr.scanToVote': 'Escaneie para votar',
+    'qr.print': 'Imprimir QR',
     
     // Not found page
     'notFound.title': '404',
@@ -634,6 +635,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // QR Code
     'qr.scanToVote': 'Scannen zum Abstimmen',
+    'qr.print': 'QR drucken',
     
     // Not found page
     'notFound.title': '404',
@@ -1010,6 +1012,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // QR Code
     'qr.scanToVote': 'Scan to vote',
+    'qr.print': 'Print QR',
     
     // Not found page
     'notFound.title': '404',
@@ -1382,6 +1385,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // QR Code
     'qr.scanToVote': 'Escanea para votar',
+    'qr.print': 'Imprimir QR',
     
     // Not found page
     'notFound.title': '404',
@@ -1754,6 +1758,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // QR Code
     'qr.scanToVote': 'Oy vermek için tarayın',
+    'qr.print': 'QR Yazdır',
     
     // Not found page
     'notFound.title': '404',
@@ -2128,6 +2133,7 @@ export const translations: Record<Language, Record<string, string>> = {
     
     // QR Code
     'qr.scanToVote': 'スキャンして投票',
+    'qr.print': 'QRを印刷',
     
     // Not found page
     'notFound.title': '404',
