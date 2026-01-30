@@ -437,22 +437,23 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, queueCount, i
             </motion.div>
           )}
 
-          {/* Score Panel - Prominent with enhanced vote effects */}
+          {/* Score Panel - ENHANCED: Much larger and more prominent */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="flex items-center gap-3 px-4 py-2 glass-card relative overflow-visible"
+            className="flex items-center gap-4 px-6 py-3 glass-card relative overflow-visible bg-gradient-to-r from-primary/20 to-secondary/20 border-2 border-primary/30"
           >
-            <Star className="w-5 h-5 text-accent fill-accent flex-shrink-0" />
-            <span className={`text-2xl font-black font-display ${
+            <Star className="w-8 h-8 text-accent fill-accent flex-shrink-0 animate-pulse" />
+            <span className={`text-5xl md:text-6xl font-black font-display drop-shadow-lg ${
               score >= 9 ? 'neon-text-gold' : score >= 7 ? 'neon-text-cyan' : 'text-foreground'
             }`}>
               {score.toFixed(1)}
             </span>
-            <div className="flex items-center gap-1 text-muted-foreground border-l border-border/50 pl-3 ml-1">
-              <Users className="w-4 h-4" />
-              <span className="text-sm font-medium">{totalVotes} {t('tv.votes')}</span>
+            <div className="flex items-center gap-2 text-muted-foreground border-l-2 border-border/50 pl-4 ml-2">
+              <Users className="w-6 h-6" />
+              <span className="text-xl font-bold">{totalVotes}</span>
+              <span className="text-sm">{t('tv.votes')}</span>
             </div>
             
             {/* Vote Effects - More visible */}

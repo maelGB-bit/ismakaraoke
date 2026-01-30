@@ -19,6 +19,7 @@ import { NoInstanceAssigned } from '@/components/NoInstanceAssigned';
 import { SubscriptionExpired } from '@/components/SubscriptionExpired';
 import { ChangePasswordModal } from '@/components/ChangePasswordModal';
 import { CoordinatorDataExport } from '@/components/CoordinatorDataExport';
+import { QRCodePrintable } from '@/components/QRCodePrintable';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -601,11 +602,10 @@ function HostContent() {
               </Button>
               <Button
                 onClick={handleEnterTVMode}
-                variant="outline"
                 size="sm"
-                className="text-primary border-primary/50 hover:bg-primary/10"
+                className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground font-bold shadow-lg"
               >
-                <Monitor className="mr-2 h-4 w-4" />
+                <Monitor className="mr-2 h-5 w-5" />
                 {t('tv.modeButton')}
               </Button>
               <LanguageSwitcher />
@@ -776,7 +776,14 @@ function HostContent() {
               onMovePriority={movePriority}
               currentSinger={isRoundActive ? performance?.cantor : null}
             />
-            <QRCodeDisplay instanceCode={instance?.instance_code} />
+            <div className="flex flex-col gap-2">
+              <QRCodeDisplay instanceCode={instance?.instance_code} />
+              {instance?.instance_code && (
+                <div className="flex justify-center">
+                  <QRCodePrintable instanceCode={instance.instance_code} />
+                </div>
+              )}
+            </div>
             {!isRoundActive && (
               <div className="glass-card p-4 text-center">
                 <p className="text-muted-foreground text-sm">{performance?.status === 'encerrada' ? t('host.roundEnded') : t('host.waitingStart')}</p>
