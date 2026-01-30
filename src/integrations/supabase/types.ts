@@ -317,6 +317,36 @@ export type Database = {
           },
         ]
       }
+      site_contacts: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          key: string
+          label: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          icon: string
+          id?: string
+          key: string
+          label: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          key?: string
+          label?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       site_images: {
         Row: {
           created_at: string

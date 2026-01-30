@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Key, Users, Mic2, LogOut, Loader2, UserPlus, Video, Image } from 'lucide-react';
+import { Shield, Key, Users, Mic2, LogOut, Loader2, UserPlus, Video, Image, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminApiKeys } from '@/components/admin/AdminApiKeys';
@@ -10,6 +10,7 @@ import { AdminInstances } from '@/components/admin/AdminInstances';
 import { AdminCoordinatorRequests } from '@/components/admin/AdminCoordinatorRequests';
 import { AdminSiteVideos } from '@/components/admin/AdminSiteVideos';
 import { AdminSiteImages } from '@/components/admin/AdminSiteImages';
+import { AdminSiteContacts } from '@/components/admin/AdminSiteContacts';
 import { useAdminAuthState, AdminAuthContext } from '@/hooks/useAdminAuth';
 
 function AdminContent() {
@@ -62,7 +63,7 @@ function AdminContent() {
 
         {/* Tabs */}
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-flex">
             <TabsTrigger value="requests" className="gap-2">
               <UserPlus className="h-4 w-4" />
               <span className="hidden sm:inline">Solicitações</span>
@@ -86,6 +87,10 @@ function AdminContent() {
             <TabsTrigger value="images" className="gap-2">
               <Image className="h-4 w-4" />
               <span className="hidden sm:inline">Imagens</span>
+            </TabsTrigger>
+            <TabsTrigger value="contacts" className="gap-2">
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Contatos</span>
             </TabsTrigger>
           </TabsList>
 
@@ -111,6 +116,10 @@ function AdminContent() {
 
           <TabsContent value="images">
             <AdminSiteImages />
+          </TabsContent>
+
+          <TabsContent value="contacts">
+            <AdminSiteContacts />
           </TabsContent>
         </Tabs>
       </motion.div>
