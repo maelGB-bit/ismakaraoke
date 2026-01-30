@@ -1,8 +1,34 @@
 import { Link } from 'react-router-dom';
-import { Instagram, MessageCircle, Mail, HelpCircle } from 'lucide-react';
+import { Instagram, MessageCircle, Mail, HelpCircle, Loader2 } from 'lucide-react';
+import { useSiteContacts } from '@/hooks/useSiteContacts';
+
 const mamuteLogo = '/img/mamute-logo.png';
 
 export function LandingFooter() {
+  const { contacts, loading, getContactValue } = useSiteContacts();
+
+  const whatsapp = getContactValue('whatsapp');
+  const instagram = getContactValue('instagram');
+  const email = getContactValue('email');
+  const support = getContactValue('support');
+
+  const getWhatsAppUrl = () => {
+    if (!whatsapp) return null;
+    return `https://wa.me/${whatsapp.replace(/\D/g, '')}`;
+  };
+
+  const getInstagramUrl = () => {
+    if (!instagram) return null;
+    return `https://instagram.com/${instagram.replace('@', '')}`;
+  };
+
+  const getSupportUrl = () => {
+    if (!support) return null;
+    return support.startsWith('http') ? support : support;
+  };
+
+  const isExternalLink = (url: string) => url.startsWith('http');
+
   return (
     <footer className="bg-landing-dark border-t border-landing-brown/20">
       <div className="container mx-auto px-4 py-12">
@@ -67,48 +93,80 @@ export function LandingFooter() {
           {/* Contact */}
           <div>
             <h4 className="font-semibold text-white mb-4">Contato</h4>
-            <ul className="space-y-3">
-              <li>
-                <a 
-                  href="https://wa.me/5500000000000" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-white/60 hover:text-landing-orange transition-colors"
-                >
-                  <MessageCircle size={16} />
-                  WhatsApp
-                </a>
-              </li>
-              <li>
-                <a 
-                  href="https://instagram.com/mamutekaraoke" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-white/60 hover:text-landing-orange transition-colors"
-                >
-                  <Instagram size={16} />
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a 
-                  href="mailto:contato@mamutekaraoke.com"
-                  className="flex items-center gap-2 text-sm text-white/60 hover:text-landing-orange transition-colors"
-                >
-                  <Mail size={16} />
-                  Contato
-                </a>
-              </li>
-              <li>
-                <Link 
-                  to="/suporte"
-                  className="flex items-center gap-2 text-sm text-white/60 hover:text-landing-orange transition-colors"
-                >
-                  <HelpCircle size={16} />
-                  Suporte
-                </Link>
-              </li>
-            </ul>
+            {loading ? (
+              <div className="flex items-center gap-2 text-white/40">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Carregando...</span>
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {whatsapp && (
+                  <li>
+                    <a 
+                      href={getWhatsAppUrl() || '#'}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-white/60 hover:text-landing-orange transition-colors"
+                    >
+                      <MessageCircle size={16} />
+                      WhatsApp
+                    </a>
+                  </li>
+                )}
+                {instagram && (
+                  <li>
+                    <a 
+                      href={getInstagramUrl() || '#'}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-white/60 hover:text-landing-orange transition-colors"
+                    >
+                      <Instagram size={16} />
+                      Instagram
+                    </a>
+                  </li>
+                )}
+                {email && (
+                  <li>
+                    <a 
+                      href={`mailto:${email}`}
+                      className="flex items-center gap-2 text-sm text-white/60 hover:text-landing-orange transition-colors"
+                    >
+                      <Mail size={16} />
+                      Contato
+                    </a>
+                  </li>
+                )}
+                {support && (
+                  <li>
+                    {isExternalLink(support) ? (
+                      <a 
+                        href={getSupportUrl() || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-white/60 hover:text-landing-orange transition-colors"
+                      >
+                        <HelpCircle size={16} />
+                        Suporte
+                      </a>
+                    ) : (
+                      <Link 
+                        to={support}
+                        className="flex items-center gap-2 text-sm text-white/60 hover:text-landing-orange transition-colors"
+                      >
+                        <HelpCircle size={16} />
+                        Suporte
+                      </Link>
+                    )}
+                  </li>
+                )}
+                {!whatsapp && !instagram && !email && !support && (
+                  <li className="text-sm text-white/40 italic">
+                    Nenhum contato configurado
+                  </li>
+                )}
+              </ul>
+            )}
           </div>
         </div>
 
