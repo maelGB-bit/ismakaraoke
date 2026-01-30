@@ -18,6 +18,7 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { NoInstanceAssigned } from '@/components/NoInstanceAssigned';
 import { SubscriptionExpired } from '@/components/SubscriptionExpired';
 import { ChangePasswordModal } from '@/components/ChangePasswordModal';
+import { CoordinatorDataExport } from '@/components/CoordinatorDataExport';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -617,6 +618,13 @@ function HostContent() {
                 <DropdownMenuContent align="end" className="bg-popover">
                   <DropdownMenuItem onClick={() => navigate('/')}><Home className="mr-2 h-4 w-4" />{t('host.backToHome')}</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
+                  {instanceId && (
+                    <CoordinatorDataExport 
+                      instanceId={instanceId} 
+                      instanceName={instance?.name || ''} 
+                      instanceCode={instance?.instance_code || ''} 
+                    />
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setShowResetDialog(true)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t('host.resetEvent')}</DropdownMenuItem>
                 </DropdownMenuContent>
