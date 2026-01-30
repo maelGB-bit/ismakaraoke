@@ -107,6 +107,44 @@ export type Database = {
         }
         Relationships: []
       }
+      event_archives: {
+        Row: {
+          created_at: string
+          event_date: string
+          id: string
+          instance_code: string
+          instance_name: string
+          karaoke_instance_id: string | null
+          rankings: Json
+        }
+        Insert: {
+          created_at?: string
+          event_date?: string
+          id?: string
+          instance_code: string
+          instance_name: string
+          karaoke_instance_id?: string | null
+          rankings?: Json
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          id?: string
+          instance_code?: string
+          instance_name?: string
+          karaoke_instance_id?: string | null
+          rankings?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_archives_karaoke_instance_id_fkey"
+            columns: ["karaoke_instance_id"]
+            isOneToOne: false
+            referencedRelation: "karaoke_instances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_settings: {
         Row: {
           id: string
@@ -465,6 +503,13 @@ export type Database = {
             foreignKeyName: "votes_performance_id_fkey"
             columns: ["performance_id"]
             isOneToOne: false
+            referencedRelation: "monthly_ranking"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_performance_id_fkey"
+            columns: ["performance_id"]
+            isOneToOne: false
             referencedRelation: "performances"
             referencedColumns: ["id"]
           },
@@ -546,7 +591,41 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      compiled_participants: {
+        Row: {
+          email: string | null
+          id: string | null
+          instance_code: string | null
+          instance_name: string | null
+          karaoke_instance_id: string | null
+          name: string | null
+          phone: string | null
+          registration_date: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participants_karaoke_instance_id_fkey"
+            columns: ["karaoke_instance_id"]
+            isOneToOne: false
+            referencedRelation: "karaoke_instances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_ranking: {
+        Row: {
+          cantor: string | null
+          created_at: string | null
+          global_score: number | null
+          id: string | null
+          instance_code: string | null
+          instance_name: string | null
+          musica: string | null
+          nota_media: number | null
+          total_votos: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_email: { Args: never; Returns: string }
