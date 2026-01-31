@@ -20,6 +20,7 @@ import { SubscriptionExpired } from '@/components/SubscriptionExpired';
 import { ChangePasswordModal } from '@/components/ChangePasswordModal';
 import { CoordinatorDataExport } from '@/components/CoordinatorDataExport';
 import { QRCodePrintable } from '@/components/QRCodePrintable';
+import { ResetEventDialog } from '@/components/ResetEventDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -341,30 +342,14 @@ function HostContent() {
   };
 
 
-  const handleResetEvent = async () => {
-    if (!instanceId) {
-      toast({ title: t('host.error'), description: 'No instance selected', variant: 'destructive' });
-      setShowResetDialog(false);
-      return;
-    }
-    
-    try {
-      // Delete only data for THIS specific instance
-      await supabase.from('votes').delete().eq('karaoke_instance_id', instanceId);
-      await supabase.from('performances').delete().eq('karaoke_instance_id', instanceId);
-      await supabase.from('waitlist').delete().eq('karaoke_instance_id', instanceId);
-      setPerformance(null);
-      setCantor('');
-      setMusica('');
-      setYoutubeUrl('');
-      setLoadedUrl(null);
-      setLastHighScore(0);
-      setCurrentWaitlistEntryId(null);
-      toast({ title: t('host.eventReset'), description: t('host.allDataDeleted') });
-    } catch (error) {
-      console.error('Error resetting event:', error);
-      toast({ title: t('host.error'), description: t('host.cantResetEvent'), variant: 'destructive' });
-    }
+  const handleResetComplete = () => {
+    setPerformance(null);
+    setCantor('');
+    setMusica('');
+    setYoutubeUrl('');
+    setLoadedUrl(null);
+    setLastHighScore(0);
+    setCurrentWaitlistEntryId(null);
     setShowResetDialog(false);
   };
 
@@ -647,18 +632,16 @@ function HostContent() {
           </div>
         </header>
 
-        <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t('host.resetEventTitle')}</AlertDialogTitle>
-              <AlertDialogDescription>{t('host.resetEventDesc')}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t('host.cancel')}</AlertDialogCancel>
-              <AlertDialogAction onClick={handleResetEvent} className="bg-destructive hover:bg-destructive/90">{t('host.yesReset')}</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {instance && instanceId && (
+          <ResetEventDialog
+            open={showResetDialog}
+            onOpenChange={setShowResetDialog}
+            instanceId={instanceId}
+            instanceName={instance.name}
+            instanceCode={instance.instance_code}
+            onResetComplete={handleResetComplete}
+          />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <div className="lg:col-span-8 flex flex-col gap-4">
