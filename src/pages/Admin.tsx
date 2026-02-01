@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Key, Users, Mic2, LogOut, Loader2, UserPlus, Video, Image, MessageCircle, FileText } from 'lucide-react';
+import { Shield, Key, Users, Mic2, LogOut, Loader2, UserPlus, Video, Image, MessageCircle, FileText, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminApiKeys } from '@/components/admin/AdminApiKeys';
@@ -12,6 +12,7 @@ import { AdminSiteVideos } from '@/components/admin/AdminSiteVideos';
 import { AdminSiteImages } from '@/components/admin/AdminSiteImages';
 import { AdminSiteContacts } from '@/components/admin/AdminSiteContacts';
 import { AdminEventArchives } from '@/components/admin/AdminEventArchives';
+import { AdminInstructionVideos } from '@/components/admin/AdminInstructionVideos';
 import { useAdminAuthState, AdminAuthContext } from '@/hooks/useAdminAuth';
 
 function AdminContent() {
@@ -64,7 +65,7 @@ function AdminContent() {
 
         {/* Tabs */}
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-9 lg:w-auto lg:inline-flex">
             <TabsTrigger value="requests" className="gap-2">
               <UserPlus className="h-4 w-4" />
               <span className="hidden sm:inline">Solicitações</span>
@@ -84,6 +85,10 @@ function AdminContent() {
             <TabsTrigger value="api-keys" className="gap-2">
               <Key className="h-4 w-4" />
               <span className="hidden sm:inline">API Keys</span>
+            </TabsTrigger>
+            <TabsTrigger value="instruction-videos" className="gap-2">
+              <Film className="h-4 w-4" />
+              <span className="hidden sm:inline">Inserções</span>
             </TabsTrigger>
             <TabsTrigger value="videos" className="gap-2">
               <Video className="h-4 w-4" />
@@ -117,6 +122,10 @@ function AdminContent() {
 
           <TabsContent value="api-keys">
             <AdminApiKeys />
+          </TabsContent>
+
+          <TabsContent value="instruction-videos">
+            <AdminInstructionVideos />
           </TabsContent>
 
           <TabsContent value="videos">
