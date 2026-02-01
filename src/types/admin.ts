@@ -18,6 +18,8 @@ export interface KaraokeInstance {
   updated_at: string;
   expires_at?: string;
   coordinator_email?: string;
+  video_insertions_enabled: boolean;
+  video_insertions_mandatory: boolean;
 }
 
 export interface Coordinator {
