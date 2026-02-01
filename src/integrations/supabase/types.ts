@@ -237,6 +237,60 @@ export type Database = {
         }
         Relationships: []
       }
+      instruction_video_settings: {
+        Row: {
+          current_video_index: number
+          id: string
+          insertion_frequency: number
+          updated_at: string
+        }
+        Insert: {
+          current_video_index?: number
+          id?: string
+          insertion_frequency?: number
+          updated_at?: string
+        }
+        Update: {
+          current_video_index?: number
+          id?: string
+          insertion_frequency?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      instruction_videos: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_active: boolean
+          sort_order: number
+          title: string
+          updated_at: string
+          youtube_url: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title: string
+          updated_at?: string
+          youtube_url: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          youtube_url?: string
+        }
+        Relationships: []
+      }
       karaoke_instances: {
         Row: {
           coordinator_id: string
@@ -247,6 +301,8 @@ export type Database = {
           name: string
           status: string
           updated_at: string
+          video_insertions_enabled: boolean
+          video_insertions_mandatory: boolean
         }
         Insert: {
           coordinator_id: string
@@ -257,6 +313,8 @@ export type Database = {
           name: string
           status?: string
           updated_at?: string
+          video_insertions_enabled?: boolean
+          video_insertions_mandatory?: boolean
         }
         Update: {
           coordinator_id?: string
@@ -267,6 +325,8 @@ export type Database = {
           name?: string
           status?: string
           updated_at?: string
+          video_insertions_enabled?: boolean
+          video_insertions_mandatory?: boolean
         }
         Relationships: []
       }
