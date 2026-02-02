@@ -577,7 +577,7 @@ export default function Inscricao() {
         <div className="flex flex-col gap-3">
           <div className="flex gap-3">
             <Button
-              onClick={() => navigate('/vote')}
+              onClick={() => navigate(instanceCode ? `/app/vote/${instanceCode}` : '/app/vote')}
               variant="outline"
               className="flex-1"
             >
@@ -585,7 +585,7 @@ export default function Inscricao() {
               {t('signup.goToVoting')}
             </Button>
             <Button
-              onClick={() => navigate('/ranking')}
+              onClick={() => navigate(instanceCode ? `/app/ranking/${instanceCode}` : '/app/ranking')}
               variant="outline"
               className="flex-1"
             >
