@@ -461,10 +461,6 @@ export function TVModeView({
 
       {/* Top Bar - Two rows for better responsiveness */}
       <div className="bg-background/80 backdrop-blur-sm border-b border-border/50 z-10">
-        {/* Logo */}
-        <div className="flex justify-center py-1 border-b border-border/30">
-          <img src="/img/mamute-logo.png" alt="Mamute Karaokê" className="h-8" />
-        </div>
         
         {/* Row 1: Singer Info (Primary - Large & Prominent) */}
         <div className="flex flex-wrap items-center justify-center gap-3 p-2 border-b border-border/30">
@@ -528,6 +524,15 @@ export function TVModeView({
               <Users className="w-6 h-6" />
               <span className="text-xl font-bold">{totalVotes}</span>
               <span className="text-sm">{t('tv.votes')}</span>
+            </div>
+            
+            {/* Logo - Same height as votes section */}
+            <div className="flex items-center border-l-2 border-border/50 pl-4 ml-2">
+              <img 
+                src="/img/mamute-logo.png" 
+                alt="Mamute Karaokê" 
+                className="h-12 md:h-14 object-contain"
+              />
             </div>
             
             {/* Vote Effects - More visible */}
