@@ -1,68 +1,95 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LandingFooter } from '@/components/landing/LandingFooter';
 import { PlanCard } from '@/components/landing/PlanCard';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
-const plans = [
-  {
-    name: 'Free',
-    price: 'R$ 0,00',
-    duration: '1 hora',
-    ideal: 'Testar rapidamente o sistema',
-    buttonText: 'Começar grátis',
-    href: 'https://mamutekaraoke.com.br/app/cadastro',
-    isPopular: false,
-    isPro: false,
-  },
-  {
-    name: 'Silver',
-    price: 'R$ 19,90',
-    duration: '1 dia',
-    ideal: 'Eventos únicos e festas pontuais',
-    buttonText: 'Comprar Silver',
-    isPopular: false,
-    isPro: false,
-  },
-  {
-    name: 'Gold',
-    price: 'R$ 49,90',
-    duration: '7 dias',
-    ideal: 'Festas prolongadas e eventos temáticos',
-    buttonText: 'Comprar Gold',
-    isPopular: false,
-    isPro: false,
-  },
-  {
-    name: 'Platinum',
-    price: 'R$ 99,90',
-    period: ' / mês',
-    duration: '30 dias',
-    ideal: 'Uso recorrente em estabelecimentos',
-    buttonText: 'Assinar Platinum',
-    isPopular: true,
-    isPro: false,
-  },
-  {
-    name: 'Pro',
-    price: 'R$ 499,90',
-    period: ' / ano',
-    duration: '365 dias',
-    ideal: 'Profissionais e casas de eventos',
-    buttonText: 'Assinar Pro',
-    isPopular: false,
-    isPro: true,
-  },
-];
+interface Plan {
+  id: string;
+  name: string;
+  description: string | null;
+  price_amount: number;
+  price_currency: string;
+  duration_hours: number;
+  stripe_price_id: string | null;
+  is_recurring: boolean;
+  recurring_interval: string | null;
+  is_active: boolean;
+  is_free: boolean;
+  sort_order: number;
+}
+
+const formatDuration = (hours: number) => {
+  if (hours < 24) return `${hours} hora${hours > 1 ? 's' : ''}`;
+  if (hours < 168) return `${Math.floor(hours / 24)} dia${hours >= 48 ? 's' : ''}`;
+  if (hours < 720) return `${Math.floor(hours / 168)} semana${hours >= 336 ? 's' : ''}`;
+  if (hours < 8760) return `${Math.floor(hours / 720)} ${hours >= 1440 ? 'meses' : 'mês'}`;
+  return `${Math.floor(hours / 8760)} ano${hours >= 17520 ? 's' : ''}`;
+};
+
+const getIdealText = (plan: Plan) => {
+  if (plan.is_free) return 'Testar rapidamente o sistema';
+  if (plan.duration_hours <= 24) return 'Eventos únicos e festas pontuais';
+  if (plan.duration_hours <= 168) return 'Festas prolongadas e eventos temáticos';
+  if (plan.is_recurring && plan.recurring_interval === 'month') return 'Uso recorrente em estabelecimentos';
+  if (plan.is_recurring && plan.recurring_interval === 'year') return 'Profissionais e casas de eventos';
+  return plan.description || '';
+};
 
 export default function PlanosPage() {
   const navigate = useNavigate();
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSelectPlan = (planName: string) => {
-    // For now, redirect to the interest form
-    // This will be replaced with payment integration
-    navigate('/app');
+  useEffect(() => {
+    const fetchPlans = async () => {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (!error && data) {
+        setPlans(data);
+      }
+      setLoading(false);
+    };
+
+    fetchPlans();
+  }, []);
+
+  const handleSelectPlan = (plan: Plan) => {
+    if (plan.is_free) {
+      // Free plan - go to trial registration
+      navigate('/app/cadastro');
+    } else {
+      // Paid plan - go to checkout page with plan info
+      navigate(`/checkout/${plan.id}`);
+    }
   };
+
+  const formatPrice = (amount: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(amount / 100);
+  };
+
+  const getPeriodText = (plan: Plan) => {
+    if (!plan.is_recurring) return undefined;
+    return plan.recurring_interval === 'month' ? ' / mês' : ' / ano';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-landing-light flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-landing-orange" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-landing-light">
@@ -86,14 +113,22 @@ export default function PlanosPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
             {plans.map((plan, index) => (
               <motion.div
-                key={plan.name}
+                key={plan.id}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
                 <PlanCard
-                  {...plan}
-                  onSelect={() => handleSelectPlan(plan.name)}
+                  name={plan.name}
+                  price={plan.is_free ? 'R$ 0,00' : formatPrice(plan.price_amount)}
+                  period={getPeriodText(plan)}
+                  duration={formatDuration(plan.duration_hours)}
+                  ideal={getIdealText(plan)}
+                  buttonText={plan.is_free ? 'Começar grátis' : `Comprar ${plan.name}`}
+                  href={plan.is_free ? '/app/cadastro' : undefined}
+                  isPopular={plan.name === 'Platinum'}
+                  isPro={plan.name === 'Pro'}
+                  onSelect={() => handleSelectPlan(plan)}
                 />
               </motion.div>
             ))}
