@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Loader2, Send, CheckCircle, UserPlus, AlertTriangle, ShoppingCart, LogIn, Clock, Home } from 'lucide-react';
+import { Loader2, Send, CheckCircle, UserPlus, AlertTriangle, ShoppingCart, LogIn, Clock, Home, Eye, EyeOff, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +30,8 @@ export default function CadastroTeste() {
     trialHours: number;
     karaokeName: string;
   } | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,9 +184,38 @@ export default function CadastroTeste() {
               <p className="text-sm">
                 <strong>Email:</strong> {email}
               </p>
-              <p className="text-sm">
-                <strong>Senha temporária:</strong> {trialResult.tempPassword}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm">
+                  <strong>Senha temporária:</strong>{' '}
+                  <code className="px-2 py-0.5 bg-background rounded font-mono">
+                    {showPassword ? trialResult.tempPassword : '••••••••••••'}
+                  </code>
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => {
+                      navigator.clipboard.writeText(trialResult.tempPassword);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                  >
+                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Você será solicitado a trocar a senha no primeiro acesso.
               </p>
