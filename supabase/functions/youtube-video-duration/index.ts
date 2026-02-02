@@ -11,6 +11,19 @@ interface VideoInfo {
   title: string;
 }
 
+// Decrypt function matching the encryption used in api-keys
+function decrypt(encrypted: string, secret: string): string {
+  const keyBytes = new TextEncoder().encode(secret);
+  const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
+  const result = new Uint8Array(encryptedBytes.length);
+  
+  for (let i = 0; i < encryptedBytes.length; i++) {
+    result[i] = encryptedBytes[i] ^ keyBytes[i % keyBytes.length];
+  }
+  
+  return new TextDecoder().decode(result);
+}
+
 // Parse ISO 8601 duration format (PT1H2M3S)
 function parseISO8601Duration(duration: string): number {
   const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
@@ -87,15 +100,24 @@ serve(async (req) => {
       console.error('Error fetching API keys:', apiKeysError);
     }
 
+    // Decryption secret (same as used in api-keys function)
+    const encryptionSecret = supabaseKey.slice(0, 32);
+
     // Try database API keys first
     if (apiKeys && apiKeys.length > 0) {
       for (const keyRecord of apiKeys) {
-        const result = await getYouTubeVideoInfo(videoId, keyRecord.encrypted_key);
-        if (result) {
-          return new Response(
-            JSON.stringify(result),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+        try {
+          const decryptedKey = decrypt(keyRecord.encrypted_key, encryptionSecret);
+          console.log('Trying decrypted API key...');
+          const result = await getYouTubeVideoInfo(videoId, decryptedKey);
+          if (result) {
+            return new Response(
+              JSON.stringify(result),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        } catch (e) {
+          console.error('Error decrypting or using key:', e);
         }
       }
     }
