@@ -9,7 +9,7 @@ interface QRCodePrintableProps {
   instanceCode: string;
 }
 
-const mamuteLogo = '/img/mamute-logo.png';
+const mamuteLogo = '/img/mamute-logo-pb.png';
 
 export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
   const { t } = useLanguage();
@@ -89,10 +89,10 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
               flex-direction: column;
               align-items: center;
               justify-content: center;
-              padding: 2mm 6mm;
+              padding: 1mm 6mm;
             }
             .logo {
-              width: 16mm;
+              width: 26mm;
               height: auto;
               margin-bottom: 1mm;
             }
@@ -177,8 +177,8 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
         logo.src = mamuteLogo;
       });
 
-      // Draw logo (centered at top)
-      const logoWidth = 140;
+      // Draw logo (centered at top) - same size as QR code
+      const logoWidth = 280;
       const logoHeight = (logo.height / logo.width) * logoWidth;
       ctx.drawImage(logo, (size - logoWidth) / 2, 30, logoWidth, logoHeight);
 
@@ -196,9 +196,9 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
           qrImage.src = svgUrl;
         });
 
-        // Draw QR code (centered below logo)
-        const qrSize = 340;
-        const qrY = 30 + logoHeight + 20;
+        // Draw QR code (centered below logo) - same size as logo
+        const qrSize = 280;
+        const qrY = 30 + logoHeight + 10;
         ctx.drawImage(qrImage, (size - qrSize) / 2, qrY, qrSize, qrSize);
         URL.revokeObjectURL(svgUrl);
       }
@@ -248,10 +248,10 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
             
             {/* Center content */}
             <div className="flex flex-col items-center">
-              <img src={mamuteLogo} alt="Mamute" className="w-14 h-auto mb-1" />
+              <img src={mamuteLogo} alt="Mamute" className="w-20 h-auto mb-1" />
               <QRCodeSVG
                 value={voteUrl}
-                size={90}
+                size={80}
                 level="H"
                 includeMargin={false}
               />

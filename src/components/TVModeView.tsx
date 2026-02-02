@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +22,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useEventSettings } from '@/hooks/useEventSettings';
+import { InstructionVideo } from '@/hooks/useInstructionVideos';
 
 interface TVModeViewProps {
   performance: Performance | null;
@@ -30,6 +33,13 @@ interface TVModeViewProps {
   onExit: () => void;
   onSelectNext: () => void;
   onChangeVideo?: (newUrl: string, newSongTitle?: string) => Promise<void>;
+  // Video insertions props
+  videoInsertionsEnabled?: boolean;
+  videoInsertionsMandatory?: boolean;
+  onToggleVideoInsertions?: (enabled: boolean) => void;
+  currentInstructionVideo?: InstructionVideo | null;
+  isPlayingInstructionVideo?: boolean;
+  onInstructionVideoEnded?: () => void;
 }
 
 function extractVideoId(url: string): string | null {
@@ -60,14 +70,34 @@ interface YouTubeVideo {
   url: string;
 }
 
-export function TVModeView({ performance, nextInQueue, youtubeUrl, queueCount, instanceId, onExit, onSelectNext, onChangeVideo }: TVModeViewProps) {
+export function TVModeView({ 
+  performance, 
+  nextInQueue, 
+  youtubeUrl, 
+  queueCount, 
+  instanceId, 
+  onExit, 
+  onSelectNext, 
+  onChangeVideo,
+  videoInsertionsEnabled = false,
+  videoInsertionsMandatory = false,
+  onToggleVideoInsertions,
+  currentInstructionVideo,
+  isPlayingInstructionVideo = false,
+  onInstructionVideoEnded,
+}: TVModeViewProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const { isRegistrationOpen, toggleRegistration } = useEventSettings(instanceId);
   const isActive = performance?.status === 'ativa';
   const score = performance ? Number(performance.nota_media) : 0;
   const totalVotes = performance?.total_votos || 0;
-  const videoId = youtubeUrl ? extractVideoId(youtubeUrl) : null;
+  
+  // Determine which video to show
+  const displayUrl = isPlayingInstructionVideo && currentInstructionVideo 
+    ? currentInstructionVideo.youtube_url 
+    : youtubeUrl;
+  const videoId = displayUrl ? extractVideoId(displayUrl) : null;
   
   // Loading states for buttons
   const [isExiting, setIsExiting] = useState(false);
@@ -414,8 +444,28 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, queueCount, i
       <div className="bg-background/80 backdrop-blur-sm border-b border-border/50 z-10">
         {/* Row 1: Singer Info (Primary - Large & Prominent) */}
         <div className="flex flex-wrap items-center justify-center gap-3 p-2 border-b border-border/30">
-          {/* Now Singing - Main highlight */}
-          {isActive && performance && (
+          {/* Instruction Video Indicator */}
+          {isPlayingInstructionVideo && currentInstructionVideo && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex items-center gap-3 px-4 py-2 glass-card bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-2 border-amber-500/50"
+            >
+              <Film className="w-5 h-5 text-amber-500 animate-pulse flex-shrink-0" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 min-w-0">
+                <span className="text-lg font-black font-display text-amber-500">
+                  Vídeo Explicativo
+                </span>
+                <span className="hidden sm:block text-muted-foreground">•</span>
+                <span className="text-sm text-foreground/80 truncate">
+                  {currentInstructionVideo.title}
+                </span>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Now Singing - Main highlight (hide when playing instruction video) */}
+          {!isPlayingInstructionVideo && isActive && performance && (
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -534,6 +584,22 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, queueCount, i
 
           <span className="text-xs">•</span>
 
+          {/* Video Insertions Toggle - only show if enabled and not mandatory */}
+          {videoInsertionsEnabled && !videoInsertionsMandatory && onToggleVideoInsertions && (
+            <>
+              <div className="flex items-center gap-1 text-xs">
+                <Film className="w-3 h-3" />
+                <span>Vídeos</span>
+                <Switch
+                  checked={videoInsertionsEnabled}
+                  onCheckedChange={onToggleVideoInsertions}
+                  className="scale-75"
+                />
+              </div>
+              <span className="text-xs">•</span>
+            </>
+          )}
+
           {/* Registration Toggle */}
           <button
             onClick={handleToggleRegistration}
@@ -555,6 +621,20 @@ export function TVModeView({ performance, nextInQueue, youtubeUrl, queueCount, i
           </button>
         </div>
       </div>
+
+      {/* Score Panel - Hide when playing instruction video */}
+      {isPlayingInstructionVideo && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-500/10 border-b border-amber-500/30"
+        >
+          <Film className="w-4 h-4 text-amber-500" />
+          <span className="text-sm text-amber-500 font-medium">
+            Votação pausada durante o vídeo explicativo
+          </span>
+        </motion.div>
+      )}
 
       {/* Video Area - Full Space */}
       <div className="flex-1 p-2">
