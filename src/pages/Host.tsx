@@ -485,6 +485,7 @@ function HostContent() {
         youtube_url: next.youtube_url, 
         status: 'ativa',
         karaoke_instance_id: instanceId,
+        allow_voting: next.allow_voting !== false, // Default to true if undefined
       }).select().single();
       
       if (!error && data) {
@@ -524,6 +525,7 @@ function HostContent() {
           youtube_url: next.youtube_url, 
           status: 'ativa',
           karaoke_instance_id: instanceId,
+          allow_voting: next.allow_voting !== false, // Default to true if undefined
         }).select().single();
         
         if (!error && data) {

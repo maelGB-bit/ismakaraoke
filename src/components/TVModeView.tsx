@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -507,24 +507,37 @@ export function TVModeView({
             </motion.div>
           )}
 
-          {/* Score Panel - ENHANCED: Much larger and more prominent */}
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="flex items-center gap-4 px-6 py-3 glass-card relative overflow-visible bg-gradient-to-r from-primary/20 to-secondary/20 border-2 border-primary/30"
-          >
-            <Star className="w-8 h-8 text-accent fill-accent flex-shrink-0 animate-pulse" />
-            <span className={`text-5xl md:text-6xl font-black font-display drop-shadow-lg ${
-              score >= 9 ? 'neon-text-gold' : score >= 7 ? 'neon-text-cyan' : 'text-foreground'
-            }`}>
-              {score.toFixed(1)}
-            </span>
-            <div className="flex items-center gap-2 text-muted-foreground border-l-2 border-border/50 pl-4 ml-2">
-              <Users className="w-6 h-6" />
-              <span className="text-xl font-bold">{totalVotes}</span>
-              <span className="text-sm">{t('tv.votes')}</span>
-            </div>
+          {/* Score Panel - Show "Apresentação sem votação" when voting is disabled */}
+          {performance?.allow_voting === false ? (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="flex items-center gap-4 px-6 py-3 glass-card bg-gradient-to-r from-orange-500/20 to-amber-500/20 border-2 border-orange-500/30"
+            >
+              <VolumeX className="w-8 h-8 text-orange-500 flex-shrink-0" />
+              <span className="text-xl md:text-2xl font-bold font-display text-orange-400">
+                Apresentação sem votação
+              </span>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="flex items-center gap-4 px-6 py-3 glass-card relative overflow-visible bg-gradient-to-r from-primary/20 to-secondary/20 border-2 border-primary/30"
+            >
+              <Star className="w-8 h-8 text-accent fill-accent flex-shrink-0 animate-pulse" />
+              <span className={`text-5xl md:text-6xl font-black font-display drop-shadow-lg ${
+                score >= 9 ? 'neon-text-gold' : score >= 7 ? 'neon-text-cyan' : 'text-foreground'
+              }`}>
+                {score.toFixed(1)}
+              </span>
+              <div className="flex items-center gap-2 text-muted-foreground border-l-2 border-border/50 pl-4 ml-2">
+                <Users className="w-6 h-6" />
+                <span className="text-xl font-bold">{totalVotes}</span>
+                <span className="text-sm">{t('tv.votes')}</span>
+              </div>
             
             {/* Logo - Same height as votes section */}
             <div className="flex items-center border-l-2 border-border/50 pl-4 ml-2">
@@ -559,7 +572,8 @@ export function TVModeView({
                 </motion.div>
               ))}
             </AnimatePresence>
-          </motion.div>
+            </motion.div>
+          )}
 
           {/* Next in Queue - Prominent button */}
           <motion.button

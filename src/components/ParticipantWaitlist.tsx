@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Music, Star, Clock } from 'lucide-react';
+import { Users, Music, Star, Clock, VolumeX } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WaitlistEntry } from '@/hooks/useWaitlist';
 import { UserProfile } from '@/hooks/useUserProfile';
@@ -128,16 +128,21 @@ export function ParticipantWaitlist({ entries, loading, currentSingerName, userP
                     {index + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`font-medium text-sm truncate ${isHighlighted ? 'text-primary' : ''}`}>
+                    <p className={`font-medium text-sm truncate flex items-center gap-1 ${isHighlighted ? 'text-primary' : ''}`}>
                       {entry.singer_name}
-                      {isHighlighted && <span className="ml-1">⭐</span>}
+                      {isHighlighted && <span>⭐</span>}
+                      {entry.allow_voting === false && (
+                        <span title="Sem votação">
+                          <VolumeX className="h-3 w-3 text-orange-500 flex-shrink-0" />
+                        </span>
+                      )}
                       {entry.registered_by && (
-                        <span className="ml-1 text-xs text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                           ({t('waitlist.registeredBy')} {entry.registered_by})
                         </span>
                       )}
                       {entry.times_sung > 0 && (
-                        <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
+                        <span className="text-xs text-muted-foreground">({entry.times_sung}x)</span>
                       )}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
