@@ -173,32 +173,42 @@ export function AdminCoordinators() {
     if (!confirm('Tem certeza que deseja remover este coordenador? A instância associada também será removida.')) return;
 
     try {
-      // First, update the coordinator_request to deleted_by_admin status
+      // IMPORTANT: Delete the instance FIRST to avoid ghost instances
+      const { error: instanceError } = await supabase
+        .from('karaoke_instances')
+        .delete()
+        .eq('coordinator_id', id);
+      
+      if (instanceError) {
+        console.error('Error deleting instance:', instanceError);
+      }
+
+      // Update the coordinator_request to deleted_by_admin status
       await supabase
         .from('coordinator_requests')
         .update({ status: 'deleted_by_admin' })
         .eq('user_id', id);
 
       // Delete role
-      const { error } = await supabase
+      const { error: roleError } = await supabase
         .from('user_roles')
         .delete()
         .eq('user_id', id)
         .eq('role', 'coordinator');
 
-      if (error) throw error;
+      if (roleError) throw roleError;
 
-      // Delete the instance
-      await supabase
-        .from('karaoke_instances')
-        .delete()
-        .eq('coordinator_id', id);
-
+      // Update local state immediately to prevent ghost instances showing
       setCoordinators(coordinators.filter(c => c.id !== id));
       toast({ title: 'Coordenador removido', description: 'A solicitação foi movida para "Deletados pelo Admin"' });
+      
+      // Force a refetch to ensure state is synchronized
+      await fetchCoordinators();
     } catch (error) {
       console.error('Error deleting coordinator:', error);
       toast({ title: 'Erro ao remover coordenador', variant: 'destructive' });
+      // Refetch to ensure consistency
+      await fetchCoordinators();
     }
   };
 

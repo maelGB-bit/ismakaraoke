@@ -50,54 +50,67 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
             body {
               width: 50mm;
               height: 50mm;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              font-family: Arial, sans-serif;
               background: white;
+              font-family: Arial, sans-serif;
             }
             .container {
-              width: 48mm;
-              height: 48mm;
+              width: 50mm;
+              height: 50mm;
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              justify-content: center;
+              position: relative;
+            }
+            .left-text {
+              position: absolute;
+              left: 1mm;
+              top: 50%;
+              transform: rotate(-90deg) translateX(-50%);
+              transform-origin: left center;
+              font-size: 6pt;
+              font-weight: bold;
+              text-transform: uppercase;
+              white-space: nowrap;
+              letter-spacing: 0.5px;
+            }
+            .right-text {
+              position: absolute;
+              right: 1mm;
+              top: 50%;
+              transform: rotate(90deg) translateX(50%);
+              transform-origin: right center;
+              font-size: 6pt;
+              font-weight: bold;
+              white-space: nowrap;
+            }
+            .center-content {
               display: flex;
               flex-direction: column;
               align-items: center;
               justify-content: center;
-              padding: 2mm;
+              padding: 2mm 6mm;
             }
             .logo {
-              width: 10mm;
-              height: 10mm;
+              width: 16mm;
+              height: auto;
               margin-bottom: 1mm;
             }
             .qr-container {
               background: white;
-              padding: 1mm;
-              border: 0.5mm solid #333;
-              border-radius: 1mm;
-            }
-            .code {
-              font-size: 8pt;
-              font-weight: bold;
-              margin-top: 1mm;
-              color: #333;
-            }
-            .label {
-              font-size: 5pt;
-              color: #666;
-              margin-top: 0.5mm;
             }
           </style>
         </head>
         <body>
           <div class="container">
-            <img src="${mamuteLogo}" class="logo" alt="Mamute" />
-            <div class="qr-container">
-              ${printRef.current?.querySelector('svg')?.outerHTML || ''}
+            <div class="left-text">Acesse para<br/>VOTAR E CANTAR</div>
+            <div class="center-content">
+              <img src="${mamuteLogo}" class="logo" alt="Mamute Karaoke" />
+              <div class="qr-container">
+                ${printRef.current?.querySelector('svg')?.outerHTML || ''}
+              </div>
             </div>
-            <div class="code">${instanceCode}</div>
-            <div class="label">Escaneie para votar</div>
+            <div class="right-text">www.mamutekaraoke.com.br</div>
           </div>
         </body>
         </html>
@@ -132,6 +145,28 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, size, size);
 
+      // Draw left text (rotated)
+      ctx.save();
+      ctx.translate(30, size / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Acesse para', 0, -8);
+      ctx.font = 'bold 28px Arial';
+      ctx.fillText('VOTAR E CANTAR', 0, 20);
+      ctx.restore();
+
+      // Draw right text (rotated)
+      ctx.save();
+      ctx.translate(size - 30, size / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('www.mamutekaraoke.com.br', 0, 0);
+      ctx.restore();
+
       // Load logo
       const logo = new Image();
       logo.crossOrigin = 'anonymous';
@@ -143,8 +178,9 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
       });
 
       // Draw logo (centered at top)
-      const logoSize = 100;
-      ctx.drawImage(logo, (size - logoSize) / 2, 20, logoSize, logoSize);
+      const logoWidth = 140;
+      const logoHeight = (logo.height / logo.width) * logoWidth;
+      ctx.drawImage(logo, (size - logoWidth) / 2, 30, logoWidth, logoHeight);
 
       // Get QR code as data URL
       const svgElement = printRef.current?.querySelector('svg');
@@ -160,22 +196,12 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
           qrImage.src = svgUrl;
         });
 
-        // Draw QR code (centered)
-        const qrSize = 350;
-        ctx.drawImage(qrImage, (size - qrSize) / 2, 130, qrSize, qrSize);
+        // Draw QR code (centered below logo)
+        const qrSize = 340;
+        const qrY = 30 + logoHeight + 20;
+        ctx.drawImage(qrImage, (size - qrSize) / 2, qrY, qrSize, qrSize);
         URL.revokeObjectURL(svgUrl);
       }
-
-      // Draw instance code
-      ctx.fillStyle = '#333333';
-      ctx.font = 'bold 36px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(instanceCode, size / 2, 520);
-
-      // Draw label
-      ctx.fillStyle = '#666666';
-      ctx.font = '20px Arial';
-      ctx.fillText('Escaneie para votar', size / 2, 555);
 
       // Download
       const link = document.createElement('a');
@@ -206,22 +232,38 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
         </DialogHeader>
 
         <div className="flex flex-col items-center py-6">
-          {/* Preview */}
+          {/* Preview - matching the reference layout */}
           <div 
             ref={printRef}
-            className="w-48 h-48 bg-white rounded-lg shadow-lg flex flex-col items-center justify-center p-3"
+            className="w-48 h-48 bg-white rounded-lg shadow-lg flex items-center justify-center relative p-2"
           >
-            <img src={mamuteLogo} alt="Mamute" className="w-10 h-10 mb-2" />
-            <div className="bg-white p-2 border-2 border-gray-800 rounded">
+            {/* Left vertical text */}
+            <div 
+              className="absolute left-1 top-1/2 -translate-y-1/2 text-black text-[8px] font-bold"
+              style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg) translateX(50%)' }}
+            >
+              <span className="block">Acesse para</span>
+              <span className="block text-[10px]">VOTAR E CANTAR</span>
+            </div>
+            
+            {/* Center content */}
+            <div className="flex flex-col items-center">
+              <img src={mamuteLogo} alt="Mamute" className="w-14 h-auto mb-1" />
               <QRCodeSVG
                 value={voteUrl}
-                size={100}
+                size={90}
                 level="H"
                 includeMargin={false}
               />
             </div>
-            <p className="text-gray-800 font-bold text-sm mt-2">{instanceCode}</p>
-            <p className="text-gray-500 text-xs">Escaneie para votar</p>
+            
+            {/* Right vertical text */}
+            <div 
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-black text-[8px] font-bold"
+              style={{ writingMode: 'vertical-rl' }}
+            >
+              www.mamutekaraoke.com.br
+            </div>
           </div>
 
           <p className="text-sm text-muted-foreground mt-4 text-center">
