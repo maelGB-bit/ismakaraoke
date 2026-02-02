@@ -9,6 +9,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { UserRegistrationModal } from '@/components/UserRegistrationModal';
+import { ConsentTermsModal } from '@/components/ConsentTermsModal';
+import { VotingPreferenceToggle } from '@/components/VotingPreferenceToggle';
 import { LeaveButton } from '@/components/LeaveButton';
 import { YouTubePreview } from '@/components/YouTubePreview';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -53,8 +55,13 @@ export default function Inscricao() {
   
   const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
   const { performance } = useActivePerformance(instanceId);
-  const { profile, loading: profileLoading, saveProfile } = useUserProfile();
+  const { profile, loading: profileLoading, saveProfile, updateVotingPreference, acceptTerms } = useUserProfile();
   const { isRegistrationOpen, loading: settingsLoading } = useEventSettings(instanceId);
+  
+  // Consent modal state - show for first-time users who haven't accepted terms
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  // Current voting preference for this submission
+  const [currentAllowVoting, setCurrentAllowVoting] = useState(true);
   
   const [singerName, setSingerName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,6 +82,13 @@ export default function Inscricao() {
       setSingerName(profile.name);
     }
   }, [profile?.name]); // Only depend on profile.name, not the full profile object
+
+  // Initialize voting preference from profile
+  useEffect(() => {
+    if (profile?.allowVoting !== undefined) {
+      setCurrentAllowVoting(profile.allowVoting);
+    }
+  }, [profile?.allowVoting]);
 
   // Show registration if no profile - only on initial mount
   useEffect(() => {
@@ -216,7 +230,31 @@ export default function Inscricao() {
     }
     
     setSelectedVideo(video);
+    
+    // If user hasn't accepted terms yet, show consent modal first
+    if (!profile?.termsAccepted) {
+      setShowConsentModal(true);
+    } else {
+      // User already accepted terms, show confirmation dialog directly
+      setShowConfirmDialog(true);
+    }
+  };
+
+  const handleConsentAccept = (allowVoting: boolean) => {
+    // Save terms acceptance and voting preference
+    if (profile) {
+      const updatedProfile = { ...profile, termsAccepted: true, allowVoting };
+      saveProfile(updatedProfile);
+    }
+    setCurrentAllowVoting(allowVoting);
+    setShowConsentModal(false);
+    // Now show the confirmation dialog
     setShowConfirmDialog(true);
+  };
+
+  const handleVotingPreferenceChange = (allowVoting: boolean) => {
+    setCurrentAllowVoting(allowVoting);
+    updateVotingPreference(allowVoting);
   };
 
   const handleConfirmSubmit = async () => {
@@ -228,11 +266,14 @@ export default function Inscricao() {
     // If registering for someone else, pass the current user's name as registeredBy
     const registeredBy = registerForOther && profile ? profile.name : undefined;
 
+    // Pass the current voting preference
     const success = await addToWaitlist(
       singerName.trim(),
       selectedVideo.url,
       decodeHtmlEntities(selectedVideo.title),
-      registeredBy
+      registeredBy,
+      false, // insertFirst = false
+      currentAllowVoting
     );
 
     setIsSubmitting(false);
@@ -276,6 +317,13 @@ export default function Inscricao() {
       {showRegistration && (
         <UserRegistrationModal onComplete={handleRegistrationComplete} />
       )}
+      
+      {/* Consent Terms Modal - shown on first "Quero Cantar" before music selection confirmation */}
+      <ConsentTermsModal
+        open={showConsentModal}
+        onAccept={handleConsentAccept}
+        isSubmitting={false}
+      />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -548,6 +596,16 @@ export default function Inscricao() {
                         <YouTubePreview 
                           videoId={selectedVideo.id} 
                           maxDuration={30}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Voting Preference Toggle - shown for returning users */}
+                    {profile?.termsAccepted && (
+                      <div className="pt-2 border-t border-border">
+                        <VotingPreferenceToggle
+                          allowVoting={currentAllowVoting}
+                          onChange={handleVotingPreferenceChange}
                         />
                       </div>
                     )}

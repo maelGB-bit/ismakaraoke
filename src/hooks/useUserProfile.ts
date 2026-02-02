@@ -4,6 +4,8 @@ export interface UserProfile {
   name: string;
   phone?: string;
   email?: string;
+  termsAccepted?: boolean;
+  allowVoting?: boolean;
 }
 
 const STORAGE_KEY = 'karaoke_user_profile';
@@ -46,10 +48,31 @@ export function useUserProfile() {
     setProfile(newProfile);
   }, []);
 
+  const updateVotingPreference = useCallback((allowVoting: boolean) => {
+    if (!profile) return;
+    const updated = { ...profile, allowVoting };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    setProfile(updated);
+  }, [profile]);
+
+  const acceptTerms = useCallback(() => {
+    if (!profile) return;
+    const updated = { ...profile, termsAccepted: true };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    setProfile(updated);
+  }, [profile]);
+
   const clearProfile = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setProfile(null);
   }, []);
 
-  return { profile, loading, saveProfile, clearProfile };
+  return { 
+    profile, 
+    loading, 
+    saveProfile, 
+    clearProfile,
+    updateVotingPreference,
+    acceptTerms 
+  };
 }
