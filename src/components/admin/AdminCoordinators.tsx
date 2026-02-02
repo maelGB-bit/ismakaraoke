@@ -70,16 +70,27 @@ export function AdminCoordinators() {
 
       if (rolesError) throw rolesError;
 
-      // Fetch instances for all coordinators
+      // Only proceed with coordinator IDs that have roles
+      const coordinatorIds = (rolesData || []).map(r => r.user_id);
+      
+      if (coordinatorIds.length === 0) {
+        setCoordinators([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch instances ONLY for coordinators that have roles
       const { data: instancesData } = await supabase
         .from('karaoke_instances')
-        .select('*');
+        .select('*')
+        .in('coordinator_id', coordinatorIds);
 
-      // Fetch coordinator requests to get names, emails and last access
+      // Fetch coordinator requests to get names, emails and last access (only approved)
       const { data: requestsData } = await supabase
         .from('coordinator_requests')
         .select('user_id, name, email, status, last_access_at')
-        .eq('status', 'approved');
+        .eq('status', 'approved')
+        .in('user_id', coordinatorIds);
 
       const instancesMap = new Map<string, KaraokeInstance>();
       instancesData?.forEach(inst => {

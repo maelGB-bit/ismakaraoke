@@ -383,7 +383,7 @@ export default function Inscricao() {
           <div className="space-y-2">
             <Label className="text-lg flex items-center gap-2">
               <Search className="h-4 w-4" />
-              {t('signup.searchSong')}
+              {t('signup.searchSong')} <span className="text-muted-foreground text-xs font-normal">(música, cantor ou gênero)</span>
             </Label>
             <div className="flex gap-2">
               <Input
@@ -595,6 +595,21 @@ export default function Inscricao() {
           
           {/* Leave Button */}
           <LeaveButton />
+        </div>
+        
+        {/* Footer Promotional Message */}
+        <div className="text-center mt-6 p-4 rounded-lg bg-muted/30 border border-border/50">
+          <p className="text-sm text-muted-foreground">
+            Quer levar o sistema Mamute Karaokê para seu evento, casa ou estabelecimento?{' '}
+            <a 
+              href="https://www.mamutekaraoke.com.br" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium"
+            >
+              Acesse o site www.mamutekaraoke.com.br
+            </a>
+          </p>
         </div>
       </motion.div>
     </div>

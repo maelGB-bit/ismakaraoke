@@ -11,9 +11,9 @@ export function HeroSection() {
       <HeroBannerCarousel />
 
       <div className="container mx-auto px-4 relative z-10 mt-6 space-y-8">
-        <div className="max-w-3xl mx-auto text-center text-white/90 space-y-3 text-base sm:text-lg">
-          <p className="text-justify whitespace-nowrap font-bold text-landing-orange">
-            Sem filas, sem papel, sem pularem sua vez e sem confusão. Todos cantam de forma justa!!
+        <div className="max-w-3xl mx-auto text-center text-white/90 space-y-3 text-base sm:text-lg px-4">
+          <p className="text-center font-bold text-landing-orange text-sm sm:text-base md:text-lg leading-relaxed">
+            Sem filas, sem papel, sem pularem sua vez e sem confusão.<br className="sm:hidden" /> Todos cantam de forma justa!!
           </p>
           <p className="text-sm italic text-gray-400">
             Um karaokê organizado e divertido para qualquer evento, festa ou até para usar em casa.
