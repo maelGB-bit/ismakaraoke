@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Play, X, Music, ChevronUp, ChevronDown } from 'lucide-react';
+import { Users, Play, X, Music, ChevronUp, ChevronDown, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -86,10 +86,15 @@ export function HostWaitlistPanel({
                       </div>
 
                       <div className="flex-1 min-w-0 max-w-[140px]">
-                        <p className="font-medium text-sm truncate">
+                        <p className="font-medium text-sm truncate flex items-center gap-1">
                           {entry.singer_name}
                           {entry.times_sung > 0 && (
-                            <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
+                            <span className="text-xs text-muted-foreground">({entry.times_sung}x)</span>
+                          )}
+                          {entry.allow_voting === false && (
+                            <span title="Sem votação">
+                              <VolumeX className="h-3 w-3 text-orange-500 flex-shrink-0" />
+                            </span>
                           )}
                         </p>
                         <p className="text-xs text-muted-foreground line-clamp-2 break-words">{entry.song_title}</p>

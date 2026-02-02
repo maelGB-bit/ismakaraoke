@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, CheckCircle, Trophy, AlertCircle, Clock, Music } from 'lucide-react';
+import { Mic2, CheckCircle, Trophy, AlertCircle, Clock, Music, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VoteSlider } from '@/components/VoteSlider';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
@@ -103,6 +103,16 @@ export default function Vote() {
 
   const handleSubmitVote = async (nota: number) => {
     if (!performance?.id || !deviceId) return;
+
+    // Block votes when voting is disabled for this performance
+    if (performance.allow_voting === false) {
+      toast({
+        title: 'Votação desabilitada',
+        description: 'O cantor optou por não receber votos nesta apresentação.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     if (performance.status !== 'ativa') {
       toast({
@@ -303,7 +313,42 @@ export default function Vote() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col gap-4">
         <AnimatePresence mode="wait">
-          {hasVoted ? (
+          {/* Voting disabled for this performance */}
+          {performance.allow_voting === false ? (
+            <motion.div
+              key="no-voting"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="glass-card p-8 text-center max-w-md w-full mx-auto"
+            >
+              <VolumeX className="w-16 h-16 mx-auto text-orange-500 mb-4" />
+              <h2 className="text-xl font-bold font-display mb-2">
+                Apresentação sem votação
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                O cantor optou por não receber votos nesta apresentação. Aproveite o show!
+              </p>
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={() => navigate(instanceCode ? `/app/inscricao/${instanceCode}` : '/app/inscricao')}
+                  className="w-full"
+                >
+                  <Music className="mr-2 h-4 w-4" />
+                  {t('vote.wantToSing')}
+                </Button>
+                <Button
+                  onClick={() => navigate(instanceCode ? `/app/ranking/${instanceCode}` : '/app/ranking')}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Trophy className="mr-2 h-4 w-4" />
+                  {t('vote.showNightRanking')}
+                </Button>
+                <LeaveButton />
+              </div>
+            </motion.div>
+          ) : hasVoted ? (
             <motion.div
               key="voted"
               initial={{ opacity: 0, scale: 0.8 }}

@@ -492,6 +492,7 @@ export type Database = {
       }
       performances: {
         Row: {
+          allow_voting: boolean | null
           cantor: string
           created_at: string
           id: string
@@ -504,6 +505,7 @@ export type Database = {
           youtube_url: string | null
         }
         Insert: {
+          allow_voting?: boolean | null
           cantor: string
           created_at?: string
           id?: string
@@ -516,6 +518,7 @@ export type Database = {
           youtube_url?: string | null
         }
         Update: {
+          allow_voting?: boolean | null
           cantor?: string
           created_at?: string
           id?: string

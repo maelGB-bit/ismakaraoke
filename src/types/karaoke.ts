@@ -8,6 +8,7 @@ export interface Performance {
   total_votos: number;
   created_at: string;
   video_changed_at?: string | null;
+  allow_voting?: boolean;
 }
 
 export interface Vote {
