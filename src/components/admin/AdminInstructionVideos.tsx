@@ -75,38 +75,44 @@ export function AdminInstructionVideos() {
     return null;
   };
 
-  // Fetch video duration from YouTube
-  const fetchVideoDuration = async (url: string): Promise<number | null> => {
+  // Fetch video duration from YouTube using our edge function
+  const fetchVideoDuration = async (url: string, isEdit = false): Promise<void> => {
     const videoId = getVideoId(url);
-    if (!videoId) return null;
+    if (!videoId) return;
     
     setIsLoadingDuration(true);
     try {
-      // Use YouTube oEmbed to get video info
-      const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-      
-      if (!response.ok) return null;
-      
-      // Since oEmbed doesn't return duration, we'll estimate from typical video lengths
-      // In a production app, you'd use YouTube Data API with the API key
-      // For now, we'll use the existing YouTube search function if available
-      const { data, error } = await supabase.functions.invoke('youtube-search', {
-        body: { query: videoId, maxResults: 1 },
+      const { data, error } = await supabase.functions.invoke('youtube-video-duration', {
+        body: { videoId },
       });
       
-      if (!error && data?.videos?.[0]) {
-        // Duration from search is not available, keep manual input as fallback
-        return null;
+      if (!error && data && data.duration_seconds) {
+        if (isEdit && editingVideo) {
+          setEditingVideo(prev => prev ? { 
+            ...prev, 
+            duration_seconds: data.duration_seconds,
+            title: prev.title || data.title || prev.title
+          } : null);
+        } else {
+          setNewVideo(prev => ({ 
+            ...prev, 
+            duration_seconds: data.duration_seconds,
+            title: prev.title || data.title || ''
+          }));
+        }
+        toast({
+          title: 'Duração obtida',
+          description: `${Math.floor(data.duration_seconds / 60)}:${String(data.duration_seconds % 60).padStart(2, '0')}`,
+        });
       }
-      return null;
     } catch (error) {
       console.error('Error fetching video duration:', error);
-      return null;
     } finally {
       setIsLoadingDuration(false);
     }
   };
 
+  // Auto-fetch duration when URL changes
   const handleUrlChange = async (url: string, isEdit = false) => {
     if (isEdit && editingVideo) {
       setEditingVideo({ ...editingVideo, youtube_url: url });
@@ -114,12 +120,10 @@ export function AdminInstructionVideos() {
       setNewVideo(prev => ({ ...prev, youtube_url: url }));
     }
     
-    // Try to fetch duration automatically (for now this is a placeholder)
-    // Real implementation would use YouTube Data API
+    // Auto-fetch duration when a valid video ID is detected
     const videoId = getVideoId(url);
     if (videoId) {
-      // Auto-fetch duration would go here with proper API
-      // For now, user enters manually but field is more prominent
+      await fetchVideoDuration(url, isEdit);
     }
   };
 
@@ -360,21 +364,36 @@ export function AdminInstructionVideos() {
                       id="url"
                       placeholder="https://www.youtube.com/watch?v=..."
                       value={newVideo.youtube_url}
-                      onChange={(e) => setNewVideo(prev => ({ ...prev, youtube_url: e.target.value }))}
+                      onChange={(e) => handleUrlChange(e.target.value, false)}
+                      disabled={isLoadingDuration}
                     />
+                    {isLoadingDuration && (
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Buscando duração do vídeo...
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="duration">Duração (segundos)</Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      min={0}
-                      placeholder="Ex: 60"
-                      value={newVideo.duration_seconds || ''}
-                      onChange={(e) => setNewVideo(prev => ({ ...prev, duration_seconds: parseInt(e.target.value) || 0 }))}
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        id="duration"
+                        type="number"
+                        min={0}
+                        placeholder="Ex: 60"
+                        value={newVideo.duration_seconds || ''}
+                        onChange={(e) => setNewVideo(prev => ({ ...prev, duration_seconds: parseInt(e.target.value) || 0 }))}
+                        className="flex-1"
+                      />
+                      {newVideo.duration_seconds > 0 && (
+                        <div className="flex items-center px-3 bg-muted rounded-md text-sm font-mono">
+                          {Math.floor(newVideo.duration_seconds / 60)}:{String(newVideo.duration_seconds % 60).padStart(2, '0')}
+                        </div>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Opcional: Ajuda a estimar o tempo total de exibição
+                      Preenchido automaticamente ao inserir a URL
                     </p>
                   </div>
                   {getVideoId(newVideo.youtube_url) && (
@@ -539,20 +558,35 @@ export function AdminInstructionVideos() {
                   placeholder="https://www.youtube.com/watch?v=..."
                   value={editingVideo.youtube_url}
                   onChange={(e) => handleUrlChange(e.target.value, true)}
+                  disabled={isLoadingDuration}
                 />
+                {isLoadingDuration && (
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Buscando duração do vídeo...
+                  </p>
+                )}
               </div>
               <div>
-                <Label htmlFor="edit-duration">Duração (segundos) *</Label>
-                <Input
-                  id="edit-duration"
-                  type="number"
-                  min={0}
-                  placeholder="Ex: 60"
-                  value={editingVideo.duration_seconds || ''}
-                  onChange={(e) => setEditingVideo({ ...editingVideo, duration_seconds: parseInt(e.target.value) || null })}
-                />
+                <Label htmlFor="edit-duration">Duração (segundos)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="edit-duration"
+                    type="number"
+                    min={0}
+                    placeholder="Ex: 60"
+                    value={editingVideo.duration_seconds || ''}
+                    onChange={(e) => setEditingVideo({ ...editingVideo, duration_seconds: parseInt(e.target.value) || null })}
+                    className="flex-1"
+                  />
+                  {editingVideo.duration_seconds && editingVideo.duration_seconds > 0 && (
+                    <div className="flex items-center px-3 bg-muted rounded-md text-sm font-mono">
+                      {Math.floor(editingVideo.duration_seconds / 60)}:{String(editingVideo.duration_seconds % 60).padStart(2, '0')}
+                    </div>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Insira a duração em segundos para cálculo de tempo estimado
+                  Preenchido automaticamente ao inserir a URL
                 </p>
               </div>
               {getVideoId(editingVideo.youtube_url) && (
