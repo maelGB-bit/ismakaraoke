@@ -107,6 +107,54 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_coupons: {
+        Row: {
+          code: string
+          created_at: string
+          current_uses: number
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          stripe_coupon_id: string | null
+          updated_at: string
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          current_uses?: number
+          description?: string | null
+          discount_type?: string
+          discount_value: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          stripe_coupon_id?: string | null
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          current_uses?: number
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          stripe_coupon_id?: string | null
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       event_archives: {
         Row: {
           created_at: string
@@ -368,6 +416,80 @@ export type Database = {
           },
         ]
       }
+      payment_records: {
+        Row: {
+          amount_paid: number
+          coupon_code: string | null
+          created_at: string
+          currency: string
+          discount_amount: number | null
+          id: string
+          instance_created: boolean
+          instance_id: string | null
+          payment_type: string
+          plan_id: string | null
+          plan_name: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_session_id: string
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_email: string
+          user_name: string | null
+          user_phone: string | null
+        }
+        Insert: {
+          amount_paid: number
+          coupon_code?: string | null
+          created_at?: string
+          currency?: string
+          discount_amount?: number | null
+          id?: string
+          instance_created?: boolean
+          instance_id?: string | null
+          payment_type?: string
+          plan_id?: string | null
+          plan_name: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_session_id: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_email: string
+          user_name?: string | null
+          user_phone?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          coupon_code?: string | null
+          created_at?: string
+          currency?: string
+          discount_amount?: number | null
+          id?: string
+          instance_created?: boolean
+          instance_id?: string | null
+          payment_type?: string
+          plan_id?: string | null
+          plan_name?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_session_id?: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_email?: string
+          user_name?: string | null
+          user_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_records_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       performances: {
         Row: {
           cantor: string
@@ -502,6 +624,60 @@ export type Database = {
           title?: string
           updated_at?: string
           youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_hours: number
+          id: string
+          is_active: boolean
+          is_free: boolean
+          is_recurring: boolean
+          name: string
+          price_amount: number
+          price_currency: string
+          recurring_interval: string | null
+          sort_order: number
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_hours: number
+          id?: string
+          is_active?: boolean
+          is_free?: boolean
+          is_recurring?: boolean
+          name: string
+          price_amount: number
+          price_currency?: string
+          recurring_interval?: string | null
+          sort_order?: number
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_hours?: number
+          id?: string
+          is_active?: boolean
+          is_free?: boolean
+          is_recurring?: boolean
+          name?: string
+          price_amount?: number
+          price_currency?: string
+          recurring_interval?: string | null
+          sort_order?: number
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
