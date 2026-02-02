@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { UserPlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 interface ParticipantRegistrationModalProps {
   open: boolean;
@@ -15,11 +16,21 @@ interface ParticipantRegistrationModalProps {
 
 export function ParticipantRegistrationModal({ open, onRegister, instanceName }: ParticipantRegistrationModalProps) {
   const { t } = useLanguage();
+  const { profile } = useUserProfile();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Pre-fill fields from localStorage profile when modal opens
+  useEffect(() => {
+    if (open && profile) {
+      setName(profile.name || '');
+      setPhone(profile.phone || '');
+      setEmail(profile.email || '');
+    }
+  }, [open, profile]);
 
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -84,7 +95,7 @@ export function ParticipantRegistrationModal({ open, onRegister, instanceName }:
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Seu nome"
-              autoFocus
+              autoFocus={!name}
             />
           </div>
 

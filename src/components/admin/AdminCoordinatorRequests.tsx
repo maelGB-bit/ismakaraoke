@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock, Check, X, Trash2, Loader2, RefreshCw, UserPlus, Link as LinkIcon, Copy, Eye, AlertTriangle } from 'lucide-react';
+import { Clock, Check, X, Trash2, Loader2, RefreshCw, UserPlus, Link as LinkIcon, Copy, Eye, EyeOff, AlertTriangle, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { CoordinatorDetailsModal } from './CoordinatorDetailsModal';
@@ -62,6 +63,7 @@ export function AdminCoordinatorRequests() {
   const [instanceName, setInstanceName] = useState('');
   const [duration, setDuration] = useState('24h');
   const [isApproving, setIsApproving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   // Details modal state
   const [detailsModal, setDetailsModal] = useState<{ open: boolean; request: CoordinatorRequest | null }>({
@@ -614,7 +616,7 @@ export function AdminCoordinatorRequests() {
       </Card>
 
       {/* Approval Dialog */}
-      <Dialog open={approvalDialog.open} onOpenChange={(open) => setApprovalDialog({ open, request: approvalDialog.request })}>
+      <Dialog open={approvalDialog.open} onOpenChange={(open) => { setApprovalDialog({ open, request: approvalDialog.request }); setShowPassword(false); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Aprovar Coordenador</DialogTitle>
@@ -647,6 +649,29 @@ export function AdminCoordinatorRequests() {
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Password info */}
+            <Alert className="bg-primary/10 border-primary/30">
+              <Info className="h-4 w-4" />
+              <AlertDescription className="flex items-center justify-between">
+                <span>
+                  Senha temporária: 
+                  <code className="ml-2 px-2 py-0.5 bg-muted rounded font-mono">
+                    {showPassword ? 'mamutekaraoke' : '••••••••••••'}
+                  </code>
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </AlertDescription>
+            </Alert>
+            
             {approvalDialog.request && (
               <div className="p-3 bg-muted rounded-lg text-sm">
                 <p><strong>Email:</strong> {approvalDialog.request.email}</p>
@@ -656,7 +681,7 @@ export function AdminCoordinatorRequests() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setApprovalDialog({ open: false, request: null })}>
+            <Button variant="outline" onClick={() => { setApprovalDialog({ open: false, request: null }); setShowPassword(false); }}>
               Cancelar
             </Button>
             <Button onClick={handleApprove} disabled={isApproving}>
