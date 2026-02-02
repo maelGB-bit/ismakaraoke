@@ -8,3 +8,27 @@ verify_jwt = false
 
 [functions.register-trial]
 verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.youtube-video-duration]
+verify_jwt = false
+
+[functions.create-coordinator]
+verify_jwt = false
+
+[functions.reset-coordinator-password]
+verify_jwt = false
+
+[functions.change-coordinator-password]
+verify_jwt = false
+
+[functions.force-logout]
+verify_jwt = false
+
+[functions.clear-session-flag]
+verify_jwt = false

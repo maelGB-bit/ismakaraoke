@@ -12,6 +12,8 @@ import DepoimentosPage from "./pages/DepoimentosPage";
 import ManualPage from "./pages/ManualPage";
 import TestarPage from "./pages/TestarPage";
 import PlanosPage from "./pages/PlanosPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import EntrarSistema from "./pages/EntrarSistema";
 
 // App pages (system)
@@ -45,9 +47,11 @@ const App = () => (
             <Route path="/manual" element={<ManualPage />} />
             <Route path="/testar" element={<TestarPage />} />
             <Route path="/planos" element={<PlanosPage />} />
+            <Route path="/checkout/:planId" element={<CheckoutPage />} />
             <Route path="/entrar" element={<EntrarSistema />} />
 
             {/* App routes (system) */}
+            <Route path="/app/payment-success" element={<PaymentSuccessPage />} />
             <Route path="/app" element={<Index />} />
             <Route path="/app/login" element={<LoginPage />} />
             <Route path="/app/cadastro" element={<CadastroTeste />} />

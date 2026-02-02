@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Key, Users, Mic2, LogOut, Loader2, UserPlus, Video, Image, MessageCircle, FileText, Film, Trophy, Home } from 'lucide-react';
+import { Shield, Key, Users, Mic2, LogOut, Loader2, UserPlus, Video, Image, MessageCircle, FileText, Film, Trophy, Home, DollarSign, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminApiKeys } from '@/components/admin/AdminApiKeys';
@@ -14,6 +14,8 @@ import { AdminSiteContacts } from '@/components/admin/AdminSiteContacts';
 import { AdminEventArchives } from '@/components/admin/AdminEventArchives';
 import { AdminInstructionVideos } from '@/components/admin/AdminInstructionVideos';
 import { AdminRankingSite } from '@/components/admin/AdminRankingSite';
+import { AdminPlans } from '@/components/admin/AdminPlans';
+import { AdminCoupons } from '@/components/admin/AdminCoupons';
 import { useAdminAuthState, AdminAuthContext } from '@/hooks/useAdminAuth';
 
 function AdminContent() {
@@ -72,7 +74,7 @@ function AdminContent() {
 
         {/* Tabs */}
         <Tabs defaultValue="requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10 lg:w-auto lg:inline-flex">
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1">
             <TabsTrigger value="requests" className="gap-2">
               <UserPlus className="h-4 w-4" />
               <span className="hidden sm:inline">Solicitações</span>
@@ -84,6 +86,14 @@ function AdminContent() {
             <TabsTrigger value="instances" className="gap-2">
               <Mic2 className="h-4 w-4" />
               <span className="hidden sm:inline">Instâncias</span>
+            </TabsTrigger>
+            <TabsTrigger value="plans" className="gap-2">
+              <DollarSign className="h-4 w-4" />
+              <span className="hidden sm:inline">Planos</span>
+            </TabsTrigger>
+            <TabsTrigger value="coupons" className="gap-2">
+              <Ticket className="h-4 w-4" />
+              <span className="hidden sm:inline">Cupons</span>
             </TabsTrigger>
             <TabsTrigger value="archives" className="gap-2">
               <FileText className="h-4 w-4" />
@@ -125,6 +135,14 @@ function AdminContent() {
 
           <TabsContent value="instances">
             <AdminInstances />
+          </TabsContent>
+
+          <TabsContent value="plans">
+            <AdminPlans />
+          </TabsContent>
+
+          <TabsContent value="coupons">
+            <AdminCoupons />
           </TabsContent>
 
           <TabsContent value="archives">
