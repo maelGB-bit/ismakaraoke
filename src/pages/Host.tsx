@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2, AlertCircle, Clock } from 'lucide-react';
+import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2, AlertCircle, Clock, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { YouTubeSearch } from '@/components/YouTubeSearch';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
@@ -115,7 +116,11 @@ function HostContent() {
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [insertFirst, setInsertFirst] = useState(true); // Toggle: first in queue or fair order
   const [showManualInput, setShowManualInput] = useState(false); // Show manual URL input when search fails
-
+  
+  // Video insertions toggle (coordinator can toggle if not mandatory)
+  const [videoInsertionsLocalEnabled, setVideoInsertionsLocalEnabled] = useState(
+    instance?.video_insertions_enabled ?? true
+  );
   // Check if user needs to change password
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [checkingPasswordStatus, setCheckingPasswordStatus] = useState(true);
@@ -566,6 +571,21 @@ function HostContent() {
             
             {/* Right side actions */}
             <div className="flex flex-wrap items-center gap-2 ml-auto">
+              {/* Video Insertions Toggle - only show if not mandatory */}
+              {instance?.video_insertions_enabled && !instance?.video_insertions_mandatory && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-card/50 border border-border/50">
+                  <Film className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor="video-insertions" className="text-xs text-muted-foreground">
+                    Vídeos Explicativos
+                  </Label>
+                  <Switch
+                    id="video-insertions"
+                    checked={videoInsertionsLocalEnabled}
+                    onCheckedChange={setVideoInsertionsLocalEnabled}
+                  />
+                </div>
+              )}
+              
               <Button
                 onClick={handleToggleRegistration}
                 variant="outline"

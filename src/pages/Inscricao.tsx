@@ -69,23 +69,26 @@ export default function Inscricao() {
   const [showManualInput, setShowManualInput] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  // Set singer name from profile when loaded
+  // Set singer name from profile when loaded - only on initial mount
   useEffect(() => {
-    if (profile && !registerForOther) {
+    if (profile && !registerForOther && !singerName) {
       setSingerName(profile.name);
     }
-  }, [profile, registerForOther]);
+  }, [profile?.name]); // Only depend on profile.name, not the full profile object
 
-  // Show registration if no profile
+  // Show registration if no profile - only on initial mount
   useEffect(() => {
     if (!profileLoading && !profile) {
       setShowRegistration(true);
     }
-  }, [profileLoading, profile]);
+  }, [profileLoading]); // Only check on initial load
 
   const handleRegistrationComplete = (newProfile: UserProfile) => {
+    // Save profile to localStorage FIRST
     saveProfile(newProfile);
+    // Then update local state
     setSingerName(newProfile.name);
+    // Close the registration modal LAST
     setShowRegistration(false);
   };
 

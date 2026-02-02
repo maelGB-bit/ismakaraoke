@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Video, Loader2, Plus, Save, Trash2, GripVertical, Play, ExternalLink, Settings } from 'lucide-react';
+import { Video, Loader2, Plus, Save, Trash2, GripVertical, Play, ExternalLink, Settings, Edit } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/supabase/client';
 
 export function AdminInstructionVideos() {
   const { data: videos, isLoading } = useInstructionVideos();
@@ -45,13 +46,22 @@ export function AdminInstructionVideos() {
   const { toast } = useToast();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteVideoId, setDeleteVideoId] = useState<string | null>(null);
+  const [editingVideo, setEditingVideo] = useState<InstructionVideo | null>(null);
   const [newVideo, setNewVideo] = useState({
     title: '',
     youtube_url: '',
     duration_seconds: 0,
   });
+  const [isLoadingDuration, setIsLoadingDuration] = useState(false);
   const [insertionFrequency, setInsertionFrequency] = useState(settings?.insertion_frequency ?? 3);
+
+  useEffect(() => {
+    if (settings?.insertion_frequency) {
+      setInsertionFrequency(settings.insertion_frequency);
+    }
+  }, [settings?.insertion_frequency]);
 
   const getVideoId = (url: string) => {
     const patterns = [
@@ -63,6 +73,54 @@ export function AdminInstructionVideos() {
       if (match) return match[1];
     }
     return null;
+  };
+
+  // Fetch video duration from YouTube
+  const fetchVideoDuration = async (url: string): Promise<number | null> => {
+    const videoId = getVideoId(url);
+    if (!videoId) return null;
+    
+    setIsLoadingDuration(true);
+    try {
+      // Use YouTube oEmbed to get video info
+      const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+      
+      if (!response.ok) return null;
+      
+      // Since oEmbed doesn't return duration, we'll estimate from typical video lengths
+      // In a production app, you'd use YouTube Data API with the API key
+      // For now, we'll use the existing YouTube search function if available
+      const { data, error } = await supabase.functions.invoke('youtube-search', {
+        body: { query: videoId, maxResults: 1 },
+      });
+      
+      if (!error && data?.videos?.[0]) {
+        // Duration from search is not available, keep manual input as fallback
+        return null;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching video duration:', error);
+      return null;
+    } finally {
+      setIsLoadingDuration(false);
+    }
+  };
+
+  const handleUrlChange = async (url: string, isEdit = false) => {
+    if (isEdit && editingVideo) {
+      setEditingVideo({ ...editingVideo, youtube_url: url });
+    } else {
+      setNewVideo(prev => ({ ...prev, youtube_url: url }));
+    }
+    
+    // Try to fetch duration automatically (for now this is a placeholder)
+    // Real implementation would use YouTube Data API
+    const videoId = getVideoId(url);
+    if (videoId) {
+      // Auto-fetch duration would go here with proper API
+      // For now, user enters manually but field is more prominent
+    }
   };
 
   const handleAddVideo = async () => {
@@ -106,6 +164,45 @@ export function AdminInstructionVideos() {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleEditVideo = async () => {
+    if (!editingVideo) return;
+    
+    if (!editingVideo.title || !editingVideo.youtube_url) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Preencha o título e a URL do vídeo.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await updateVideo.mutateAsync({
+        id: editingVideo.id,
+        title: editingVideo.title,
+        youtube_url: editingVideo.youtube_url,
+        duration_seconds: editingVideo.duration_seconds || null,
+      });
+      toast({
+        title: 'Vídeo atualizado',
+        description: 'O vídeo foi atualizado com sucesso.',
+      });
+      setEditingVideo(null);
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível atualizar o vídeo.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const openEditDialog = (video: InstructionVideo) => {
+    setEditingVideo({ ...video });
+    setIsEditDialogOpen(true);
   };
 
   const handleToggleActive = async (video: InstructionVideo) => {
@@ -375,6 +472,14 @@ export function AdminInstructionVideos() {
                       <Button
                         size="icon"
                         variant="ghost"
+                        onClick={() => openEditDialog(video)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         className="text-destructive hover:text-destructive"
                         onClick={() => setDeleteVideoId(video.id)}
                       >
@@ -406,6 +511,74 @@ export function AdminInstructionVideos() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Video Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Vídeo Explicativo</DialogTitle>
+            <DialogDescription>
+              Altere as informações do vídeo.
+            </DialogDescription>
+          </DialogHeader>
+          {editingVideo && (
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="edit-title">Título</Label>
+                <Input
+                  id="edit-title"
+                  placeholder="Ex: Como votar no app"
+                  value={editingVideo.title}
+                  onChange={(e) => setEditingVideo({ ...editingVideo, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-url">URL do YouTube</Label>
+                <Input
+                  id="edit-url"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={editingVideo.youtube_url}
+                  onChange={(e) => handleUrlChange(e.target.value, true)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-duration">Duração (segundos) *</Label>
+                <Input
+                  id="edit-duration"
+                  type="number"
+                  min={0}
+                  placeholder="Ex: 60"
+                  value={editingVideo.duration_seconds || ''}
+                  onChange={(e) => setEditingVideo({ ...editingVideo, duration_seconds: parseInt(e.target.value) || null })}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Insira a duração em segundos para cálculo de tempo estimado
+                </p>
+              </div>
+              {getVideoId(editingVideo.youtube_url) && (
+                <div className="aspect-video rounded-lg overflow-hidden bg-black/20 border border-border">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${getVideoId(editingVideo.youtube_url)}`}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="Preview"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEditVideo} disabled={updateVideo.isPending}>
+              {updateVideo.isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Salvar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
