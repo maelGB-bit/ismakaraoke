@@ -89,10 +89,10 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
               flex-direction: column;
               align-items: center;
               justify-content: center;
-              padding: 1mm 6mm;
+              padding: 1mm 8mm;
             }
             .logo {
-              width: 26mm;
+              width: 20mm;
               height: auto;
               margin-bottom: 1mm;
             }
@@ -177,10 +177,10 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
         logo.src = mamuteLogo;
       });
 
-      // Draw logo (centered at top) - same size as QR code
-      const logoWidth = 280;
+      // Draw logo (centered at top) - reduced size
+      const logoWidth = 220;
       const logoHeight = (logo.height / logo.width) * logoWidth;
-      ctx.drawImage(logo, (size - logoWidth) / 2, 30, logoWidth, logoHeight);
+      ctx.drawImage(logo, (size - logoWidth) / 2, 50, logoWidth, logoHeight);
 
       // Get QR code as data URL
       const svgElement = printRef.current?.querySelector('svg');
@@ -196,13 +196,12 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
           qrImage.src = svgUrl;
         });
 
-        // Draw QR code (centered below logo) - same size as logo
-        const qrSize = 280;
-        const qrY = 30 + logoHeight + 10;
+        // Draw QR code (centered below logo) - reduced size
+        const qrSize = 220;
+        const qrY = 50 + logoHeight + 15;
         ctx.drawImage(qrImage, (size - qrSize) / 2, qrY, qrSize, qrSize);
         URL.revokeObjectURL(svgUrl);
       }
-
       // Download
       const link = document.createElement('a');
       link.download = `qrcode_${instanceCode}.png`;
@@ -248,10 +247,10 @@ export function QRCodePrintable({ instanceCode }: QRCodePrintableProps) {
             
             {/* Center content */}
             <div className="flex flex-col items-center">
-              <img src={mamuteLogo} alt="Mamute" className="w-20 h-auto mb-1" />
+              <img src={mamuteLogo} alt="Mamute" className="w-16 h-auto mb-1" />
               <QRCodeSVG
                 value={voteUrl}
-                size={80}
+                size={64}
                 level="H"
                 includeMargin={false}
               />
