@@ -40,6 +40,8 @@ interface TVModeViewProps {
   currentInstructionVideo?: InstructionVideo | null;
   isPlayingInstructionVideo?: boolean;
   onInstructionVideoEnded?: () => void;
+  activeInstructionVideos?: InstructionVideo[];
+  insertionFrequency?: number;
 }
 
 function extractVideoId(url: string): string | null {
@@ -85,6 +87,8 @@ export function TVModeView({
   currentInstructionVideo,
   isPlayingInstructionVideo = false,
   onInstructionVideoEnded,
+  activeInstructionVideos = [],
+  insertionFrequency = 3,
 }: TVModeViewProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -104,14 +108,29 @@ export function TVModeView({
   const [isLoadingNext, setIsLoadingNext] = useState(false);
   const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
   
-  // Calculate estimated end time (4 min per song + 1 min break)
+  // Calculate estimated end time (4 min per song + 1 min break + instruction video durations)
   const estimatedEndTime = useMemo(() => {
     const SONG_DURATION_MINUTES = 4;
     const BREAK_MINUTES = 1;
-    const totalMinutes = queueCount * (SONG_DURATION_MINUTES + BREAK_MINUTES);
+    
+    // Calculate total song time
+    let totalMinutes = queueCount * (SONG_DURATION_MINUTES + BREAK_MINUTES);
+    
+    // Add instruction video time if enabled
+    if (videoInsertionsEnabled && activeInstructionVideos.length > 0 && queueCount > 0) {
+      // Calculate how many instruction videos will be inserted
+      const videoInsertions = Math.floor(queueCount / (insertionFrequency + 1));
+      
+      // Calculate average instruction video duration (default to 2 minutes if not set)
+      const avgVideoDuration = activeInstructionVideos.reduce((sum, v) => sum + (v.duration_seconds || 120), 0) / activeInstructionVideos.length;
+      
+      // Add instruction video time in minutes
+      totalMinutes += (videoInsertions * avgVideoDuration) / 60;
+    }
+    
     const endTime = new Date(Date.now() + totalMinutes * 60 * 1000);
     return endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }, [queueCount]);
+  }, [queueCount, videoInsertionsEnabled, activeInstructionVideos, insertionFrequency]);
 
   const handleToggleRegistration = async () => {
     if (isTogglingRegistration) return;
@@ -442,6 +461,11 @@ export function TVModeView({
 
       {/* Top Bar - Two rows for better responsiveness */}
       <div className="bg-background/80 backdrop-blur-sm border-b border-border/50 z-10">
+        {/* Logo */}
+        <div className="flex justify-center py-1 border-b border-border/30">
+          <img src="/img/mamute-logo.png" alt="Mamute Karaokê" className="h-8" />
+        </div>
+        
         {/* Row 1: Singer Info (Primary - Large & Prominent) */}
         <div className="flex flex-wrap items-center justify-center gap-3 p-2 border-b border-border/30">
           {/* Instruction Video Indicator */}
@@ -584,15 +608,16 @@ export function TVModeView({
 
           <span className="text-xs">•</span>
 
-          {/* Video Insertions Toggle - only show if enabled and not mandatory */}
-          {videoInsertionsEnabled && !videoInsertionsMandatory && onToggleVideoInsertions && (
+          {/* Video Insertions Toggle - show always but disable if mandatory */}
+          {onToggleVideoInsertions && (
             <>
-              <div className="flex items-center gap-1 text-xs">
+              <div className={`flex items-center gap-1 text-xs ${videoInsertionsMandatory ? 'opacity-50' : ''}`}>
                 <Film className="w-3 h-3" />
                 <span>Vídeos</span>
                 <Switch
                   checked={videoInsertionsEnabled}
                   onCheckedChange={onToggleVideoInsertions}
+                  disabled={videoInsertionsMandatory}
                   className="scale-75"
                 />
               </div>

@@ -419,11 +419,17 @@ function HostContent() {
   };
 
   const handleTVSelectNext = async () => {
+    // If currently playing instruction video, end it and proceed to next singer
+    if (isPlayingInstructionVideo) {
+      await handleInstructionVideoEnded();
+      return;
+    }
+    
     // Check if we should play an instruction video first
     if (effectiveVideoEnabled && instructionVideoQueue.activeVideos.length > 0) {
       const shouldInsert = (performanceCount + 1) % (instructionVideoQueue.insertionFrequency + 1) === 0;
       
-      if (shouldInsert && !isPlayingInstructionVideo) {
+      if (shouldInsert) {
         // Play instruction video
         const videoIndex = instructionVideoQueue.currentVideoIndex % instructionVideoQueue.activeVideos.length;
         const video = instructionVideoQueue.activeVideos[videoIndex];
@@ -619,6 +625,8 @@ function HostContent() {
             currentInstructionVideo={currentInstructionVideo}
             isPlayingInstructionVideo={isPlayingInstructionVideo}
             onInstructionVideoEnded={handleInstructionVideoEnded}
+            activeInstructionVideos={instructionVideoQueue.activeVideos}
+            insertionFrequency={instructionVideoQueue.insertionFrequency}
           />
         )}
       </AnimatePresence>
@@ -659,20 +667,21 @@ function HostContent() {
             
             {/* Right side actions */}
             <div className="flex flex-wrap items-center gap-2 ml-auto">
-              {/* Video Insertions Toggle - only show if not mandatory */}
-              {instance?.video_insertions_enabled && !instance?.video_insertions_mandatory && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-card/50 border border-border/50">
-                  <Film className="h-4 w-4 text-muted-foreground" />
-                  <Label htmlFor="video-insertions" className="text-xs text-muted-foreground">
-                    Vídeos Explicativos
-                  </Label>
-                  <Switch
-                    id="video-insertions"
-                    checked={videoInsertionsLocalEnabled}
-                    onCheckedChange={setVideoInsertionsLocalEnabled}
-                  />
-                </div>
-              )}
+              {/* Video Insertions Toggle - show always, disabled if mandatory */}
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md bg-card/50 border border-border/50 ${
+                instance?.video_insertions_mandatory ? 'opacity-50' : ''
+              }`}>
+                <Film className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="video-insertions" className="text-xs text-muted-foreground">
+                  Vídeos Explicativos
+                </Label>
+                <Switch
+                  id="video-insertions"
+                  checked={videoInsertionsLocalEnabled}
+                  onCheckedChange={setVideoInsertionsLocalEnabled}
+                  disabled={instance?.video_insertions_mandatory}
+                />
+              </div>
               
               <Button
                 onClick={handleToggleRegistration}
@@ -709,8 +718,17 @@ function HostContent() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover">
-                  <DropdownMenuItem onClick={() => navigate('/')}><Home className="mr-2 h-4 w-4" />{t('host.backToHome')}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/')}>
+                    <Home className="mr-2 h-4 w-4" />
+                    Voltar ao Site
+                  </DropdownMenuItem>
+                  {isAdmin && instanceCode && (
+                    <DropdownMenuItem onClick={() => navigate('/app/admin')}>
+                      <Home className="mr-2 h-4 w-4" />
+                      Voltar ao Admin
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => navigate('/app/ranking')}><Trophy className="mr-2 h-4 w-4" />{t('host.showRanking')}</DropdownMenuItem>
                   {instanceId && (
                     <CoordinatorDataExport 
                       instanceId={instanceId} 
@@ -733,9 +751,15 @@ function HostContent() {
               </Button>
             </div>
           </div>
-          {/* Title */}
+          {/* Title with Logo */}
           <div className="text-center">
-            <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center justify-center gap-3"><Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />{instance?.name || t('host.title')}</h1>
+            <div className="flex items-center justify-center gap-3 mb-1">
+              <img src="/img/mamute-logo.png" alt="Mamute Karaokê" className="h-10 lg:h-12" />
+              <h1 className="text-3xl lg:text-4xl font-black font-display neon-text-pink flex items-center gap-3">
+                <Mic2 className="w-8 h-8 lg:w-10 lg:h-10" />
+                {instance?.name || t('host.title')}
+              </h1>
+            </div>
             <p className="text-muted-foreground text-sm">{t('host.subtitle')} • {instance?.instance_code}</p>
           </div>
         </header>

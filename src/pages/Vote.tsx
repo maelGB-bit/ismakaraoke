@@ -369,6 +369,26 @@ export default function Vote() {
             userProfile={userProfile}
           />
         </motion.div>
+        
+        {/* Footer Promotional Message */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-center mt-4 p-3 rounded-lg bg-muted/30 border border-border/50"
+        >
+          <p className="text-xs text-muted-foreground">
+            Quer levar o sistema Mamute Karaokê para seu evento, casa ou estabelecimento?{' '}
+            <a 
+              href="https://www.mamutekaraoke.com.br" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium"
+            >
+              Acesse o site www.mamutekaraoke.com.br
+            </a>
+          </p>
+        </motion.div>
       </div>
     </div>
   );
