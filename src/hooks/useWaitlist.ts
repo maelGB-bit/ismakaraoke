@@ -13,6 +13,7 @@ export interface WaitlistEntry {
   created_at: string;
   priority: number;
   registered_by?: string;
+  allow_voting?: boolean;
 }
 
 function normalizeSingerName(name: string) {
@@ -237,7 +238,7 @@ export function useWaitlist(instanceId?: string | null) {
   const RATE_LIMIT_KEY = 'waitlist_last_submission';
   const RATE_LIMIT_MS = 60000; // 1 minute
 
-  const addToWaitlist = async (singerName: string, youtubeUrl: string, songTitle: string, registeredBy?: string, insertFirst = false) => {
+  const addToWaitlist = async (singerName: string, youtubeUrl: string, songTitle: string, registeredBy?: string, insertFirst = false, allowVoting = true) => {
     try {
       // Check if registration is open for this instance (skip for coordinator insertions)
       if (!insertFirst && instanceId) {
@@ -321,6 +322,7 @@ export function useWaitlist(instanceId?: string | null) {
         status: 'waiting',
         registered_by: registeredBy?.trim() || null,
         karaoke_instance_id: instanceId || null,
+        allow_voting: allowVoting,
       };
 
       const { error } = await supabase.from('waitlist').insert(insertData);

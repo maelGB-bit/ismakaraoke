@@ -753,6 +753,7 @@ export type Database = {
       }
       waitlist: {
         Row: {
+          allow_voting: boolean | null
           created_at: string
           id: string
           karaoke_instance_id: string | null
@@ -765,6 +766,7 @@ export type Database = {
           youtube_url: string
         }
         Insert: {
+          allow_voting?: boolean | null
           created_at?: string
           id?: string
           karaoke_instance_id?: string | null
@@ -777,6 +779,7 @@ export type Database = {
           youtube_url: string
         }
         Update: {
+          allow_voting?: boolean | null
           created_at?: string
           id?: string
           karaoke_instance_id?: string | null
