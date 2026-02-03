@@ -111,7 +111,7 @@ serve(async (req) => {
     ` : '';
 
     const emailResponse = await resend.emails.send({
-      from: "Mamute Karaokê <noreply@resend.dev>",
+      from: "Mamute Karaokê <noreply@mamutekaraoke.com>",
       to: [email],
       subject: isExistingUser 
         ? "🎤 Seu plano foi renovado - Mamute Karaokê"
