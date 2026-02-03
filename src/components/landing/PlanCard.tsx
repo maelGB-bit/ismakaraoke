@@ -1,4 +1,4 @@
-import { Check, Trophy, Star, Crown } from 'lucide-react';
+import { Check, Trophy, Star, Crown, RefreshCw, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,8 @@ interface PlanCardProps {
   href?: string;
   isPopular?: boolean;
   isPro?: boolean;
+  isRecurring?: boolean;
+  isFree?: boolean;
   onSelect?: () => void;
 }
 
@@ -35,6 +37,8 @@ export function PlanCard({
   href,
   isPopular,
   isPro,
+  isRecurring,
+  isFree,
   onSelect,
 }: PlanCardProps) {
   return (
@@ -108,8 +112,35 @@ export function PlanCard({
         )}>
           Tempo de acesso: <strong>{duration}</strong>
         </p>
+        
+        {/* Payment type badge */}
+        {!isFree && (
+          <div className={cn(
+            'inline-flex items-center gap-1 mt-2 px-2 py-1 rounded-full text-xs font-medium',
+            isRecurring 
+              ? isPro 
+                ? 'bg-white/20 text-white' 
+                : 'bg-blue-100 text-blue-700'
+              : isPro 
+                ? 'bg-white/20 text-white' 
+                : 'bg-green-100 text-green-700'
+          )}>
+            {isRecurring ? (
+              <>
+                <RefreshCw className="w-3 h-3" />
+                Assinatura recorrente
+              </>
+            ) : (
+              <>
+                <Zap className="w-3 h-3" />
+                Pagamento único
+              </>
+            )}
+          </div>
+        )}
+        
         <p className={cn(
-          'text-xs mt-1',
+          'text-xs mt-2',
           isPro ? 'text-white/60' : 'text-landing-dark/40'
         )}>
           Ideal para: {ideal}

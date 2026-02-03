@@ -128,6 +128,8 @@ export default function PlanosPage() {
                   href={plan.is_free ? '/app/cadastro' : undefined}
                   isPopular={plan.name === 'Platinum'}
                   isPro={plan.name === 'Pro'}
+                  isRecurring={plan.is_recurring}
+                  isFree={plan.is_free}
                   onSelect={() => handleSelectPlan(plan)}
                 />
               </motion.div>
