@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Key, Eye, EyeOff, Save, Loader2, CreditCard, AlertCircle, CheckCircle, RefreshCw, Edit2 } from 'lucide-react';
+import { Settings, Key, Eye, EyeOff, Save, Loader2, CreditCard, AlertCircle, CheckCircle, RefreshCw, Edit2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ interface SecretField {
   description: string;
   icon: React.ReactNode;
   placeholder: string;
+  category: 'stripe' | 'email';
 }
 
 interface SecretStatus {
@@ -31,6 +32,7 @@ const SECRET_FIELDS: SecretField[] = [
     description: 'Chave secreta do Stripe para processar pagamentos. Use sk_test_ para testes ou sk_live_ para produção.',
     icon: <CreditCard className="h-4 w-4" />,
     placeholder: 'sk_test_... ou sk_live_...',
+    category: 'stripe',
   },
   {
     key: 'STRIPE_WEBHOOK_SECRET',
@@ -38,6 +40,15 @@ const SECRET_FIELDS: SecretField[] = [
     description: 'Secret para verificar assinaturas de webhooks do Stripe.',
     icon: <CreditCard className="h-4 w-4" />,
     placeholder: 'whsec_...',
+    category: 'stripe',
+  },
+  {
+    key: 'RESEND_API_KEY',
+    label: 'Resend API Key',
+    description: 'Chave da API do Resend para envio de e-mails de credenciais.',
+    icon: <Mail className="h-4 w-4" />,
+    placeholder: 're_...',
+    category: 'email',
   },
 ];
 
@@ -349,6 +360,7 @@ export function AdminSecrets() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Stripe Section */}
         <div>
           <div className="flex items-center gap-2 mb-4">
             <CreditCard className="h-5 w-5 text-primary" />
@@ -360,7 +372,7 @@ export function AdminSecrets() {
             </div>
           ) : (
             <div className="space-y-4">
-              {SECRET_FIELDS.map(renderSecretField)}
+              {SECRET_FIELDS.filter(f => f.category === 'stripe').map(renderSecretField)}
             </div>
           )}
           <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
@@ -369,6 +381,32 @@ export function AdminSecrets() {
               <div className="text-sm text-amber-700 dark:text-amber-400">
                 <strong>Dica:</strong> Para ativar pagamentos reais, substitua as chaves de teste (sk_test_) 
                 pelas chaves de produção (sk_live_) do seu dashboard do Stripe.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Email Section */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Mail className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold text-lg">E-mail (Resend)</h3>
+          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {SECRET_FIELDS.filter(f => f.category === 'email').map(renderSecretField)}
+            </div>
+          )}
+          <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Mail className="h-4 w-4 text-blue-500 mt-0.5" />
+              <div className="text-sm text-blue-700 dark:text-blue-400">
+                <strong>Importante:</strong> Esta chave é necessária para enviar e-mails com credenciais 
+                de acesso para novos coordenadores após o pagamento.
               </div>
             </div>
           </div>
