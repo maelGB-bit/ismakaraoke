@@ -5,7 +5,9 @@ import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LandingFooter } from '@/components/landing/LandingFooter';
 import { PlanCard } from '@/components/landing/PlanCard';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Tag } from 'lucide-react';
+import { Loader2, Tag, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface Plan {
   id: string;
@@ -27,6 +29,7 @@ interface VisibleCoupon {
   description: string | null;
   discount_type: string;
   discount_value: number;
+  valid_until: string | null;
 }
 
 const formatDuration = (hours: number) => {
@@ -63,7 +66,7 @@ export default function PlanosPage() {
           .order('sort_order'),
         supabase
           .from('discount_coupons')
-          .select('code, description, discount_type, discount_value')
+          .select('code, description, discount_type, discount_value, valid_until')
           .eq('is_active', true)
           .eq('visible_on_site', true)
           .limit(1)
@@ -160,6 +163,12 @@ export default function PlanosPage() {
                     : `R$ ${(visibleCoupon.discount_value / 100).toFixed(2).replace('.', ',')} de desconto`
                   }!
                 </span>
+                {visibleCoupon.valid_until && (
+                  <span className="flex items-center gap-1 text-sm opacity-80 mt-1">
+                    <Calendar className="w-3 h-3" />
+                    Válido até {format(new Date(visibleCoupon.valid_until), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  </span>
+                )}
               </motion.div>
             )}
           </motion.div>
