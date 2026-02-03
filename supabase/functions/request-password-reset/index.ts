@@ -101,8 +101,8 @@ serve(async (req) => {
 
     const resend = new Resend(secretData.encrypted_value);
 
-    // Build reset URL
-    const baseUrl = Deno.env.get("SITE_URL") || "https://ismakaraoke.lovable.app";
+    // Build reset URL - always use production domain
+    const baseUrl = "https://www.mamutekaraoke.com.br";
     const resetUrl = `${baseUrl}/app/reset-password?token=${token}`;
 
     logStep("Sending reset email", { email, resetUrl });
