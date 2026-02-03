@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic2, Loader2, LogIn, UserPlus, Home, CheckCircle2, Key, Copy, Eye, EyeOff } from 'lucide-react';
+import { Mic2, Loader2, LogIn, UserPlus, Home, CheckCircle2, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,47 +23,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
-  const [showTempPassword, setShowTempPassword] = useState(false);
-  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
-  const [loadingCredentials, setLoadingCredentials] = useState(false);
-  
   const isPaymentSuccess = searchParams.get('payment') === 'success';
   const paymentEmail = searchParams.get('email');
-
-  // Fetch credentials when payment is successful
-  useEffect(() => {
-    const fetchCredentials = async () => {
-      if (isPaymentSuccess && paymentEmail) {
-        setLoadingCredentials(true);
-        try {
-          const { data, error } = await supabase
-            .from('coordinator_requests')
-            .select('email, current_password')
-            .eq('email', paymentEmail)
-            .eq('status', 'approved')
-            .order('approved_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (data && data.current_password) {
-            setCredentials({
-              email: data.email,
-              password: data.current_password,
-            });
-            // Pre-fill the email field
-            setEmail(data.email);
-          }
-        } catch (err) {
-          console.error('Error fetching credentials:', err);
-        } finally {
-          setLoadingCredentials(false);
-        }
-      }
-    };
-
-    fetchCredentials();
-  }, [isPaymentSuccess, paymentEmail]);
-
   useEffect(() => {
     let isMounted = true;
     
@@ -111,11 +72,6 @@ export default function LoginPage() {
       clearTimeout(timeout);
     };
   }, []);
-
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast({ title: `${label} copiado!` });
-  };
 
   const redirectBasedOnRole = async (userId: string) => {
     try {
@@ -233,72 +189,18 @@ export default function LoginPage() {
                 Sua instância de karaokê foi criada com sucesso.
               </p>
               
-              {loadingCredentials ? (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Carregando credenciais...</span>
+              <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                <div className="flex items-center gap-2 text-primary mb-2">
+                  <Key className="w-4 h-4" />
+                  <span className="font-medium text-sm">Credenciais enviadas por e-mail</span>
                 </div>
-              ) : credentials ? (
-                <div className="space-y-3">
-                  <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg">
-                    <div className="flex items-center gap-2 text-primary mb-2">
-                      <Key className="w-4 h-4" />
-                      <span className="font-medium text-sm">Suas credenciais de acesso:</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between bg-background/50 rounded px-3 py-2">
-                        <div>
-                          <span className="text-xs text-muted-foreground">E-mail:</span>
-                          <p className="text-sm font-mono">{credentials.email}</p>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyToClipboard(credentials.email, 'E-mail')}
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between bg-background/50 rounded px-3 py-2">
-                        <div>
-                          <span className="text-xs text-muted-foreground">Senha temporária:</span>
-                          <p className="text-sm font-mono">
-                            {showTempPassword ? credentials.password : '••••••••••••'}
-                          </p>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowTempPassword(!showTempPassword)}
-                          >
-                            {showTempPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyToClipboard(credentials.password, 'Senha')}
-                          >
-                            <Copy className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground text-center">
-                    Use as credenciais acima para fazer login. Você será solicitado a trocar a senha no primeiro acesso.
-                  </p>
-                </div>
-              ) : (
-                <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                  <p className="text-xs text-muted-foreground">
-                    Suas credenciais estão sendo processadas. Aguarde alguns segundos e recarregue a página.
-                  </p>
-                </div>
-              )}
+                <p className="text-sm text-muted-foreground">
+                  Enviamos um e-mail para <strong className="text-foreground">{paymentEmail}</strong> com suas credenciais de acesso (e-mail e senha temporária).
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Verifique também a pasta de spam caso não encontre o e-mail.
+                </p>
+              </div>
             </motion.div>
           )}
 
