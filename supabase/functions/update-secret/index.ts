@@ -15,6 +15,7 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 const ALLOWED_SECRETS = [
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
+  'RESEND_API_KEY',
 ];
 
 serve(async (req) => {
