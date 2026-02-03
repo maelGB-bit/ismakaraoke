@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 interface PlanCardProps {
   name: string;
   price: string;
+  originalPrice?: string;
+  discountedPrice?: string;
   period?: string;
   duration: string;
   ideal: string;
@@ -30,6 +32,8 @@ const features = [
 export function PlanCard({
   name,
   price,
+  originalPrice,
+  discountedPrice,
   period,
   duration,
   ideal,
@@ -91,12 +95,30 @@ export function PlanCard({
           {name}
         </h3>
         <div className="mb-2">
-          <span className={cn(
-            'text-3xl font-bold',
-            isPro ? 'text-white' : 'text-landing-dark'
-          )}>
-            {price}
-          </span>
+          {discountedPrice && originalPrice ? (
+            <>
+              <span className={cn(
+                'text-lg line-through opacity-60',
+                isPro ? 'text-white' : 'text-landing-dark'
+              )}>
+                {originalPrice}
+              </span>
+              <br />
+              <span className={cn(
+                'text-3xl font-bold',
+                isPro ? 'text-white' : 'text-green-600'
+              )}>
+                {discountedPrice}
+              </span>
+            </>
+          ) : (
+            <span className={cn(
+              'text-3xl font-bold',
+              isPro ? 'text-white' : 'text-landing-dark'
+            )}>
+              {price}
+            </span>
+          )}
           {period && (
             <span className={cn(
               'text-sm',

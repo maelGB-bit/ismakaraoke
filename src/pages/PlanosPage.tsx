@@ -106,6 +106,18 @@ export default function PlanosPage() {
     return plan.recurring_interval === 'month' ? ' / mês' : ' / ano';
   };
 
+  const getDiscountedPrice = (originalAmount: number) => {
+    if (!visibleCoupon) return null;
+    
+    if (visibleCoupon.discount_type === 'percentage') {
+      const discount = originalAmount * (visibleCoupon.discount_value / 100);
+      return originalAmount - discount;
+    } else {
+      // Fixed amount discount (in cents)
+      return Math.max(0, originalAmount - visibleCoupon.discount_value);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-landing-light flex items-center justify-center">
@@ -163,6 +175,8 @@ export default function PlanosPage() {
                 <PlanCard
                   name={plan.name}
                   price={plan.is_free ? 'R$ 0,00' : formatPrice(plan.price_amount)}
+                  originalPrice={!plan.is_free && visibleCoupon ? formatPrice(plan.price_amount) : undefined}
+                  discountedPrice={!plan.is_free && visibleCoupon ? formatPrice(getDiscountedPrice(plan.price_amount) || 0) : undefined}
                   period={getPeriodText(plan)}
                   duration={formatDuration(plan.duration_hours)}
                   ideal={getIdealText(plan)}
