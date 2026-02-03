@@ -48,11 +48,14 @@ serve(async (req) => {
       throw new Error("Unauthorized - Admin access required");
     }
 
+    // All secret keys to check
+    const ALL_SECRET_KEYS = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'RESEND_API_KEY'];
+
     // Get secrets status (not the actual values, just metadata)
     const { data: secrets, error: secretsError } = await supabaseAdmin
       .from('secure_secrets')
       .select('key_name, updated_at, created_at')
-      .in('key_name', ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET']);
+      .in('key_name', ALL_SECRET_KEYS);
 
     if (secretsError) {
       throw new Error(`Failed to fetch secrets: ${secretsError.message}`);
@@ -86,7 +89,7 @@ serve(async (req) => {
     }
 
     // Add missing keys as not configured
-    ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'].forEach(key => {
+    ALL_SECRET_KEYS.forEach(key => {
       if (!secretsStatus[key]) {
         secretsStatus[key] = {
           exists: false,
