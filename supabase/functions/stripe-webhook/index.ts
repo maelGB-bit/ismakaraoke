@@ -256,11 +256,20 @@ serve(async (req) => {
         }
 
         // Create or update coordinator request record for tracking
-        const { data: existingRequest } = await supabase
+        // First try to find by user_id, then by email
+        const { data: existingByUserId } = await supabase
+          .from('coordinator_requests')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+
+        const { data: existingByEmail } = await supabase
           .from('coordinator_requests')
           .select('id')
           .eq('email', customerEmail)
           .single();
+
+        const existingRequest = existingByUserId || existingByEmail;
 
         if (existingRequest) {
           await supabase
@@ -268,6 +277,7 @@ serve(async (req) => {
             .update({
               status: 'approved',
               user_id: userId,
+              name: customerName || undefined, // Update name if provided
               expires_at: expiresAt.toISOString(),
               approved_at: new Date().toISOString(),
               instance_name: instanceName,
@@ -275,11 +285,14 @@ serve(async (req) => {
               must_change_password: !!tempPassword,
             })
             .eq('id', existingRequest.id);
+          
+          logStep("Updated existing coordinator request", { requestId: existingRequest.id });
         } else {
-          await supabase
+          // ALWAYS create a coordinator_request for new coordinators
+          const { error: insertError } = await supabase
             .from('coordinator_requests')
             .insert({
-              name: customerName,
+              name: customerName || 'Coordenador',
               email: customerEmail,
               phone: customerPhone || '',
               interest: 'single_event',
@@ -291,6 +304,12 @@ serve(async (req) => {
               current_password: tempPassword,
               must_change_password: !!tempPassword,
             });
+          
+          if (insertError) {
+            logStep("Warning: Failed to create coordinator request", { error: insertError.message });
+          } else {
+            logStep("Created new coordinator request for user", { userId, email: customerEmail });
+          }
         }
 
         // Send confirmation email (for both new and existing users)
