@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Settings, Key, Eye, EyeOff, Save, Loader2, CreditCard, AlertCircle, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Settings, Key, Eye, EyeOff, Save, Loader2, CreditCard, AlertCircle, CheckCircle, RefreshCw, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface SecretField {
   key: string;
@@ -14,6 +16,12 @@ interface SecretField {
   description: string;
   icon: React.ReactNode;
   placeholder: string;
+}
+
+interface SecretStatus {
+  exists: boolean;
+  updatedAt: string | null;
+  isTestKey: boolean | null;
 }
 
 const SECRET_FIELDS: SecretField[] = [
@@ -36,14 +44,42 @@ const SECRET_FIELDS: SecretField[] = [
 export function AdminSecrets() {
   const { toast } = useToast();
   const [secrets, setSecrets] = useState<Record<string, string>>({});
+  const [secretsStatus, setSecretsStatus] = useState<Record<string, SecretStatus>>({});
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState<Record<string, boolean>>({});
   const [testing, setTesting] = useState<Record<string, boolean>>({});
   const [testResults, setTestResults] = useState<Record<string, { valid: boolean; message: string }>>({});
+  const [editMode, setEditMode] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+
+  const fetchSecretsStatus = async () => {
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await supabase.functions.invoke('get-secrets-status', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (response.error) throw response.error;
+
+      if (response.data?.secrets) {
+        setSecretsStatus(response.data.secrets);
+      }
+    } catch (error) {
+      console.error('Error fetching secrets status:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSecretsStatus();
+  }, []);
 
   const handleSecretChange = (key: string, value: string) => {
     setSecrets(prev => ({ ...prev, [key]: value }));
-    // Clear test result when value changes
     setTestResults(prev => {
       const newResults = { ...prev };
       delete newResults[key];
@@ -53,6 +89,13 @@ export function AdminSecrets() {
 
   const toggleShowSecret = (key: string) => {
     setShowSecrets(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleEditMode = (key: string) => {
+    setEditMode(prev => ({ ...prev, [key]: !prev[key] }));
+    if (!editMode[key]) {
+      setSecrets(prev => ({ ...prev, [key]: '' }));
+    }
   };
 
   const handleSave = async (key: string) => {
@@ -83,9 +126,12 @@ export function AdminSecrets() {
         description: `${key} foi atualizada com sucesso.`,
       });
 
-      // Clear the input after successful save
       setSecrets(prev => ({ ...prev, [key]: '' }));
       setShowSecrets(prev => ({ ...prev, [key]: false }));
+      setEditMode(prev => ({ ...prev, [key]: false }));
+      
+      // Refresh status
+      await fetchSecretsStatus();
     } catch (error) {
       console.error('Error saving secret:', error);
       toast({
@@ -145,7 +191,8 @@ export function AdminSecrets() {
     const isSaving = saving[field.key];
     const isTesting = testing[field.key];
     const testResult = testResults[field.key];
-    const isManaged = field.key === 'LOVABLE_API_KEY';
+    const status = secretsStatus[field.key];
+    const isEditing = editMode[field.key];
 
     return (
       <div key={field.key} className="space-y-3 p-4 border rounded-lg bg-card">
@@ -157,19 +204,43 @@ export function AdminSecrets() {
               <p className="text-xs text-muted-foreground mt-0.5">{field.description}</p>
             </div>
           </div>
-          {field.key.startsWith('STRIPE') && (
-            <Badge variant={value.includes('live') ? 'default' : 'secondary'}>
-              {value.includes('live') ? 'Produção' : 'Teste'}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {status?.exists && (
+              <Badge variant={status.isTestKey === false ? 'default' : 'secondary'}>
+                {status.isTestKey === false ? 'Produção' : status.isTestKey === true ? 'Teste' : 'Configurada'}
+              </Badge>
+            )}
+            {!status?.exists && (
+              <Badge variant="outline" className="text-amber-600 border-amber-600">
+                Não configurada
+              </Badge>
+            )}
+          </div>
         </div>
 
-        {isManaged ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CheckCircle className="h-4 w-4 text-green-500" />
-            Esta chave é gerenciada automaticamente pelo sistema.
+        {/* Current status */}
+        {status?.exists && !isEditing && (
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+            <div className="flex items-center gap-2 text-sm">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span className="text-muted-foreground">
+                Configurada em {status.updatedAt ? format(new Date(status.updatedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : 'N/A'}
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => toggleEditMode(field.key)}
+            >
+              <Edit2 className="h-4 w-4 mr-2" />
+              Alterar
+            </Button>
           </div>
-        ) : (
+        )}
+
+        {/* Edit/Create form */}
+        {(!status?.exists || isEditing) && (
           <div className="space-y-3">
             <div className="relative">
               <Input
@@ -233,6 +304,16 @@ export function AdminSecrets() {
                 )}
                 Salvar
               </Button>
+              {isEditing && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleEditMode(field.key)}
+                >
+                  Cancelar
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -243,13 +324,29 @@ export function AdminSecrets() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Configurações do Stripe
-        </CardTitle>
-        <CardDescription>
-          Gerencie as chaves do Stripe para processamento de pagamentos. As chaves são armazenadas de forma segura.
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Configurações do Stripe
+            </CardTitle>
+            <CardDescription>
+              Gerencie as chaves do Stripe para processamento de pagamentos. As chaves são armazenadas de forma segura.
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchSecretsStatus}
+            disabled={loading}
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
@@ -257,9 +354,15 @@ export function AdminSecrets() {
             <CreditCard className="h-5 w-5 text-primary" />
             <h3 className="font-semibold text-lg">Stripe (Pagamentos)</h3>
           </div>
-          <div className="space-y-4">
-            {SECRET_FIELDS.map(renderSecretField)}
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {SECRET_FIELDS.map(renderSecretField)}
+            </div>
+          )}
           <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <div className="flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5" />
