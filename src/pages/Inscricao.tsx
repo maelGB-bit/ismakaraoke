@@ -232,7 +232,8 @@ export default function Inscricao() {
     setSelectedVideo(video);
     
     // If user hasn't accepted terms yet, show consent modal first
-    if (!profile?.termsAccepted) {
+    // Check explicitly for true (undefined or false should show consent)
+    if (profile?.termsAccepted !== true) {
       setShowConsentModal(true);
     } else {
       // User already accepted terms, show confirmation dialog directly
@@ -242,10 +243,16 @@ export default function Inscricao() {
 
   const handleConsentAccept = (allowVoting: boolean) => {
     // Save terms acceptance and voting preference
-    if (profile) {
-      const updatedProfile = { ...profile, termsAccepted: true, allowVoting };
-      saveProfile(updatedProfile);
-    }
+    // Create or update profile with terms accepted
+    const updatedProfile = {
+      name: profile?.name || singerName.trim(),
+      phone: profile?.phone,
+      email: profile?.email,
+      termsAccepted: true,
+      allowVoting
+    };
+    saveProfile(updatedProfile);
+    
     setCurrentAllowVoting(allowVoting);
     setShowConsentModal(false);
     // Now show the confirmation dialog
@@ -600,8 +607,8 @@ export default function Inscricao() {
                       </div>
                     )}
                     
-                    {/* Voting Preference Toggle - shown for returning users */}
-                    {profile?.termsAccepted && (
+                    {/* Voting Preference Toggle - shown for returning users who already accepted terms */}
+                    {profile?.termsAccepted === true && (
                       <div className="pt-2 border-t border-border">
                         <VotingPreferenceToggle
                           allowVoting={currentAllowVoting}
