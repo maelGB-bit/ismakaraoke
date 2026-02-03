@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic2, Loader2, LogIn, UserPlus, Home } from 'lucide-react';
+import { Mic2, Loader2, LogIn, UserPlus, Home, CheckCircle2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const { toast } = useToast();
   
@@ -22,6 +23,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  
+  const isPaymentSuccess = searchParams.get('payment') === 'success';
 
   useEffect(() => {
     let isMounted = true;
@@ -173,6 +176,32 @@ export default function LoginPage() {
         className="w-full max-w-md"
       >
         <div className="glass-card p-6 rounded-xl">
+          {isPaymentSuccess && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg"
+            >
+              <div className="flex items-center gap-2 text-green-400 mb-2">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="font-semibold">Pagamento Confirmado!</span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">
+                Sua instância de karaokê foi criada com sucesso.
+              </p>
+              <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <div className="flex items-center gap-2 text-blue-400 mb-1">
+                  <Mail className="w-4 h-4" />
+                  <span className="font-medium text-sm">Verifique seu e-mail</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Enviamos suas credenciais de acesso para o e-mail cadastrado.
+                  Use o e-mail e a senha temporária para fazer login abaixo.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
           <div className="flex items-center gap-2 mb-6">
             <LogIn className="h-5 w-5 text-primary" />
             <h2 className="text-xl font-bold">Entrar no Sistema</h2>
