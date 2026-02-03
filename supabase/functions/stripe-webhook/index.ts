@@ -293,6 +293,42 @@ serve(async (req) => {
             });
         }
 
+        // Send credentials email if new user with temp password
+        if (tempPassword) {
+          try {
+            const emailPayload = {
+              email: customerEmail,
+              name: customerName || 'Coordenador',
+              tempPassword: tempPassword,
+              instanceName: instanceName,
+              instanceCode: instanceCode,
+              expiresAt: expiresAt.toISOString(),
+              planName: planName || 'Plano Pago',
+            };
+
+            const emailResponse = await fetch(
+              `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-credentials-email`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                },
+                body: JSON.stringify(emailPayload),
+              }
+            );
+
+            if (emailResponse.ok) {
+              logStep("Credentials email sent successfully");
+            } else {
+              const errorData = await emailResponse.text();
+              logStep("Warning: Failed to send credentials email", { error: errorData });
+            }
+          } catch (emailError) {
+            logStep("Warning: Error sending credentials email", { error: String(emailError) });
+          }
+        }
+
         logStep("Payment processed successfully", { userId, instanceId });
         break;
       }
