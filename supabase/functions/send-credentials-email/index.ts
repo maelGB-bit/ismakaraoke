@@ -14,11 +14,12 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 interface CredentialsEmailRequest {
   email: string;
   name: string;
-  tempPassword: string;
+  tempPassword: string | null;
   instanceName: string;
   instanceCode: string;
   expiresAt: string;
   planName: string;
+  isExistingUser?: boolean;
 }
 
 serve(async (req) => {
@@ -36,13 +37,13 @@ serve(async (req) => {
 
     const resend = new Resend(resendApiKey);
 
-    const { email, name, tempPassword, instanceName, instanceCode, expiresAt, planName }: CredentialsEmailRequest = await req.json();
+    const { email, name, tempPassword, instanceName, instanceCode, expiresAt, planName, isExistingUser }: CredentialsEmailRequest = await req.json();
 
-    if (!email || !tempPassword) {
-      throw new Error("Missing required fields: email and tempPassword");
+    if (!email) {
+      throw new Error("Missing required field: email");
     }
 
-    logStep("Sending credentials email", { email, instanceName });
+    logStep("Sending email", { email, instanceName, isExistingUser });
 
     const expiresDate = new Date(expiresAt);
     const formattedExpires = expiresDate.toLocaleDateString('pt-BR', {
@@ -53,10 +54,52 @@ serve(async (req) => {
       minute: '2-digit',
     });
 
+    // Build credentials section - only show for new users with temp password
+    const credentialsSection = tempPassword ? `
+      <!-- Credentials Box -->
+      <div style="background-color: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 12px; padding: 25px; margin: 20px 0;">
+        <h3 style="color: #f97316; margin: 0 0 20px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;">
+          📧 Credenciais de Acesso
+        </h3>
+        
+        <div style="margin-bottom: 15px;">
+          <p style="color: #888888; font-size: 12px; margin: 0 0 5px 0; text-transform: uppercase;">E-mail</p>
+          <p style="color: #ffffff; font-size: 16px; margin: 0; font-family: monospace; background: #1a1a1a; padding: 10px; border-radius: 6px;">
+            ${email}
+          </p>
+        </div>
+        
+        <div style="margin-bottom: 0;">
+          <p style="color: #888888; font-size: 12px; margin: 0 0 5px 0; text-transform: uppercase;">Senha Temporária</p>
+          <p style="color: #22c55e; font-size: 20px; margin: 0; font-family: monospace; font-weight: bold; background: #1a1a1a; padding: 10px; border-radius: 6px; letter-spacing: 2px;">
+            ${tempPassword}
+          </p>
+        </div>
+      </div>
+    ` : `
+      <!-- Existing user message -->
+      <div style="background-color: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 12px; padding: 25px; margin: 20px 0;">
+        <p style="color: #ffffff; font-size: 16px; margin: 0;">
+          ✅ Use suas credenciais existentes para acessar o sistema.
+        </p>
+      </div>
+    `;
+
+    const passwordWarning = tempPassword ? `
+      <!-- Warning -->
+      <div style="background-color: #422006; border: 1px solid #f97316; border-radius: 8px; padding: 15px; margin: 20px 0;">
+        <p style="color: #fed7aa; font-size: 14px; margin: 0;">
+          ⚠️ <strong>Importante:</strong> Recomendamos que você altere sua senha temporária após o primeiro acesso para maior segurança.
+        </p>
+      </div>
+    ` : '';
+
     const emailResponse = await resend.emails.send({
       from: "Mamute Karaokê <noreply@resend.dev>",
       to: [email],
-      subject: "🎤 Suas credenciais de acesso - Mamute Karaokê",
+      subject: isExistingUser 
+        ? "🎤 Seu plano foi renovado - Mamute Karaokê"
+        : "🎤 Suas credenciais de acesso - Mamute Karaokê",
       html: `
         <!DOCTYPE html>
         <html>
@@ -79,30 +122,13 @@ serve(async (req) => {
               </p>
               
               <p style="color: #cccccc; font-size: 16px; margin: 0 0 25px 0;">
-                Seu plano <strong style="color: #f97316;">${planName}</strong> foi ativado com sucesso! 
-                Abaixo estão suas credenciais de acesso:
+                ${isExistingUser 
+                  ? `Seu plano <strong style="color: #f97316;">${planName}</strong> foi renovado com sucesso!`
+                  : `Seu plano <strong style="color: #f97316;">${planName}</strong> foi ativado com sucesso! Abaixo estão suas credenciais de acesso:`
+                }
               </p>
               
-              <!-- Credentials Box -->
-              <div style="background-color: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 12px; padding: 25px; margin: 20px 0;">
-                <h3 style="color: #f97316; margin: 0 0 20px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;">
-                  📧 Credenciais de Acesso
-                </h3>
-                
-                <div style="margin-bottom: 15px;">
-                  <p style="color: #888888; font-size: 12px; margin: 0 0 5px 0; text-transform: uppercase;">E-mail</p>
-                  <p style="color: #ffffff; font-size: 16px; margin: 0; font-family: monospace; background: #1a1a1a; padding: 10px; border-radius: 6px;">
-                    ${email}
-                  </p>
-                </div>
-                
-                <div style="margin-bottom: 0;">
-                  <p style="color: #888888; font-size: 12px; margin: 0 0 5px 0; text-transform: uppercase;">Senha Temporária</p>
-                  <p style="color: #22c55e; font-size: 20px; margin: 0; font-family: monospace; font-weight: bold; background: #1a1a1a; padding: 10px; border-radius: 6px; letter-spacing: 2px;">
-                    ${tempPassword}
-                  </p>
-                </div>
-              </div>
+              ${credentialsSection}
               
               <!-- Instance Info -->
               <div style="background-color: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 12px; padding: 25px; margin: 20px 0;">
@@ -136,12 +162,7 @@ serve(async (req) => {
                 </a>
               </div>
               
-              <!-- Warning -->
-              <div style="background-color: #422006; border: 1px solid #f97316; border-radius: 8px; padding: 15px; margin: 20px 0;">
-                <p style="color: #fed7aa; font-size: 14px; margin: 0;">
-                  ⚠️ <strong>Importante:</strong> Recomendamos que você altere sua senha temporária após o primeiro acesso para maior segurança.
-                </p>
-              </div>
+              ${passwordWarning}
               
               <p style="color: #888888; font-size: 14px; margin: 25px 0 0 0; text-align: center;">
                 Qualquer dúvida, entre em contato conosco!
