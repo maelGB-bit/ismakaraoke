@@ -235,10 +235,10 @@ export default function CheckoutPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-4 bg-landing-orange/10 rounded-lg">
-                  <h3 className="font-bold text-xl text-landing-dark">{plan.name}</h3>
-                  <p className="text-sm text-landing-dark/60">{plan.description}</p>
-                  <div className="flex items-center gap-2 mt-2 text-sm text-landing-dark/70">
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <h3 className="font-bold text-xl text-gray-900">{plan.name}</h3>
+                  <p className="text-sm text-gray-600">{plan.description}</p>
+                  <div className="flex items-center gap-2 mt-2 text-sm text-gray-700">
                     <Clock className="w-4 h-4" />
                     Acesso por {formatDuration(plan.duration_hours)}
                   </div>
