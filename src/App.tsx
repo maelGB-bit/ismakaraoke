@@ -28,6 +28,7 @@ import Vote from "./pages/Vote";
 import Ranking from "./pages/Ranking";
 import Inscricao from "./pages/Inscricao";
 import EventGuide from "./pages/EventGuide";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/app/inscricao" element={<Inscricao />} />
             <Route path="/app/inscricao/:instanceCode" element={<Inscricao />} />
             <Route path="/app/guia" element={<EventGuide />} />
+            <Route path="/app/reset-password" element={<ResetPasswordPage />} />
 
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
