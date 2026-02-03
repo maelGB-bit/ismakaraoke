@@ -35,7 +35,30 @@ serve(async (req) => {
   try {
     logStep("Webhook received");
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Fetch secrets from secure_secrets table
+    const { data: secrets, error: secretsError } = await supabase
+      .from('secure_secrets')
+      .select('key_name, encrypted_value')
+      .in('key_name', ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET']);
+
+    if (secretsError || !secrets || secrets.length === 0) {
+      logStep("Failed to fetch secrets", { error: secretsError?.message });
+      throw new Error("Failed to fetch Stripe configuration");
+    }
+
+    const stripeSecretKey = secrets.find(s => s.key_name === 'STRIPE_SECRET_KEY')?.encrypted_value;
+    const webhookSecret = secrets.find(s => s.key_name === 'STRIPE_WEBHOOK_SECRET')?.encrypted_value;
+
+    if (!stripeSecretKey) {
+      throw new Error("STRIPE_SECRET_KEY not configured");
+    }
+    if (!webhookSecret) {
+      throw new Error("STRIPE_WEBHOOK_SECRET not configured");
+    }
+
+    logStep("Secrets loaded successfully");
+
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2025-08-27.basil",
     });
 
@@ -44,11 +67,6 @@ serve(async (req) => {
 
     if (!signature) {
       throw new Error("No Stripe signature found");
-    }
-
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-    if (!webhookSecret) {
-      throw new Error("Stripe webhook secret not configured");
     }
 
     // Verify webhook signature using async method (required for Deno)
