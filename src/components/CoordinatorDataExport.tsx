@@ -73,9 +73,11 @@ export function CoordinatorDataExport({ instanceId, instanceName, instanceCode }
     try {
       const { data, error } = await supabase
         .from('performances')
-        .select('cantor, musica, nota_media, total_votos, status, created_at')
+        .select('cantor, musica, nota_media, total_votos, status, created_at, allow_voting')
         .eq('karaoke_instance_id', instanceId)
         .eq('status', 'encerrada')
+        .eq('allow_voting', true)
+        .gt('total_votos', 0)
         .order('nota_media', { ascending: false })
         .order('total_votos', { ascending: false });
 

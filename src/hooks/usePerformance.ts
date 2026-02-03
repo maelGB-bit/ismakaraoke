@@ -146,6 +146,8 @@ export function useRanking(instanceId?: string | null) {
         .select('*')
         .eq('status', 'encerrada')
         .eq('karaoke_instance_id', instanceId)
+        .eq('allow_voting', true)
+        .gt('total_votos', 0)
         .order('nota_media', { ascending: false })
         .order('total_votos', { ascending: false });
 
