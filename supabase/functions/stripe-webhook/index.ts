@@ -203,18 +203,40 @@ serve(async (req) => {
         // Create or update karaoke instance
         const { data: existingInstance } = await supabase
           .from('karaoke_instances')
-          .select('id')
+          .select('id, expires_at')
           .eq('coordinator_id', userId)
           .single();
 
         let instanceId: string;
+        let finalExpiresAt = expiresAt;
 
         if (existingInstance) {
-          // Update existing instance with new expiration
+          // Check if user still has remaining time
+          const currentExpiration = existingInstance.expires_at ? new Date(existingInstance.expires_at) : null;
+          const now = new Date();
+          
+          if (currentExpiration && currentExpiration > now) {
+            // User still has time remaining - ADD purchased hours to current expiration
+            finalExpiresAt = new Date(currentExpiration);
+            finalExpiresAt.setHours(finalExpiresAt.getHours() + durationHours);
+            logStep("Adding time to existing balance", { 
+              currentExpiration: currentExpiration.toISOString(), 
+              hoursAdded: durationHours,
+              newExpiration: finalExpiresAt.toISOString() 
+            });
+          } else {
+            // User's time has expired - start fresh from now
+            logStep("User's time expired, starting fresh from now", { 
+              oldExpiration: currentExpiration?.toISOString(), 
+              newExpiration: finalExpiresAt.toISOString() 
+            });
+          }
+
+          // Update existing instance with calculated expiration
           const { error: updateError } = await supabase
             .from('karaoke_instances')
             .update({
-              expires_at: expiresAt.toISOString(),
+              expires_at: finalExpiresAt.toISOString(),
               status: 'active',
               name: instanceName,
             })
@@ -225,7 +247,7 @@ serve(async (req) => {
           }
 
           instanceId = existingInstance.id;
-          logStep("Updated existing instance", { instanceId, expiresAt: expiresAt.toISOString() });
+          logStep("Updated existing instance", { instanceId, expiresAt: finalExpiresAt.toISOString() });
         } else {
           // Create new instance
           const { data: newInstance, error: instanceError } = await supabase
