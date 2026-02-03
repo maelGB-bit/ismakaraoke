@@ -300,8 +300,8 @@ export default function CheckoutPage() {
                   </Label>
                   {couponApplied ? (
                     <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      <span className="font-mono font-medium">{formData.couponCode.toUpperCase()}</span>
+                      <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+                      <span className="font-mono font-medium text-green-800">{formData.couponCode.toUpperCase()}</span>
                       <Button
                         variant="ghost"
                         size="sm"
