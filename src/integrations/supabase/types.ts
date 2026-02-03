@@ -122,6 +122,7 @@ export type Database = {
           updated_at: string
           valid_from: string
           valid_until: string | null
+          visible_on_site: boolean
         }
         Insert: {
           code: string
@@ -137,6 +138,7 @@ export type Database = {
           updated_at?: string
           valid_from?: string
           valid_until?: string | null
+          visible_on_site?: boolean
         }
         Update: {
           code?: string
@@ -152,6 +154,7 @@ export type Database = {
           updated_at?: string
           valid_from?: string
           valid_until?: string | null
+          visible_on_site?: boolean
         }
         Relationships: []
       }

@@ -5,7 +5,7 @@ import { LandingHeader } from '@/components/landing/LandingHeader';
 import { LandingFooter } from '@/components/landing/LandingFooter';
 import { PlanCard } from '@/components/landing/PlanCard';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Tag } from 'lucide-react';
 
 interface Plan {
   id: string;
@@ -20,6 +20,13 @@ interface Plan {
   is_active: boolean;
   is_free: boolean;
   sort_order: number;
+}
+
+interface VisibleCoupon {
+  code: string;
+  description: string | null;
+  discount_type: string;
+  discount_value: number;
 }
 
 const formatDuration = (hours: number) => {
@@ -43,22 +50,38 @@ export default function PlanosPage() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visibleCoupon, setVisibleCoupon] = useState<VisibleCoupon | null>(null);
 
   useEffect(() => {
-    const fetchPlans = async () => {
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order');
+    const fetchData = async () => {
+      // Fetch plans and visible coupon in parallel
+      const [plansResult, couponResult] = await Promise.all([
+        supabase
+          .from('subscription_plans')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order'),
+        supabase
+          .from('discount_coupons')
+          .select('code, description, discount_type, discount_value')
+          .eq('is_active', true)
+          .eq('visible_on_site', true)
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
-      if (!error && data) {
-        setPlans(data);
+      if (!plansResult.error && plansResult.data) {
+        setPlans(plansResult.data);
       }
+      
+      if (!couponResult.error && couponResult.data) {
+        setVisibleCoupon(couponResult.data);
+      }
+      
       setLoading(false);
     };
 
-    fetchPlans();
+    fetchData();
   }, []);
 
   const handleSelectPlan = (plan: Plan) => {
@@ -108,6 +131,25 @@ export default function PlanosPage() {
             <p className="text-landing-dark/60 text-lg max-w-2xl mx-auto">
               Todos os planos incluem todas as funcionalidades. A única diferença é o tempo de acesso.
             </p>
+            
+            {/* Visible Coupon Banner */}
+            {visibleCoupon && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                className="mt-6 inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full border border-green-300"
+              >
+                <Tag className="w-4 h-4" />
+                <span className="font-medium">
+                  Use o cupom <code className="bg-green-200 px-2 py-0.5 rounded font-mono font-bold">{visibleCoupon.code}</code> e ganhe{' '}
+                  {visibleCoupon.discount_type === 'percentage' 
+                    ? `${visibleCoupon.discount_value}% de desconto`
+                    : `R$ ${(visibleCoupon.discount_value / 100).toFixed(2).replace('.', ',')} de desconto`
+                  }!
+                </span>
+              </motion.div>
+            )}
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
