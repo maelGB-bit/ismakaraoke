@@ -540,6 +540,33 @@ export type Database = {
           },
         ]
       }
+      secure_secrets: {
+        Row: {
+          created_at: string
+          encrypted_value: string
+          id: string
+          key_name: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          encrypted_value: string
+          id?: string
+          key_name: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          encrypted_value?: string
+          id?: string
+          key_name?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       site_contacts: {
         Row: {
           created_at: string
