@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Settings, Key, Eye, EyeOff, Save, Loader2, CreditCard, Youtube, Bot, AlertCircle, CheckCircle } from 'lucide-react';
+import { Settings, Key, Eye, EyeOff, Save, Loader2, CreditCard, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,7 +14,6 @@ interface SecretField {
   description: string;
   icon: React.ReactNode;
   placeholder: string;
-  category: 'stripe' | 'youtube' | 'ai';
 }
 
 const SECRET_FIELDS: SecretField[] = [
@@ -25,7 +23,6 @@ const SECRET_FIELDS: SecretField[] = [
     description: 'Chave secreta do Stripe para processar pagamentos. Use sk_test_ para testes ou sk_live_ para produção.',
     icon: <CreditCard className="h-4 w-4" />,
     placeholder: 'sk_test_... ou sk_live_...',
-    category: 'stripe',
   },
   {
     key: 'STRIPE_WEBHOOK_SECRET',
@@ -33,23 +30,6 @@ const SECRET_FIELDS: SecretField[] = [
     description: 'Secret para verificar assinaturas de webhooks do Stripe.',
     icon: <CreditCard className="h-4 w-4" />,
     placeholder: 'whsec_...',
-    category: 'stripe',
-  },
-  {
-    key: 'YOUTUBE_API_KEY',
-    label: 'YouTube API Key',
-    description: 'Chave da API do YouTube para buscar vídeos de karaokê.',
-    icon: <Youtube className="h-4 w-4" />,
-    placeholder: 'AIza...',
-    category: 'youtube',
-  },
-  {
-    key: 'LOVABLE_API_KEY',
-    label: 'Lovable AI API Key',
-    description: 'Chave da API do Lovable AI (gerenciada automaticamente).',
-    icon: <Bot className="h-4 w-4" />,
-    placeholder: 'Gerenciada pelo sistema',
-    category: 'ai',
   },
 ];
 
@@ -260,30 +240,25 @@ export function AdminSecrets() {
     );
   };
 
-  const stripeFields = SECRET_FIELDS.filter(f => f.category === 'stripe');
-  const youtubeFields = SECRET_FIELDS.filter(f => f.category === 'youtube');
-  const aiFields = SECRET_FIELDS.filter(f => f.category === 'ai');
-
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Settings className="h-5 w-5" />
-          Configurações de API
+          Configurações do Stripe
         </CardTitle>
         <CardDescription>
-          Gerencie as chaves de API e secrets do sistema. As chaves são armazenadas de forma segura e criptografadas.
+          Gerencie as chaves do Stripe para processamento de pagamentos. As chaves são armazenadas de forma segura.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Stripe Section */}
         <div>
           <div className="flex items-center gap-2 mb-4">
             <CreditCard className="h-5 w-5 text-primary" />
             <h3 className="font-semibold text-lg">Stripe (Pagamentos)</h3>
           </div>
           <div className="space-y-4">
-            {stripeFields.map(renderSecretField)}
+            {SECRET_FIELDS.map(renderSecretField)}
           </div>
           <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <div className="flex items-start gap-2">
@@ -293,32 +268,6 @@ export function AdminSecrets() {
                 pelas chaves de produção (sk_live_) do seu dashboard do Stripe.
               </div>
             </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* YouTube Section */}
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Youtube className="h-5 w-5 text-red-500" />
-            <h3 className="font-semibold text-lg">YouTube</h3>
-          </div>
-          <div className="space-y-4">
-            {youtubeFields.map(renderSecretField)}
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* AI Section */}
-        <div>
-          <div className="flex items-center gap-2 mb-4">
-            <Bot className="h-5 w-5 text-purple-500" />
-            <h3 className="font-semibold text-lg">Inteligência Artificial</h3>
-          </div>
-          <div className="space-y-4">
-            {aiFields.map(renderSecretField)}
           </div>
         </div>
       </CardContent>
