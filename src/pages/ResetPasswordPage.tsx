@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Loader2, Lock, CheckCircle, Home, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Lock, CheckCircle, Home, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,7 @@ const mamuteLogo = '/img/mamute-logo.png';
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   
   const [password, setPassword] = useState('');
@@ -19,37 +20,20 @@ export default function ResetPasswordPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
+  const [tokenStatus, setTokenStatus] = useState<'loading' | 'valid' | 'invalid' | 'expired'>('loading');
+  
+  const token = searchParams.get('token');
 
   useEffect(() => {
-    // Check if we have a valid recovery session
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // Check URL for recovery token (Supabase adds these params)
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const type = hashParams.get('type');
-      
-      if (type === 'recovery' || session) {
-        setIsValidSession(true);
-      } else {
-        setIsValidSession(false);
-      }
-    };
-
-    // Listen for auth state changes (recovery link clicked)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setIsValidSession(true);
-        }
-      }
-    );
-
-    checkSession();
-
-    return () => subscription.unsubscribe();
-  }, []);
+    // Validate token exists
+    if (!token) {
+      setTokenStatus('invalid');
+      return;
+    }
+    
+    // Token exists, allow user to try resetting
+    setTokenStatus('valid');
+  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,9 +55,24 @@ export default function ResetPasswordPage() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { data, error } = await supabase.functions.invoke('verify-reset-token', {
+        body: { token, newPassword: password },
+      });
 
       if (error) throw error;
+
+      if (!data?.success) {
+        if (data?.error === 'invalid_token') {
+          setTokenStatus('invalid');
+          toast({ title: data?.message || 'Token inválido', variant: 'destructive' });
+        } else if (data?.error === 'token_expired') {
+          setTokenStatus('expired');
+          toast({ title: data?.message || 'Token expirado', variant: 'destructive' });
+        } else {
+          toast({ title: data?.message || 'Erro ao redefinir senha', variant: 'destructive' });
+        }
+        return;
+      }
 
       setIsSuccess(true);
       toast({ title: 'Senha atualizada com sucesso!' });
@@ -91,7 +90,7 @@ export default function ResetPasswordPage() {
     }
   };
 
-  if (isValidSession === null) {
+  if (tokenStatus === 'loading') {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
         <Loader2 className="w-16 h-16 text-primary animate-spin" />
@@ -99,7 +98,7 @@ export default function ResetPasswordPage() {
     );
   }
 
-  if (isValidSession === false) {
+  if (tokenStatus === 'invalid' || tokenStatus === 'expired') {
     return (
       <div className="min-h-screen gradient-bg flex flex-col items-center justify-center p-4">
         <motion.div
@@ -107,11 +106,15 @@ export default function ResetPasswordPage() {
           animate={{ opacity: 1, y: 0 }}
           className="glass-card p-8 rounded-xl text-center max-w-md"
         >
-          <Lock className="w-16 h-16 text-destructive mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-4">Link inválido ou expirado</h1>
+          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-4">
+            {tokenStatus === 'expired' ? 'Link expirado' : 'Link inválido'}
+          </h1>
           <p className="text-muted-foreground mb-6">
-            Este link de redefinição de senha não é válido ou já expirou. 
-            Por favor, solicite um novo link.
+            {tokenStatus === 'expired' 
+              ? 'Este link de redefinição de senha expirou. Por favor, solicite um novo link.'
+              : 'Este link de redefinição de senha não é válido. Por favor, solicite um novo link.'
+            }
           </p>
           <Button onClick={() => navigate('/app/login')} className="w-full">
             <Home className="mr-2 h-4 w-4" />

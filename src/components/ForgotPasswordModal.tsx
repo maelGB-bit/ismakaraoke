@@ -28,11 +28,13 @@ export function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswordModalP
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/app/reset-password`,
+      // Use custom edge function instead of Supabase Auth
+      const { data, error } = await supabase.functions.invoke('request-password-reset', {
+        body: { email: email.trim() },
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       setEmailSent(true);
       toast({ title: 'Email enviado com sucesso!' });
