@@ -26,6 +26,7 @@ interface Coupon {
   valid_from: string;
   valid_until: string | null;
   is_active: boolean;
+  visible_on_site: boolean;
   created_at: string;
 }
 
@@ -44,6 +45,7 @@ export function AdminCoupons() {
     valid_from: '',
     valid_until: '',
     is_active: true,
+    visible_on_site: false,
   });
 
   useEffect(() => {
@@ -86,6 +88,7 @@ export function AdminCoupons() {
       valid_from: now,
       valid_until: '',
       is_active: true,
+      visible_on_site: false,
     });
     setIsDialogOpen(true);
   };
@@ -101,6 +104,7 @@ export function AdminCoupons() {
       valid_from: coupon.valid_from.split('T')[0],
       valid_until: coupon.valid_until?.split('T')[0] || '',
       is_active: coupon.is_active,
+      visible_on_site: coupon.visible_on_site,
     });
     setIsDialogOpen(true);
   };
@@ -109,6 +113,15 @@ export function AdminCoupons() {
     if (!formData.code) {
       toast.error('Código é obrigatório');
       return;
+    }
+
+    // If setting visible_on_site to true, first disable all other visible coupons
+    if (formData.visible_on_site) {
+      await supabase
+        .from('discount_coupons')
+        .update({ visible_on_site: false })
+        .eq('visible_on_site', true)
+        .neq('id', editingCoupon?.id || '');
     }
 
     const couponData = {
@@ -120,6 +133,7 @@ export function AdminCoupons() {
       valid_from: new Date(formData.valid_from).toISOString(),
       valid_until: formData.valid_until ? new Date(formData.valid_until).toISOString() : null,
       is_active: formData.is_active,
+      visible_on_site: formData.visible_on_site,
     };
 
     if (editingCoupon) {
@@ -241,6 +255,7 @@ export function AdminCoupons() {
                 <TableHead>Uso</TableHead>
                 <TableHead>Validade</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>No Site</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -280,6 +295,13 @@ export function AdminCoupons() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={status.variant}>{status.label}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {coupon.visible_on_site ? (
+                        <Badge variant="default" className="bg-green-600">Visível</Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -410,6 +432,20 @@ export function AdminCoupons() {
                 onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
               />
               <Label htmlFor="is_active">Cupom Ativo</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="visible_on_site"
+                checked={formData.visible_on_site}
+                onCheckedChange={(checked) => setFormData({ ...formData, visible_on_site: checked })}
+              />
+              <Label htmlFor="visible_on_site" className="flex flex-col">
+                <span>Visível no Site</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  Exibe o cupom na página de planos e aplica automaticamente no checkout
+                </span>
+              </Label>
             </div>
           </div>
 

@@ -54,35 +54,56 @@ export default function CheckoutPage() {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   useEffect(() => {
-    const fetchPlan = async () => {
+    const fetchData = async () => {
       if (!planId) {
         navigate('/planos');
         return;
       }
 
-      const { data, error } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('id', planId)
-        .eq('is_active', true)
-        .single();
+      // Fetch plan and visible coupon in parallel
+      const [planResult, couponResult] = await Promise.all([
+        supabase
+          .from('subscription_plans')
+          .select('*')
+          .eq('id', planId)
+          .eq('is_active', true)
+          .single(),
+        supabase
+          .from('discount_coupons')
+          .select('code, discount_type, discount_value')
+          .eq('is_active', true)
+          .eq('visible_on_site', true)
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
-      if (error || !data) {
+      if (planResult.error || !planResult.data) {
         toast.error('Plano não encontrado');
         navigate('/planos');
         return;
       }
 
-      if (data.is_free) {
+      if (planResult.data.is_free) {
         navigate('/app/cadastro');
         return;
       }
 
-      setPlan(data);
+      setPlan(planResult.data);
+
+      // Auto-apply visible coupon
+      if (couponResult.data && !couponResult.error) {
+        setFormData(prev => ({ ...prev, couponCode: couponResult.data.code }));
+        setCouponApplied(true);
+        setCouponDiscount({
+          type: couponResult.data.discount_type,
+          value: Number(couponResult.data.discount_value),
+        });
+      }
+
       setLoading(false);
     };
 
-    fetchPlan();
+    fetchData();
   }, [planId, navigate]);
 
   const validateCoupon = async () => {
