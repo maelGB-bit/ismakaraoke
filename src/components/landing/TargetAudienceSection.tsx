@@ -3,20 +3,23 @@ import {
   PartyPopper, Building2, GraduationCap, Store, Mic, 
   Moon, Church, Users, Heart 
 } from 'lucide-react';
-
-const audiences = [
-  { icon: PartyPopper, label: 'Festas particulares' },
-  { icon: Building2, label: 'Eventos corporativos' },
-  { icon: GraduationCap, label: 'Escolas e festivais' },
-  { icon: Store, label: 'Estabelecimentos' },
-  { icon: Mic, label: 'Karaokês profissionais' },
-  { icon: Moon, label: 'Baladas temáticas' },
-  { icon: Church, label: 'Comunidades e igrejas' },
-  { icon: Users, label: 'Congressos e feiras' },
-  { icon: Heart, label: 'Aniversários e casamentos' },
-];
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export function TargetAudienceSection() {
+  const { t } = useLanguage();
+
+  const audiences = [
+    { icon: PartyPopper, label: t('landing.audience.parties') },
+    { icon: Building2, label: t('landing.audience.corporate') },
+    { icon: GraduationCap, label: t('landing.audience.schools') },
+    { icon: Store, label: t('landing.audience.businesses') },
+    { icon: Mic, label: t('landing.audience.proKaraoke') },
+    { icon: Moon, label: t('landing.audience.nightclubs') },
+    { icon: Church, label: t('landing.audience.communities') },
+    { icon: Users, label: t('landing.audience.congresses') },
+    { icon: Heart, label: t('landing.audience.celebrations') },
+  ];
+
   return (
     <section className="py-20 bg-landing-dark">
       <div className="container mx-auto px-4">
@@ -27,10 +30,10 @@ export function TargetAudienceSection() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
-            Para quem é o <span className="text-landing-orange">Mamute Karaokê</span>?
+            {t('landing.audience.title')} <span className="text-landing-orange">{t('landing.audience.titleHighlight')}</span>
           </h2>
           <p className="text-white/60 max-w-2xl mx-auto">
-            Uma solução versátil que se adapta a qualquer tipo de evento ou ocasião.
+            {t('landing.audience.subtitle')}
           </p>
         </motion.div>
 

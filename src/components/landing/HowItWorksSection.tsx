@@ -1,30 +1,33 @@
 import { motion } from 'framer-motion';
 import { QrCode, Search, Mic2, ThumbsUp } from 'lucide-react';
-
-const steps = [
-  {
-    icon: QrCode,
-    title: 'Leia o QR Code',
-    description: 'Escaneie com seu celular e acesse o sistema instantaneamente.',
-  },
-  {
-    icon: Search,
-    title: 'Busque músicas',
-    description: 'Pesquise entre milhares de vídeos musicais disponíveis online.',
-  },
-  {
-    icon: Mic2,
-    title: 'Cante no palco',
-    description: 'Quando for sua vez, suba ao palco e solte a voz!',
-  },
-  {
-    icon: ThumbsUp,
-    title: 'Vote pelo celular',
-    description: 'Avalie as apresentações e veja o ranking em tempo real.',
-  },
-];
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export function HowItWorksSection() {
+  const { t } = useLanguage();
+
+  const steps = [
+    {
+      icon: QrCode,
+      title: t('landing.howItWorks.step1.title'),
+      description: t('landing.howItWorks.step1.desc'),
+    },
+    {
+      icon: Search,
+      title: t('landing.howItWorks.step2.title'),
+      description: t('landing.howItWorks.step2.desc'),
+    },
+    {
+      icon: Mic2,
+      title: t('landing.howItWorks.step3.title'),
+      description: t('landing.howItWorks.step3.desc'),
+    },
+    {
+      icon: ThumbsUp,
+      title: t('landing.howItWorks.step4.title'),
+      description: t('landing.howItWorks.step4.desc'),
+    },
+  ];
+
   return (
     <section className="py-20 bg-landing-light relative">
       <div className="container mx-auto px-4">
@@ -35,10 +38,10 @@ export function HowItWorksSection() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-display font-bold text-landing-dark mb-4">
-            Como <span className="text-landing-orange">Funciona</span>
+            {t('landing.howItWorks.title')} <span className="text-landing-orange">{t('landing.howItWorks.titleHighlight')}</span>
           </h2>
           <p className="text-landing-dark/60 max-w-2xl mx-auto">
-            Em 4 passos simples, você transforma qualquer momento em uma experiência musical inesquecível.
+            {t('landing.howItWorks.subtitle')}
           </p>
         </motion.div>
 

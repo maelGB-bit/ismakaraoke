@@ -1,23 +1,26 @@
 import { motion } from 'framer-motion';
 import { Check, Users, Settings } from 'lucide-react';
-
-const organizerBenefits = [
-  'Engaja os participantes',
-  'Mantém o público por mais tempo',
-  'Funciona em festas, eventos e estabelecimentos',
-  'Controle total da fila e das apresentações',
-  'Sem papel e sem bagunça',
-];
-
-const participantBenefits = [
-  'Seleciona músicas pelo celular',
-  'Vota ao vivo',
-  'Ranking transparente e divertido',
-  'Todos participam',
-  'Experiência interativa',
-];
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export function BenefitsSection() {
+  const { t } = useLanguage();
+
+  const organizerBenefits = [
+    t('landing.benefits.organizer1'),
+    t('landing.benefits.organizer2'),
+    t('landing.benefits.organizer3'),
+    t('landing.benefits.organizer4'),
+    t('landing.benefits.organizer5'),
+  ];
+
+  const participantBenefits = [
+    t('landing.benefits.participant1'),
+    t('landing.benefits.participant2'),
+    t('landing.benefits.participant3'),
+    t('landing.benefits.participant4'),
+    t('landing.benefits.participant5'),
+  ];
+
   return (
     <section className="py-20 bg-landing-light">
       <div className="container mx-auto px-4">
@@ -28,10 +31,10 @@ export function BenefitsSection() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-display font-bold text-landing-dark mb-4">
-            Benefícios para <span className="text-landing-orange">Todos</span>
+            {t('landing.benefits.title')} <span className="text-landing-orange">{t('landing.benefits.titleHighlight')}</span>
           </h2>
           <p className="text-landing-dark/60 max-w-2xl mx-auto">
-            Seja você o organizador ou participante, o Mamute Karaokê traz vantagens para todos.
+            {t('landing.benefits.subtitle')}
           </p>
         </motion.div>
 
@@ -48,12 +51,12 @@ export function BenefitsSection() {
                 <Settings className="w-6 h-6 text-landing-orange" />
               </div>
               <h3 className="text-xl font-display font-bold text-landing-dark">
-                Para quem organiza
+                {t('landing.benefits.forOrganizers')}
               </h3>
             </div>
             <ul className="space-y-4">
-              {organizerBenefits.map((benefit) => (
-                <li key={benefit} className="flex items-start gap-3">
+              {organizerBenefits.map((benefit, index) => (
+                <li key={index} className="flex items-start gap-3">
                   <div className="w-5 h-5 bg-landing-orange/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Check className="w-3 h-3 text-landing-orange" />
                   </div>
@@ -75,12 +78,12 @@ export function BenefitsSection() {
                 <Users className="w-6 h-6 text-landing-brown" />
               </div>
               <h3 className="text-xl font-display font-bold text-landing-dark">
-                Para quem participa
+                {t('landing.benefits.forParticipants')}
               </h3>
             </div>
             <ul className="space-y-4">
-              {participantBenefits.map((benefit) => (
-                <li key={benefit} className="flex items-start gap-3">
+              {participantBenefits.map((benefit, index) => (
+                <li key={index} className="flex items-start gap-3">
                   <div className="w-5 h-5 bg-landing-brown/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Check className="w-3 h-3 text-landing-brown" />
                   </div>

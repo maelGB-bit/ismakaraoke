@@ -4,8 +4,11 @@ import { Play, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SiteYouTubePlayer } from './SiteYouTubePlayer';
 import { HeroBannerCarousel } from './HeroBannerCarousel';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export function HeroSection() {
+  const { t } = useLanguage();
+
   return (
     <section className="relative min-h-screen flex flex-col items-center pt-20 pb-16 overflow-hidden">
       <HeroBannerCarousel />
@@ -13,10 +16,7 @@ export function HeroSection() {
       <div className="container mx-auto px-4 relative z-10 mt-6 space-y-8">
         <div className="max-w-3xl mx-auto text-center text-white/90 space-y-3 text-base sm:text-lg px-4">
           <p className="text-center font-bold text-landing-orange text-sm sm:text-base md:text-lg leading-relaxed">
-            Sem filas, sem papel, sem pularem sua vez e sem confusão.<br className="sm:hidden" /> Todos cantam de forma justa!!
-          </p>
-          <p className="text-sm italic text-gray-400">
-            Um karaokê organizado e divertido para qualquer evento, festa ou até para usar em casa.
+            {t('landing.hero.subtitle')}
           </p>
         </div>
 
@@ -31,13 +31,13 @@ export function HeroSection() {
             <Link to="/testar">
               <Button size="lg" className="bg-landing-orange hover:bg-landing-orange/90 text-white font-bold text-lg px-8 py-6 rounded-full shadow-lg shadow-landing-orange/30">
                 <Sparkles className="mr-2" />
-                Quero testar agora
+                {t('landing.cta.tryNow')}
               </Button>
             </Link>
             <Link to="/como-funciona">
               <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 font-semibold text-lg px-8 py-6 rounded-full">
                 <Play className="mr-2" />
-                Ver como funciona
+                {t('landing.nav.howItWorks')}
               </Button>
             </Link>
           </motion.div>
@@ -51,7 +51,7 @@ export function HeroSection() {
           >
             <SiteYouTubePlayer 
               videoKey="hero_video" 
-              placeholderText="Em breve vídeo explicativo"
+              placeholderText={t('landing.video.placeholder')}
               className="border-2 border-white/10"
             />
           </motion.div>
