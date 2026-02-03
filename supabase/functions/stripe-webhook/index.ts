@@ -51,10 +51,10 @@ serve(async (req) => {
       throw new Error("Stripe webhook secret not configured");
     }
 
-    // Verify webhook signature
+    // Verify webhook signature using async method (required for Deno)
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
     } catch (err) {
       logStep("Webhook signature verification failed", { error: String(err) });
       return new Response(JSON.stringify({ error: "Invalid signature" }), {
