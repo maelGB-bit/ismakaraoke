@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,13 +28,28 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
   try {
     logStep("Function started");
 
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey) {
-      throw new Error("RESEND_API_KEY not configured");
+    // Fetch RESEND_API_KEY from secure_secrets table
+    const { data: secretData, error: secretError } = await supabase
+      .from('secure_secrets')
+      .select('encrypted_value')
+      .eq('key_name', 'RESEND_API_KEY')
+      .single();
+
+    if (secretError || !secretData) {
+      logStep("Failed to fetch RESEND_API_KEY from secure_secrets", { error: secretError?.message });
+      throw new Error("RESEND_API_KEY not configured in secure_secrets");
     }
+
+    const resendApiKey = secretData.encrypted_value;
+    logStep("RESEND_API_KEY loaded from secure_secrets");
 
     const resend = new Resend(resendApiKey);
 
