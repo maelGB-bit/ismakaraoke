@@ -2,19 +2,22 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useLanguage } from '@/i18n/LanguageContext';
 const mamuteLogo = '/img/mamute-logo.png';
-
-const navItems = [
-  { label: 'Como Funciona', href: '/como-funciona' },
-  { label: 'Depoimentos', href: '/depoimentos' },
-  { label: 'Manual', href: '/manual' },
-  { label: 'Testar', href: '/testar' },
-  { label: 'Planos', href: '/planos' },
-];
 
 export function LandingHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { label: t('landing.nav.howItWorks'), href: '/como-funciona' },
+    { label: t('landing.nav.testimonials'), href: '/depoimentos' },
+    { label: t('landing.nav.manual'), href: '/manual' },
+    { label: t('landing.nav.tryIt'), href: '/testar' },
+    { label: t('landing.nav.plans'), href: '/planos' },
+  ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-landing-dark/95 backdrop-blur-md border-b border-landing-brown/20">
@@ -41,21 +44,25 @@ export function LandingHeader() {
                 {item.label}
               </Link>
             ))}
+            <LanguageSwitcher className="text-white/80 hover:text-landing-orange" />
             <Link to="/app/login">
               <Button className="bg-landing-orange hover:bg-landing-orange/90 text-white font-semibold">
-                Entrar no Sistema
+                {t('landing.nav.enterSystem')}
               </Button>
             </Link>
           </nav>
 
           {/* Mobile Menu Button */}
-          <button
-            className="lg:hidden p-2 text-white"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <div className="flex items-center gap-2 lg:hidden">
+            <LanguageSwitcher className="text-white/80 hover:text-landing-orange" />
+            <button
+              className="p-2 text-white"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -77,7 +84,7 @@ export function LandingHeader() {
             ))}
             <Link to="/app/login" onClick={() => setIsMenuOpen(false)}>
               <Button className="w-full bg-landing-orange hover:bg-landing-orange/90 text-white font-semibold mt-2">
-                Entrar no Sistema
+                {t('landing.nav.enterSystem')}
               </Button>
             </Link>
           </nav>

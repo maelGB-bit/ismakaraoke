@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
 import { SiteYouTubePlayer } from './SiteYouTubePlayer';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export function VideoSection() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-20 bg-landing-dark relative overflow-hidden">
       {/* Background */}
@@ -16,10 +19,10 @@ export function VideoSection() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
-            Veja como funciona <span className="text-landing-orange">na prática</span>
+            {t('landing.video.title')} <span className="text-landing-orange">{t('landing.video.titleHighlight')}</span>
           </h2>
           <p className="text-white/60 max-w-2xl mx-auto">
-            Assista ao vídeo e entenda como o karaokê pode ser simples, organizado e divertido.
+            {t('landing.video.subtitle')}
           </p>
         </motion.div>
 
@@ -31,7 +34,7 @@ export function VideoSection() {
         >
           <SiteYouTubePlayer 
             videoKey="how_it_works" 
-            placeholderText="Em breve vídeo explicativo"
+            placeholderText={t('landing.video.placeholder')}
           />
         </motion.div>
       </div>

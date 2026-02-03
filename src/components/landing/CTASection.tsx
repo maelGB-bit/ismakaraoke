@@ -2,8 +2,11 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export function CTASection() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-20 bg-gradient-to-br from-landing-orange via-landing-orange to-landing-brown relative overflow-hidden">
       {/* Decorative elements */}
@@ -21,10 +24,10 @@ export function CTASection() {
           className="max-w-3xl mx-auto text-center"
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-white mb-6">
-            Quer testar no seu evento ou festa?
+            {t('landing.cta.title')}
           </h2>
           <p className="text-white/90 text-lg md:text-xl mb-8 leading-relaxed">
-            Crie sua conta em poucos minutos e transforme seu evento com música e diversão.
+            {t('landing.cta.subtitle')}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -34,7 +37,7 @@ export function CTASection() {
                 className="bg-white text-landing-orange hover:bg-white/90 font-bold text-lg px-8 py-6 rounded-full shadow-lg"
               >
                 <Sparkles className="mr-2" />
-                Quero testar agora
+                {t('landing.cta.tryNow')}
               </Button>
             </Link>
             <Link to="/planos">
@@ -43,7 +46,7 @@ export function CTASection() {
                 variant="outline"
                 className="border-2 border-white text-white hover:bg-white/10 font-semibold text-lg px-8 py-6 rounded-full"
               >
-                Ver planos
+                {t('landing.cta.viewPlans')}
                 <ArrowRight className="ml-2" />
               </Button>
             </Link>

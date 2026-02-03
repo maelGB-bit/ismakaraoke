@@ -1,8 +1,11 @@
 import { motion } from 'framer-motion';
 import { Music, Globe, Headphones } from 'lucide-react';
 import { SiteYouTubePlayer } from './SiteYouTubePlayer';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export function MusicVarietySection() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-20 bg-landing-dark relative overflow-hidden">
       {/* Background decoration */}
@@ -17,34 +20,32 @@ export function MusicVarietySection() {
             className="lg:w-1/2"
           >
             <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-6">
-              Variedade de <span className="text-landing-orange">Músicas</span>
+              {t('landing.musicVariety.title')} <span className="text-landing-orange">{t('landing.musicVariety.titleHighlight')}</span>
             </h2>
             <p className="text-white/70 text-lg mb-8 leading-relaxed">
-              O sistema permite pesquisar e selecionar entre uma enorme variedade de vídeos musicais 
-              públicos disponíveis online, atendendo diversos estilos musicais — do sertanejo ao rock, 
-              do pop ao MPB, do funk ao gospel.
+              {t('landing.musicVariety.subtitle')}
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex items-center gap-3 bg-white/5 rounded-lg p-4">
                 <Music className="w-8 h-8 text-landing-orange" />
                 <div>
-                  <p className="text-white font-semibold">Milhares</p>
-                  <p className="text-white/50 text-sm">de músicas</p>
+                  <p className="text-white font-semibold">{t('landing.musicVariety.thousands')}</p>
+                  <p className="text-white/50 text-sm">{t('landing.musicVariety.ofSongs')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 bg-white/5 rounded-lg p-4">
                 <Globe className="w-8 h-8 text-landing-orange" />
                 <div>
-                  <p className="text-white font-semibold">Nacional</p>
-                  <p className="text-white/50 text-sm">e internacional</p>
+                  <p className="text-white font-semibold">{t('landing.musicVariety.national')}</p>
+                  <p className="text-white/50 text-sm">{t('landing.musicVariety.international')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 bg-white/5 rounded-lg p-4">
                 <Headphones className="w-8 h-8 text-landing-orange" />
                 <div>
-                  <p className="text-white font-semibold">Todos</p>
-                  <p className="text-white/50 text-sm">os estilos</p>
+                  <p className="text-white font-semibold">{t('landing.musicVariety.all')}</p>
+                  <p className="text-white/50 text-sm">{t('landing.musicVariety.styles')}</p>
                 </div>
               </div>
             </div>
@@ -58,7 +59,7 @@ export function MusicVarietySection() {
           >
             <SiteYouTubePlayer 
               videoKey="music_variety" 
-              placeholderText="Em breve vídeo explicativo"
+              placeholderText={t('landing.video.placeholder')}
             />
           </motion.div>
         </div>
