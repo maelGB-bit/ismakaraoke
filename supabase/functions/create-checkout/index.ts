@@ -139,7 +139,7 @@ serve(async (req) => {
         },
       ],
       mode: plan.is_recurring ? "subscription" : "payment",
-      success_url: `${req.headers.get("origin")}/app/login?payment=success`,
+      success_url: `${req.headers.get("origin")}/app/login?payment=success&email=${encodeURIComponent(customerEmail)}`,
       cancel_url: `${req.headers.get("origin")}/planos`,
       metadata: {
         plan_id: plan.id,
