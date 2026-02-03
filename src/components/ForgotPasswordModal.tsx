@@ -29,7 +29,7 @@ export function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswordModalP
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}/app/reset-password`,
       });
 
       if (error) throw error;
