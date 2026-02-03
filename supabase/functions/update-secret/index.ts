@@ -15,7 +15,6 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 const ALLOWED_SECRETS = [
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
-  'YOUTUBE_API_KEY',
 ];
 
 serve(async (req) => {
@@ -32,20 +31,27 @@ serve(async (req) => {
       throw new Error("No authorization header");
     }
 
-    const supabase = createClient(
+    // Use anon key to get user from token
+    const supabaseAuth = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
     
     if (userError || !userData.user) {
       throw new Error("Invalid authentication");
     }
 
+    // Use service role to check admin status (bypasses RLS)
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
     // Check if user is admin
-    const { data: roleData, error: roleError } = await supabase
+    const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', userData.user.id)
@@ -78,10 +84,7 @@ serve(async (req) => {
     // Since we can't directly set Edge Function secrets from code,
     // we'll store the encrypted value in the database and use it from there
     
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    // Reuse the supabaseAdmin client created above for admin check
 
     // Store in a secure_secrets table (we'll create this if it doesn't exist)
     const { error: upsertError } = await supabaseAdmin
