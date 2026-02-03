@@ -115,13 +115,19 @@ export function AdminCoupons() {
       return;
     }
 
-    // If setting visible_on_site to true, first disable all other visible coupons
+    // If setting visible_on_site to true, first disable ALL other visible coupons
     if (formData.visible_on_site) {
-      await supabase
+      const updateQuery = supabase
         .from('discount_coupons')
         .update({ visible_on_site: false })
-        .eq('visible_on_site', true)
-        .neq('id', editingCoupon?.id || '');
+        .eq('visible_on_site', true);
+      
+      // Only exclude current coupon if we're editing an existing one
+      if (editingCoupon?.id) {
+        await updateQuery.neq('id', editingCoupon.id);
+      } else {
+        await updateQuery;
+      }
     }
 
     const couponData = {
