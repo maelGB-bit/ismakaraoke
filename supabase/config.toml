@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.clear-session-flag]
 verify_jwt = false
+
+[functions.update-secret]
+verify_jwt = false
+
+[functions.test-stripe-key]
+verify_jwt = false
