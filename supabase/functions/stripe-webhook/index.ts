@@ -154,12 +154,29 @@ serve(async (req) => {
 
           userId = newUser.user.id;
           logStep("Created new user", { userId, email: customerEmail });
+        }
 
-          // Add coordinator role
-          await supabase.from('user_roles').insert({
+        // ALWAYS ensure coordinator role exists (for both new and existing users)
+        const { data: existingRole } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('role', 'coordinator')
+          .single();
+
+        if (!existingRole) {
+          const { error: roleError } = await supabase.from('user_roles').insert({
             user_id: userId,
             role: 'coordinator',
           });
+
+          if (roleError) {
+            logStep("Warning: Failed to add coordinator role", { error: roleError.message });
+          } else {
+            logStep("Added coordinator role to user", { userId });
+          }
+        } else {
+          logStep("User already has coordinator role", { userId });
         }
 
         // Calculate expiration date
