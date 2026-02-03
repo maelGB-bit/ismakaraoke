@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, Key, Users, Mic2, LogOut, Loader2, UserPlus, Video, Image, MessageCircle, FileText, Film, Trophy, Home, DollarSign, Ticket } from 'lucide-react';
+import { Shield, Key, Users, Mic2, LogOut, Loader2, UserPlus, Video, Image, MessageCircle, FileText, Film, Trophy, Home, DollarSign, Ticket, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminApiKeys } from '@/components/admin/AdminApiKeys';
@@ -16,6 +16,7 @@ import { AdminInstructionVideos } from '@/components/admin/AdminInstructionVideo
 import { AdminRankingSite } from '@/components/admin/AdminRankingSite';
 import { AdminPlans } from '@/components/admin/AdminPlans';
 import { AdminCoupons } from '@/components/admin/AdminCoupons';
+import { AdminSecrets } from '@/components/admin/AdminSecrets';
 import { useAdminAuthState, AdminAuthContext } from '@/hooks/useAdminAuth';
 
 function AdminContent() {
@@ -123,6 +124,10 @@ function AdminContent() {
               <Trophy className="h-4 w-4" />
               <span className="hidden sm:inline">Ranking Site</span>
             </TabsTrigger>
+            <TabsTrigger value="secrets" className="gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Configurações</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="requests">
@@ -171,6 +176,10 @@ function AdminContent() {
 
           <TabsContent value="ranking-site">
             <AdminRankingSite />
+          </TabsContent>
+
+          <TabsContent value="secrets">
+            <AdminSecrets />
           </TabsContent>
         </Tabs>
       </motion.div>
