@@ -102,7 +102,7 @@ serve(async (req) => {
     const resend = new Resend(secretData.encrypted_value);
 
     // Build reset URL - always use production domain
-    const baseUrl = "https://www.mamutekaraoke.com.br";
+    const baseUrl = "https://mamutekaraoke.com";
     const resetUrl = `${baseUrl}/app/reset-password?token=${token}`;
 
     logStep("Sending reset email", { email, resetUrl });

@@ -172,7 +172,7 @@ serve(async (req) => {
               
               <!-- CTA Button -->
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://www.mamutekaraoke.com.br/app/login" 
+                <a href="https://mamutekaraoke.com/app/login" 
                    style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 15px 40px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
                   Acessar Meu Karaokê →
                 </a>
