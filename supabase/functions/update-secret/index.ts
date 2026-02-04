@@ -14,7 +14,12 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 // Allowed secret keys that can be updated via this endpoint
 const ALLOWED_SECRETS = [
   'STRIPE_SECRET_KEY',
+  'STRIPE_SECRET_KEY_TEST',
+  'STRIPE_SECRET_KEY_LIVE',
   'STRIPE_WEBHOOK_SECRET',
+  'STRIPE_WEBHOOK_SECRET_TEST',
+  'STRIPE_WEBHOOK_SECRET_LIVE',
+  'STRIPE_MODE',
   'RESEND_API_KEY',
 ];
 
@@ -67,7 +72,7 @@ serve(async (req) => {
 
     const { key, value } = await req.json();
 
-    if (!key || !value) {
+    if (!key || value === undefined) {
       throw new Error("Missing key or value");
     }
 
@@ -77,23 +82,13 @@ serve(async (req) => {
 
     logStep("Updating secret", { key, valueLength: value.length });
 
-    // Store the secret in Supabase Vault
-    // Note: In a production environment, you would use Supabase Vault or a similar secure storage
-    // For now, we'll update the secret in the edge function environment
-    // This requires the Supabase CLI or dashboard to set secrets
-    
-    // Since we can't directly set Edge Function secrets from code,
-    // we'll store the encrypted value in the database and use it from there
-    
-    // Reuse the supabaseAdmin client created above for admin check
-
-    // Store in a secure_secrets table (we'll create this if it doesn't exist)
+    // Store the secret in the database
     const { error: upsertError } = await supabaseAdmin
       .from('secure_secrets')
       .upsert(
         {
           key_name: key,
-          encrypted_value: value, // In production, encrypt this
+          encrypted_value: value,
           updated_at: new Date().toISOString(),
           updated_by: userData.user.id,
         },
@@ -110,7 +105,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `${key} atualizada com sucesso. Nota: Para que a alteração tenha efeito completo, pode ser necessário atualizar os secrets via Lovable Cloud.` 
+        message: `${key} atualizada com sucesso.` 
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

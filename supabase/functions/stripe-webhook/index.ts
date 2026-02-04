@@ -35,28 +35,41 @@ serve(async (req) => {
   try {
     logStep("Webhook received");
 
-    // Fetch secrets from secure_secrets table
+    // Fetch Stripe mode first
+    const { data: modeData } = await supabase
+      .from('secure_secrets')
+      .select('encrypted_value')
+      .eq('key_name', 'STRIPE_MODE')
+      .single();
+
+    const stripeMode = modeData?.encrypted_value === 'live' ? 'live' : 'test';
+    logStep("Stripe mode", { stripeMode });
+
+    // Fetch secrets based on mode
+    const secretKeyName = stripeMode === 'live' ? 'STRIPE_SECRET_KEY_LIVE' : 'STRIPE_SECRET_KEY_TEST';
+    const webhookSecretName = stripeMode === 'live' ? 'STRIPE_WEBHOOK_SECRET_LIVE' : 'STRIPE_WEBHOOK_SECRET_TEST';
+
     const { data: secrets, error: secretsError } = await supabase
       .from('secure_secrets')
       .select('key_name, encrypted_value')
-      .in('key_name', ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET']);
+      .in('key_name', [secretKeyName, webhookSecretName]);
 
     if (secretsError || !secrets || secrets.length === 0) {
       logStep("Failed to fetch secrets", { error: secretsError?.message });
       throw new Error("Failed to fetch Stripe configuration");
     }
 
-    const stripeSecretKey = secrets.find(s => s.key_name === 'STRIPE_SECRET_KEY')?.encrypted_value;
-    const webhookSecret = secrets.find(s => s.key_name === 'STRIPE_WEBHOOK_SECRET')?.encrypted_value;
+    const stripeSecretKey = secrets.find(s => s.key_name === secretKeyName)?.encrypted_value;
+    const webhookSecret = secrets.find(s => s.key_name === webhookSecretName)?.encrypted_value;
 
     if (!stripeSecretKey) {
-      throw new Error("STRIPE_SECRET_KEY not configured");
+      throw new Error(`${secretKeyName} not configured`);
     }
     if (!webhookSecret) {
-      throw new Error("STRIPE_WEBHOOK_SECRET not configured");
+      throw new Error(`${webhookSecretName} not configured`);
     }
 
-    logStep("Secrets loaded successfully");
+    logStep("Secrets loaded successfully", { secretKeyName, webhookSecretName });
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2025-08-27.basil",

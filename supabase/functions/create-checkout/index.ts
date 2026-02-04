@@ -34,6 +34,16 @@ serve(async (req) => {
       throw new Error("Missing required fields: planId, customerEmail, customerName, instanceName");
     }
 
+    // Fetch Stripe mode from secure_secrets
+    const { data: modeData } = await supabaseClient
+      .from('secure_secrets')
+      .select('encrypted_value')
+      .eq('key_name', 'STRIPE_MODE')
+      .single();
+
+    const stripeMode = modeData?.encrypted_value === 'live' ? 'live' : 'test';
+    logStep("Stripe mode", { stripeMode });
+
     // Fetch plan details
     const { data: plan, error: planError } = await supabaseClient
       .from('subscription_plans')
@@ -46,36 +56,42 @@ serve(async (req) => {
       throw new Error("Plan not found or inactive");
     }
 
-    logStep("Plan found", { planName: plan.name, priceId: plan.stripe_price_id });
+    logStep("Plan found", { planName: plan.name, testPriceId: plan.stripe_price_id, livePriceId: plan.stripe_price_id_live });
 
     // Free plan - redirect directly without payment
     if (plan.is_free) {
       throw new Error("Free plan does not require payment. Use the trial registration flow.");
     }
 
-    if (!plan.stripe_price_id) {
-      throw new Error("Plan has no Stripe price configured");
+    // Get the correct price ID based on mode
+    const stripePriceId = stripeMode === 'live' ? plan.stripe_price_id_live : plan.stripe_price_id;
+    
+    if (!stripePriceId) {
+      throw new Error(`Plan has no Stripe price configured for ${stripeMode} mode. Please configure stripe_price_id${stripeMode === 'live' ? '_live' : ''} in admin.`);
     }
 
-    // Fetch Stripe secret key from secure_secrets table
+    logStep("Using price ID", { stripePriceId, stripeMode });
+
+    // Fetch Stripe secret key based on mode
+    const secretKeyName = stripeMode === 'live' ? 'STRIPE_SECRET_KEY_LIVE' : 'STRIPE_SECRET_KEY_TEST';
     const { data: secretData, error: secretError } = await supabaseClient
       .from('secure_secrets')
       .select('encrypted_value')
-      .eq('key_name', 'STRIPE_SECRET_KEY')
+      .eq('key_name', secretKeyName)
       .single();
 
-    if (secretError || !secretData) {
-      logStep("ERROR: Stripe secret key not configured", { error: secretError?.message });
-      throw new Error("Stripe secret key not configured. Please configure it in admin settings.");
+    if (secretError || !secretData || !secretData.encrypted_value) {
+      logStep("ERROR: Stripe secret key not configured", { keyName: secretKeyName, error: secretError?.message });
+      throw new Error(`Stripe secret key (${secretKeyName}) not configured. Please configure it in admin settings.`);
     }
 
-    // The value is stored directly (not encrypted) in the secure_secrets table
     const stripeSecretKey = secretData.encrypted_value;
     if (!stripeSecretKey || stripeSecretKey.length < 10) {
       throw new Error("Invalid Stripe secret key configuration");
     }
 
     logStep("Stripe key retrieved from database", { 
+      keyName: secretKeyName,
       keyPrefix: stripeSecretKey.substring(0, 8),
       isLiveKey: stripeSecretKey.startsWith('sk_live_')
     });
@@ -159,7 +175,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : customerEmail,
       line_items: [
         {
-          price: plan.stripe_price_id,
+          price: stripePriceId,
           quantity: 1,
         },
       ],

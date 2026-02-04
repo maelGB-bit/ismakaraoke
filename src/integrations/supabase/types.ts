@@ -702,6 +702,7 @@ export type Database = {
           recurring_interval: string | null
           sort_order: number
           stripe_price_id: string | null
+          stripe_price_id_live: string | null
           stripe_product_id: string | null
           updated_at: string
         }
@@ -719,6 +720,7 @@ export type Database = {
           recurring_interval?: string | null
           sort_order?: number
           stripe_price_id?: string | null
+          stripe_price_id_live?: string | null
           stripe_product_id?: string | null
           updated_at?: string
         }
@@ -736,6 +738,7 @@ export type Database = {
           recurring_interval?: string | null
           sort_order?: number
           stripe_price_id?: string | null
+          stripe_price_id_live?: string | null
           stripe_product_id?: string | null
           updated_at?: string
         }
