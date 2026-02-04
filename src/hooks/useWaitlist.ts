@@ -420,6 +420,29 @@ export function useWaitlist(instanceId?: string | null) {
     }
   };
 
+  const updateSingerName = async (entryId: string, newName: string) => {
+    try {
+      const { error } = await supabase
+        .from('waitlist')
+        .update({ singer_name: newName.trim() })
+        .eq('id', entryId);
+      
+      if (error) throw error;
+      
+      // Update local state immediately
+      setEntries(prev => prev.map(e => 
+        e.id === entryId ? { ...e, singer_name: newName.trim() } : e
+      ));
+      
+      toast({ title: t('waitlist.nameUpdated') });
+      return true;
+    } catch (error) {
+      console.error('Error updating singer name:', error);
+      toast({ title: t('host.error'), variant: 'destructive' });
+      return false;
+    }
+  };
+
   const getNextInQueue = (): WaitlistEntry | null => {
     return entries.length > 0 ? entries[0] : null;
   };
@@ -434,6 +457,7 @@ export function useWaitlist(instanceId?: string | null) {
     markAsDone, 
     removeFromWaitlist, 
     movePriority,
+    updateSingerName,
     getNextInQueue, 
     refetch: fetchEntries 
   };

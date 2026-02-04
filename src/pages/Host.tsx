@@ -97,6 +97,7 @@ function HostContent() {
     markAsDone,
     removeFromWaitlist,
     movePriority,
+    updateSingerName,
     getNextInQueue,
     addToWaitlist,
   } = useWaitlist(instanceId);
@@ -891,6 +892,7 @@ function HostContent() {
               onSelectEntry={handleSelectFromWaitlist}
               onRemoveEntry={removeFromWaitlist}
               onMovePriority={movePriority}
+              onUpdateSingerName={updateSingerName}
               currentSinger={isRoundActive ? performance?.cantor : null}
             />
             <div className="flex flex-col gap-2">
