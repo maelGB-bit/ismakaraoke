@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
-import { UserRegistrationModal } from '@/components/UserRegistrationModal';
+import { ParticipantRegistrationModal } from '@/components/ParticipantRegistrationModal';
 import { ConsentTermsModal } from '@/components/ConsentTermsModal';
 import { VotingPreferenceToggle } from '@/components/VotingPreferenceToggle';
 import { LeaveButton } from '@/components/LeaveButton';
@@ -22,6 +22,8 @@ import { useActivePerformance } from '@/hooks/usePerformance';
 import { useUserProfile, UserProfile } from '@/hooks/useUserProfile';
 import { useEventSettings } from '@/hooks/useEventSettings';
 import { useInstanceByCode } from '@/hooks/useInstanceByCode';
+import { useDeviceId } from '@/hooks/useDeviceId';
+import { useParticipant } from '@/hooks/useParticipant';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { decodeHtmlEntities } from '@/lib/htmlUtils';
 import {
@@ -53,6 +55,10 @@ export default function Inscricao() {
   const { instance, loading: instanceLoading, error: instanceError } = useInstanceByCode(instanceCode);
   const instanceId = instance?.id || null;
   
+  // Device ID and participant registration (same as Vote page)
+  const deviceId = useDeviceId();
+  const { participant, loading: participantLoading, registerParticipant } = useParticipant(instanceId, deviceId);
+  
   const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
   const { performance } = useActivePerformance(instanceId);
   const { profile, loading: profileLoading, saveProfile, updateVotingPreference, acceptTerms } = useUserProfile();
@@ -69,19 +75,18 @@ export default function Inscricao() {
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showRegistration, setShowRegistration] = useState(false);
   const [registerForOther, setRegisterForOther] = useState(false);
   const [manualUrl, setManualUrl] = useState('');
   const [searchError, setSearchError] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  // Set singer name from profile when loaded - only on initial mount
+  // Set singer name from participant when loaded
   useEffect(() => {
-    if (profile && !registerForOther && !singerName) {
-      setSingerName(profile.name);
+    if (participant && !registerForOther && !singerName) {
+      setSingerName(participant.name);
     }
-  }, [profile?.name]); // Only depend on profile.name, not the full profile object
+  }, [participant?.name]); // Only depend on participant.name
 
   // Initialize voting preference from profile
   useEffect(() => {
@@ -90,28 +95,30 @@ export default function Inscricao() {
     }
   }, [profile?.allowVoting]);
 
-  // Show registration if no profile - only on initial mount
-  useEffect(() => {
-    if (!profileLoading && !profile) {
-      setShowRegistration(true);
+  // Handle registration completion - save to localStorage for other features
+  const handleRegistrationComplete = async (name: string, phone: string, email: string): Promise<{ success: boolean; error?: string }> => {
+    const result = await registerParticipant(name, phone, email);
+    
+    if (result.success) {
+      // Also save to localStorage for profile features
+      saveProfile({
+        name: name.trim(),
+        phone: phone.trim(),
+        email: email.trim().toLowerCase(),
+      });
+      // Set singer name after registration
+      setSingerName(name.trim());
     }
-  }, [profileLoading]); // Only check on initial load
-
-  const handleRegistrationComplete = (newProfile: UserProfile) => {
-    // Save profile to localStorage FIRST
-    saveProfile(newProfile);
-    // Then update local state
-    setSingerName(newProfile.name);
-    // Close the registration modal LAST
-    setShowRegistration(false);
+    
+    return result;
   };
 
   const handleRegisterForOtherChange = (checked: boolean) => {
     setRegisterForOther(checked);
     if (checked) {
       setSingerName('');
-    } else if (profile) {
-      setSingerName(profile.name);
+    } else if (participant) {
+      setSingerName(participant.name);
     }
   };
 
@@ -245,9 +252,9 @@ export default function Inscricao() {
     // Save terms acceptance and voting preference
     // Create or update profile with terms accepted
     const updatedProfile = {
-      name: profile?.name || singerName.trim(),
-      phone: profile?.phone,
-      email: profile?.email,
+      name: participant?.name || singerName.trim(),
+      phone: participant?.phone,
+      email: participant?.email,
       termsAccepted: true,
       allowVoting
     };
@@ -271,7 +278,7 @@ export default function Inscricao() {
     setShowConfirmDialog(false);
 
     // If registering for someone else, pass the current user's name as registeredBy
-    const registeredBy = registerForOther && profile ? profile.name : undefined;
+    const registeredBy = registerForOther && participant ? participant.name : undefined;
 
     // Pass the current voting preference
     const success = await addToWaitlist(
@@ -290,7 +297,7 @@ export default function Inscricao() {
       if (registerForOther) {
         setSingerName('');
         setRegisterForOther(false);
-        if (profile) setSingerName(profile.name);
+        if (participant) setSingerName(participant.name);
       }
       setSearchQuery('');
       setVideos([]);
@@ -306,10 +313,23 @@ export default function Inscricao() {
     return <InstanceNotFound instanceCode={instanceCode} error={instanceError} />;
   }
 
-  if (profileLoading || instanceLoading) {
+  if (profileLoading || instanceLoading || participantLoading) {
     return (
       <div className="min-h-screen gradient-bg flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show registration modal if participant is not registered (same logic as Vote page)
+  if (!participant && instanceId) {
+    return (
+      <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <ParticipantRegistrationModal
+          open={true}
+          onRegister={handleRegistrationComplete}
+          instanceName={instance?.name}
+        />
       </div>
     );
   }
@@ -320,10 +340,6 @@ export default function Inscricao() {
       <div className="absolute top-4 right-4 z-10">
         <LanguageSwitcher />
       </div>
-      
-      {showRegistration && (
-        <UserRegistrationModal onComplete={handleRegistrationComplete} />
-      )}
       
       {/* Consent Terms Modal - shown on first "Quero Cantar" before music selection confirmation */}
       <ConsentTermsModal
@@ -348,9 +364,9 @@ export default function Inscricao() {
           <p className="text-muted-foreground">
             {t('signup.subtitle')}
           </p>
-          {profile && (
+          {participant && (
             <p className="text-sm text-primary">
-              {t('signup.welcomeBack')}, {profile.name}!
+              {t('signup.welcomeBack')}, {participant.name}!
             </p>
           )}
         </div>
