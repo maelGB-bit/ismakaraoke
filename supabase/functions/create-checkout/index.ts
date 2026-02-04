@@ -12,18 +12,6 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Simple XOR decryption function
-function xorDecrypt(encryptedHex: string, key: string): string {
-  const encrypted = new Uint8Array(encryptedHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
-  const keyBytes = new TextEncoder().encode(key);
-  const decrypted = new Uint8Array(encrypted.length);
-  
-  for (let i = 0; i < encrypted.length; i++) {
-    decrypted[i] = encrypted[i] ^ keyBytes[i % keyBytes.length];
-  }
-  
-  return new TextDecoder().decode(decrypted);
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -70,7 +58,6 @@ serve(async (req) => {
     }
 
     // Fetch Stripe secret key from secure_secrets table
-    const encryptionKey = Deno.env.get("ENCRYPTION_KEY") || "mamute-karaoke-secret-key-2024";
     const { data: secretData, error: secretError } = await supabaseClient
       .from('secure_secrets')
       .select('encrypted_value')
@@ -82,7 +69,8 @@ serve(async (req) => {
       throw new Error("Stripe secret key not configured. Please configure it in admin settings.");
     }
 
-    const stripeSecretKey = xorDecrypt(secretData.encrypted_value, encryptionKey);
+    // The value is stored directly (not encrypted) in the secure_secrets table
+    const stripeSecretKey = secretData.encrypted_value;
     if (!stripeSecretKey || stripeSecretKey.length < 10) {
       throw new Error("Invalid Stripe secret key configuration");
     }
