@@ -12,14 +12,28 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Simple XOR decryption function
+function xorDecrypt(encryptedHex: string, key: string): string {
+  const encrypted = new Uint8Array(encryptedHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+  const keyBytes = new TextEncoder().encode(key);
+  const decrypted = new Uint8Array(encrypted.length);
+  
+  for (let i = 0; i < encrypted.length; i++) {
+    decrypted[i] = encrypted[i] ^ keyBytes[i % keyBytes.length];
+  }
+  
+  return new TextDecoder().decode(decrypted);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Use service role to access secure_secrets table
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
 
   try {
@@ -55,8 +69,31 @@ serve(async (req) => {
       throw new Error("Plan has no Stripe price configured");
     }
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    // Fetch Stripe secret key from secure_secrets table
+    const encryptionKey = Deno.env.get("ENCRYPTION_KEY") || "mamute-karaoke-secret-key-2024";
+    const { data: secretData, error: secretError } = await supabaseClient
+      .from('secure_secrets')
+      .select('encrypted_value')
+      .eq('key_name', 'STRIPE_SECRET_KEY')
+      .single();
+
+    if (secretError || !secretData) {
+      logStep("ERROR: Stripe secret key not configured", { error: secretError?.message });
+      throw new Error("Stripe secret key not configured. Please configure it in admin settings.");
+    }
+
+    const stripeSecretKey = xorDecrypt(secretData.encrypted_value, encryptionKey);
+    if (!stripeSecretKey || stripeSecretKey.length < 10) {
+      throw new Error("Invalid Stripe secret key configuration");
+    }
+
+    logStep("Stripe key retrieved from database", { 
+      keyPrefix: stripeSecretKey.substring(0, 8),
+      isLiveKey: stripeSecretKey.startsWith('sk_live_')
+    });
+
+    // Initialize Stripe with key from database
+    const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2025-08-27.basil",
     });
 
