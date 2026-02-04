@@ -8,8 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Clock, DollarSign } from 'lucide-react';
+import { Plus, Pencil, Trash2, Clock, DollarSign, AlertCircle } from 'lucide-react';
 
 interface Plan {
   id: string;
@@ -19,6 +21,7 @@ interface Plan {
   price_currency: string;
   duration_hours: number;
   stripe_price_id: string | null;
+  stripe_price_id_live: string | null;
   stripe_product_id: string | null;
   is_recurring: boolean;
   recurring_interval: string | null;
@@ -32,6 +35,7 @@ export function AdminPlans() {
   const [loading, setLoading] = useState(true);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [stripeMode, setStripeMode] = useState<'test' | 'live'>('test');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -44,12 +48,30 @@ export function AdminPlans() {
     is_free: false,
     sort_order: 0,
     stripe_price_id: '',
+    stripe_price_id_live: '',
     stripe_product_id: '',
   });
 
   useEffect(() => {
     fetchPlans();
+    fetchStripeMode();
   }, []);
+
+  const fetchStripeMode = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('secure_secrets')
+        .select('encrypted_value')
+        .eq('key_name', 'STRIPE_MODE')
+        .single();
+
+      if (!error && data) {
+        setStripeMode(data.encrypted_value as 'test' | 'live');
+      }
+    } catch (err) {
+      console.error('Error fetching stripe mode:', err);
+    }
+  };
 
   const fetchPlans = async () => {
     const { data, error } = await supabase
@@ -61,7 +83,8 @@ export function AdminPlans() {
       toast.error('Erro ao carregar planos');
       console.error(error);
     } else {
-      setPlans(data || []);
+      // Type assertion since we know the actual structure
+      setPlans((data || []) as Plan[]);
     }
     setLoading(false);
   };
@@ -79,6 +102,7 @@ export function AdminPlans() {
       is_free: false,
       sort_order: plans.length,
       stripe_price_id: '',
+      stripe_price_id_live: '',
       stripe_product_id: '',
     });
     setIsDialogOpen(true);
@@ -97,6 +121,7 @@ export function AdminPlans() {
       is_free: plan.is_free,
       sort_order: plan.sort_order,
       stripe_price_id: plan.stripe_price_id || '',
+      stripe_price_id_live: plan.stripe_price_id_live || '',
       stripe_product_id: plan.stripe_product_id || '',
     });
     setIsDialogOpen(true);
@@ -120,6 +145,7 @@ export function AdminPlans() {
       is_free: formData.is_free,
       sort_order: formData.sort_order,
       stripe_price_id: formData.is_free ? null : (formData.stripe_price_id || null),
+      stripe_price_id_live: formData.is_free ? null : (formData.stripe_price_id_live || null),
       stripe_product_id: formData.is_free ? null : (formData.stripe_product_id || null),
     };
 
@@ -187,6 +213,16 @@ export function AdminPlans() {
     return `${Math.floor(hours / 8760)} ano${hours >= 17520 ? 's' : ''}`;
   };
 
+  const getActivePriceId = (plan: Plan) => {
+    return stripeMode === 'live' ? plan.stripe_price_id_live : plan.stripe_price_id;
+  };
+
+  const hasMissingPriceId = (plan: Plan) => {
+    if (plan.is_free) return false;
+    const activePrice = getActivePriceId(plan);
+    return !activePrice;
+  };
+
   if (loading) {
     return <div className="text-center py-8">Carregando planos...</div>;
   }
@@ -204,10 +240,15 @@ export function AdminPlans() {
               Configure os planos de assinatura disponíveis para os usuários
             </CardDescription>
           </div>
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Plano
-          </Button>
+          <div className="flex items-center gap-3">
+            <Badge variant={stripeMode === 'live' ? 'default' : 'secondary'} className={stripeMode === 'live' ? 'bg-green-600' : ''}>
+              Modo: {stripeMode === 'live' ? 'Produção' : 'Teste'}
+            </Badge>
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Plano
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -219,6 +260,7 @@ export function AdminPlans() {
               <TableHead>Preço</TableHead>
               <TableHead>Duração</TableHead>
               <TableHead>Tipo</TableHead>
+              <TableHead>Price ID ({stripeMode === 'live' ? 'Prod' : 'Test'})</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
@@ -258,6 +300,20 @@ export function AdminPlans() {
                   )}
                 </TableCell>
                 <TableCell>
+                  {plan.is_free ? (
+                    <span className="text-muted-foreground">N/A</span>
+                  ) : hasMissingPriceId(plan) ? (
+                    <div className="flex items-center gap-1 text-amber-600">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-xs">Não configurado</span>
+                    </div>
+                  ) : (
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      {getActivePriceId(plan)?.substring(0, 20)}...
+                    </code>
+                  )}
+                </TableCell>
+                <TableCell>
                   <span className={plan.is_active ? 'text-green-600' : 'text-red-600'}>
                     {plan.is_active ? 'Ativo' : 'Inativo'}
                   </span>
@@ -278,10 +334,23 @@ export function AdminPlans() {
             ))}
           </TableBody>
         </Table>
+
+        {/* Warning for missing price IDs */}
+        {plans.some(p => hasMissingPriceId(p)) && (
+          <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5" />
+              <div className="text-sm text-amber-700 dark:text-amber-400">
+                <strong>Atenção:</strong> Alguns planos não têm Price ID configurado para o modo {stripeMode === 'live' ? 'Produção' : 'Teste'}. 
+                Edite os planos para adicionar os IDs correspondentes do Stripe.
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingPlan ? 'Editar Plano' : 'Novo Plano'}
@@ -396,23 +465,65 @@ export function AdminPlans() {
                       </div>
                     )}
 
-                    <div>
-                      <Label htmlFor="stripe_price_id">Stripe Price ID</Label>
-                      <Input
-                        id="stripe_price_id"
-                        value={formData.stripe_price_id}
-                        onChange={(e) => setFormData({ ...formData, stripe_price_id: e.target.value })}
-                        placeholder="price_..."
-                      />
+                    {/* Stripe IDs Section */}
+                    <div className="border-t pt-4 mt-4">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" />
+                        Stripe Price IDs
+                      </h4>
+                      
+                      <Tabs defaultValue="test" className="w-full">
+                        <TabsList className="w-full">
+                          <TabsTrigger value="test" className="flex-1">
+                            Modo Teste
+                          </TabsTrigger>
+                          <TabsTrigger value="live" className="flex-1">
+                            Modo Produção
+                          </TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="test" className="space-y-3 mt-3">
+                          <div>
+                            <Label htmlFor="stripe_price_id">Stripe Price ID (Teste)</Label>
+                            <Input
+                              id="stripe_price_id"
+                              value={formData.stripe_price_id}
+                              onChange={(e) => setFormData({ ...formData, stripe_price_id: e.target.value })}
+                              placeholder="price_..."
+                              className="font-mono text-sm"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              ID do preço criado no ambiente de teste do Stripe
+                            </p>
+                          </div>
+                        </TabsContent>
+                        
+                        <TabsContent value="live" className="space-y-3 mt-3">
+                          <div>
+                            <Label htmlFor="stripe_price_id_live">Stripe Price ID (Produção)</Label>
+                            <Input
+                              id="stripe_price_id_live"
+                              value={formData.stripe_price_id_live}
+                              onChange={(e) => setFormData({ ...formData, stripe_price_id_live: e.target.value })}
+                              placeholder="price_..."
+                              className="font-mono text-sm"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              ID do preço criado no ambiente de produção do Stripe
+                            </p>
+                          </div>
+                        </TabsContent>
+                      </Tabs>
                     </div>
 
                     <div>
-                      <Label htmlFor="stripe_product_id">Stripe Product ID</Label>
+                      <Label htmlFor="stripe_product_id">Stripe Product ID (opcional)</Label>
                       <Input
                         id="stripe_product_id"
                         value={formData.stripe_product_id}
                         onChange={(e) => setFormData({ ...formData, stripe_product_id: e.target.value })}
                         placeholder="prod_..."
+                        className="font-mono text-sm"
                       />
                     </div>
                   </>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Key, Eye, EyeOff, Save, Loader2, CreditCard, AlertCircle, CheckCircle, RefreshCw, Edit2, Mail } from 'lucide-react';
+import { Settings, Key, Eye, EyeOff, Save, Loader2, CreditCard, AlertCircle, CheckCircle, RefreshCw, Edit2, Mail, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,7 @@ interface SecretField {
   description: string;
   icon: React.ReactNode;
   placeholder: string;
-  category: 'stripe' | 'email';
+  category: 'stripe_test' | 'stripe_live' | 'email';
 }
 
 interface SecretStatus {
@@ -26,22 +26,41 @@ interface SecretStatus {
 }
 
 const SECRET_FIELDS: SecretField[] = [
+  // Test Mode Keys
   {
-    key: 'STRIPE_SECRET_KEY',
-    label: 'Stripe Secret Key',
-    description: 'Chave secreta do Stripe para processar pagamentos. Use sk_test_ para testes ou sk_live_ para produção.',
+    key: 'STRIPE_SECRET_KEY_TEST',
+    label: 'Stripe Secret Key (Teste)',
+    description: 'Chave secreta do Stripe para modo de teste (sk_test_...)',
     icon: <CreditCard className="h-4 w-4" />,
-    placeholder: 'sk_test_... ou sk_live_...',
-    category: 'stripe',
+    placeholder: 'sk_test_...',
+    category: 'stripe_test',
   },
   {
-    key: 'STRIPE_WEBHOOK_SECRET',
-    label: 'Stripe Webhook Secret',
-    description: 'Secret para verificar assinaturas de webhooks do Stripe.',
+    key: 'STRIPE_WEBHOOK_SECRET_TEST',
+    label: 'Stripe Webhook Secret (Teste)',
+    description: 'Secret para verificar webhooks do Stripe em modo de teste.',
     icon: <CreditCard className="h-4 w-4" />,
     placeholder: 'whsec_...',
-    category: 'stripe',
+    category: 'stripe_test',
   },
+  // Live Mode Keys
+  {
+    key: 'STRIPE_SECRET_KEY_LIVE',
+    label: 'Stripe Secret Key (Produção)',
+    description: 'Chave secreta do Stripe para modo de produção (sk_live_...)',
+    icon: <CreditCard className="h-4 w-4" />,
+    placeholder: 'sk_live_...',
+    category: 'stripe_live',
+  },
+  {
+    key: 'STRIPE_WEBHOOK_SECRET_LIVE',
+    label: 'Stripe Webhook Secret (Produção)',
+    description: 'Secret para verificar webhooks do Stripe em modo de produção.',
+    icon: <CreditCard className="h-4 w-4" />,
+    placeholder: 'whsec_...',
+    category: 'stripe_live',
+  },
+  // Email
   {
     key: 'RESEND_API_KEY',
     label: 'Resend API Key',
@@ -62,6 +81,8 @@ export function AdminSecrets() {
   const [testResults, setTestResults] = useState<Record<string, { valid: boolean; message: string }>>({});
   const [editMode, setEditMode] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
+  const [stripeMode, setStripeMode] = useState<'test' | 'live'>('test');
+  const [switchingMode, setSwitchingMode] = useState(false);
 
   const fetchSecretsStatus = async () => {
     setLoading(true);
@@ -77,6 +98,9 @@ export function AdminSecrets() {
 
       if (response.data?.secrets) {
         setSecretsStatus(response.data.secrets);
+      }
+      if (response.data?.stripeMode) {
+        setStripeMode(response.data.stripeMode);
       }
     } catch (error) {
       console.error('Error fetching secrets status:', error);
@@ -196,6 +220,54 @@ export function AdminSecrets() {
     }
   };
 
+  const handleSwitchMode = async (newMode: 'test' | 'live') => {
+    // Check if we have keys configured for the new mode
+    const secretKeyForMode = newMode === 'live' ? 'STRIPE_SECRET_KEY_LIVE' : 'STRIPE_SECRET_KEY_TEST';
+    const webhookKeyForMode = newMode === 'live' ? 'STRIPE_WEBHOOK_SECRET_LIVE' : 'STRIPE_WEBHOOK_SECRET_TEST';
+    
+    const hasSecretKey = secretsStatus[secretKeyForMode]?.exists;
+    const hasWebhookKey = secretsStatus[webhookKeyForMode]?.exists;
+
+    if (!hasSecretKey || !hasWebhookKey) {
+      toast({
+        title: 'Chaves não configuradas',
+        description: `Configure as chaves de ${newMode === 'live' ? 'produção' : 'teste'} antes de trocar o modo.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSwitchingMode(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Não autenticado');
+
+      const response = await supabase.functions.invoke('update-secret', {
+        body: { key: 'STRIPE_MODE', value: newMode },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (response.error) throw response.error;
+
+      setStripeMode(newMode);
+      toast({
+        title: 'Modo alterado!',
+        description: `Stripe agora está em modo ${newMode === 'live' ? 'PRODUÇÃO' : 'TESTE'}.`,
+      });
+
+      await fetchSecretsStatus();
+    } catch (error) {
+      console.error('Error switching mode:', error);
+      toast({
+        title: 'Erro ao trocar modo',
+        description: 'Não foi possível alterar o modo do Stripe.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSwitchingMode(false);
+    }
+  };
+
   const renderSecretField = (field: SecretField) => {
     const value = secrets[field.key] || '';
     const isShowing = showSecrets[field.key];
@@ -217,8 +289,8 @@ export function AdminSecrets() {
           </div>
           <div className="flex items-center gap-2">
             {status?.exists && (
-              <Badge variant={status.isTestKey === false ? 'default' : 'secondary'}>
-                {status.isTestKey === false ? 'Produção' : status.isTestKey === true ? 'Teste' : 'Configurada'}
+              <Badge variant="default">
+                Configurada
               </Badge>
             )}
             {!status?.exists && (
@@ -286,7 +358,7 @@ export function AdminSecrets() {
             )}
 
             <div className="flex items-center gap-2">
-              {field.key === 'STRIPE_SECRET_KEY' && (
+              {(field.key === 'STRIPE_SECRET_KEY_TEST' || field.key === 'STRIPE_SECRET_KEY_LIVE') && (
                 <Button
                   type="button"
                   variant="outline"
@@ -342,7 +414,7 @@ export function AdminSecrets() {
               Configurações do Stripe
             </CardTitle>
             <CardDescription>
-              Gerencie as chaves do Stripe para processamento de pagamentos. As chaves são armazenadas de forma segura.
+              Gerencie as chaves do Stripe para processamento de pagamentos. Configure chaves de Teste e Produção separadamente.
             </CardDescription>
           </div>
           <Button
@@ -360,11 +432,71 @@ export function AdminSecrets() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Stripe Section */}
+        {/* Mode Switcher */}
+        <div className="p-4 border rounded-lg bg-gradient-to-r from-muted/50 to-muted">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                {stripeMode === 'live' ? (
+                  <ToggleRight className="h-5 w-5 text-green-500" />
+                ) : (
+                  <ToggleLeft className="h-5 w-5 text-amber-500" />
+                )}
+                Modo Atual: {stripeMode === 'live' ? 'PRODUÇÃO' : 'TESTE'}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {stripeMode === 'live' 
+                  ? 'Pagamentos REAIS estão sendo processados. Use com cuidado!'
+                  : 'Modo de teste ativo. Nenhum pagamento real será processado.'
+                }
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant={stripeMode === 'test' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleSwitchMode('test')}
+                disabled={switchingMode || stripeMode === 'test'}
+              >
+                {switchingMode && stripeMode !== 'test' ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Teste
+              </Button>
+              <Button
+                variant={stripeMode === 'live' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleSwitchMode('live')}
+                disabled={switchingMode || stripeMode === 'live'}
+                className={stripeMode === 'live' ? 'bg-green-600 hover:bg-green-700' : ''}
+              >
+                {switchingMode && stripeMode !== 'live' ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Produção
+              </Button>
+            </div>
+          </div>
+          {stripeMode === 'live' && (
+            <div className="mt-3 p-2 bg-green-500/10 border border-green-500/20 rounded-md">
+              <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                <AlertCircle className="h-4 w-4" />
+                <strong>Atenção:</strong> Pagamentos reais estão ativos! Ao mudar de modo, os Price IDs dos planos serão alternados automaticamente.
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Stripe Test Keys Section */}
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <CreditCard className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold text-lg">Stripe (Pagamentos)</h3>
+            <CreditCard className="h-5 w-5 text-amber-500" />
+            <h3 className="font-semibold text-lg">Stripe - Modo Teste</h3>
+            {stripeMode === 'test' && (
+              <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                Ativo
+              </Badge>
+            )}
           </div>
           {loading ? (
             <div className="flex items-center justify-center py-8">
@@ -372,18 +504,31 @@ export function AdminSecrets() {
             </div>
           ) : (
             <div className="space-y-4">
-              {SECRET_FIELDS.filter(f => f.category === 'stripe').map(renderSecretField)}
+              {SECRET_FIELDS.filter(f => f.category === 'stripe_test').map(renderSecretField)}
             </div>
           )}
-          <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5" />
-              <div className="text-sm text-amber-700 dark:text-amber-400">
-                <strong>Dica:</strong> Para ativar pagamentos reais, substitua as chaves de teste (sk_test_) 
-                pelas chaves de produção (sk_live_) do seu dashboard do Stripe.
-              </div>
-            </div>
+        </div>
+
+        {/* Stripe Live Keys Section */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <CreditCard className="h-5 w-5 text-green-500" />
+            <h3 className="font-semibold text-lg">Stripe - Modo Produção</h3>
+            {stripeMode === 'live' && (
+              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                Ativo
+              </Badge>
+            )}
           </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {SECRET_FIELDS.filter(f => f.category === 'stripe_live').map(renderSecretField)}
+            </div>
+          )}
         </div>
 
         {/* Email Section */}

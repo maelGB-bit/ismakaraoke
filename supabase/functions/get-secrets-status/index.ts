@@ -49,12 +49,19 @@ serve(async (req) => {
     }
 
     // All secret keys to check
-    const ALL_SECRET_KEYS = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'RESEND_API_KEY'];
+    const ALL_SECRET_KEYS = [
+      'STRIPE_SECRET_KEY_TEST',
+      'STRIPE_SECRET_KEY_LIVE',
+      'STRIPE_WEBHOOK_SECRET_TEST',
+      'STRIPE_WEBHOOK_SECRET_LIVE',
+      'STRIPE_MODE',
+      'RESEND_API_KEY'
+    ];
 
     // Get secrets status (not the actual values, just metadata)
     const { data: secrets, error: secretsError } = await supabaseAdmin
       .from('secure_secrets')
-      .select('key_name, updated_at, created_at')
+      .select('key_name, encrypted_value, updated_at, created_at')
       .in('key_name', ALL_SECRET_KEYS);
 
     if (secretsError) {
@@ -63,33 +70,28 @@ serve(async (req) => {
 
     // Create a map of secret statuses
     const secretsStatus: Record<string, { exists: boolean; updatedAt: string | null; isTestKey: boolean | null }> = {};
+    let stripeMode: 'test' | 'live' = 'test';
     
     for (const secret of secrets || []) {
-      // Get the actual value to check if it's test or live
-      const { data: fullSecret } = await supabaseAdmin
-        .from('secure_secrets')
-        .select('encrypted_value')
-        .eq('key_name', secret.key_name)
-        .single();
-
-      let isTestKey = null;
-      if (fullSecret?.encrypted_value) {
-        // Check if it starts with sk_test_ or whsec_ patterns
-        const value = fullSecret.encrypted_value;
-        if (secret.key_name === 'STRIPE_SECRET_KEY') {
-          isTestKey = value.startsWith('sk_test_');
-        }
+      // Check for STRIPE_MODE
+      if (secret.key_name === 'STRIPE_MODE') {
+        stripeMode = (secret.encrypted_value === 'live' ? 'live' : 'test');
+        continue;
       }
 
+      // Check if the secret has a value (not empty string)
+      const hasValue = secret.encrypted_value && secret.encrypted_value.trim().length > 0;
+
       secretsStatus[secret.key_name] = {
-        exists: true,
+        exists: hasValue,
         updatedAt: secret.updated_at,
-        isTestKey,
+        isTestKey: null, // Not needed anymore since we have separate keys
       };
     }
 
     // Add missing keys as not configured
     ALL_SECRET_KEYS.forEach(key => {
+      if (key === 'STRIPE_MODE') return; // Skip mode, handled separately
       if (!secretsStatus[key]) {
         secretsStatus[key] = {
           exists: false,
@@ -99,7 +101,7 @@ serve(async (req) => {
       }
     });
 
-    return new Response(JSON.stringify({ secrets: secretsStatus }), {
+    return new Response(JSON.stringify({ secrets: secretsStatus, stripeMode }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
