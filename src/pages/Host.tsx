@@ -574,6 +574,7 @@ function HostContent() {
             isPlayingInstructionVideo={isPlayingInstructionVideo}
             onPlayInstructionVideo={handlePlayInstructionVideo}
             onUpdateSingerName={updateSingerName}
+            waitlistEntries={waitlistEntries.filter(e => e.status === 'waiting')}
           />
         )}
       </AnimatePresence>

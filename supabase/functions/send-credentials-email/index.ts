@@ -310,6 +310,36 @@ async function sendManualEmail(resendApiKey: string, email: string, name: string
             Este é o manual completo do <strong style="color: #f97316;">${instanceName}</strong>. Aqui você encontrará todas as informações para gerenciar seu evento de karaokê com sucesso!
           </p>
           
+          <!-- DICA IMPORTANTE - UM DISPOSITIVO -->
+          <div style="background-color: #1e3a5f; border: 2px solid #3b82f6; border-radius: 12px; padding: 25px; margin: 20px 0;">
+            <h2 style="color: #3b82f6; margin: 0 0 15px 0; font-size: 18px;">
+              💡 DICA IMPORTANTE: Tem apenas UM dispositivo?
+            </h2>
+            
+            <p style="color: #ffffff; font-size: 15px; margin: 0 0 15px 0;">
+              Se você <strong>não possui dois equipamentos</strong> (um para controlar e outro para a TV), recomendamos utilizar o <strong style="color: #22c55e;">Modo TV</strong> como sua central de comando!
+            </p>
+            
+            <p style="color: #cccccc; font-size: 14px; margin: 0 0 15px 0;">
+              O Modo TV possui <strong>todas as funções de gerenciamento</strong> integradas:
+            </p>
+            
+            <ul style="color: #cccccc; font-size: 14px; margin: 0; padding-left: 20px; line-height: 1.8;">
+              <li>✅ Chamar próximo cantor</li>
+              <li>✅ Trocar música</li>
+              <li>✅ Ver fila de espera completa</li>
+              <li>✅ Abrir/fechar inscrições</li>
+              <li>✅ Reproduzir vídeos instrucionais</li>
+              <li>✅ Notas visíveis mesmo com vídeo em tela cheia</li>
+            </ul>
+            
+            <div style="background-color: #0d2847; border-radius: 8px; padding: 15px; margin-top: 15px;">
+              <p style="color: #93c5fd; font-size: 13px; margin: 0;">
+                📺 <strong>Como usar:</strong> Conecte seu dispositivo na TV, entre no Modo TV e gerencie tudo diretamente pelo telão!
+              </p>
+            </div>
+          </div>
+          
           <!-- MODO HOST -->
           <div style="background-color: #2a2a2a; border: 2px solid #f97316; border-radius: 12px; padding: 25px; margin: 20px 0;">
             <h2 style="color: #f97316; margin: 0 0 20px 0; font-size: 20px; display: flex; align-items: center;">
@@ -317,7 +347,7 @@ async function sendManualEmail(resendApiKey: string, email: string, name: string
             </h2>
             
             <p style="color: #cccccc; font-size: 14px; margin: 0 0 20px 0;">
-              O Modo Host é a central de controle do seu karaokê. Use-o no seu celular ou tablet para gerenciar todo o evento.
+              O Modo Host é a central de controle do seu karaokê. <strong style="color: #f97316;">Ideal se você tiver dois dispositivos</strong> - um para controlar (celular/tablet) e outro para exibir na TV.
             </p>
             
             <h4 style="color: #ffffff; margin: 20px 0 10px 0; font-size: 14px;">⚙️ Funções Principais:</h4>
@@ -335,7 +365,7 @@ async function sendManualEmail(resendApiKey: string, email: string, name: string
             
             <div style="background-color: #1a1a1a; border-radius: 8px; padding: 15px; margin-top: 15px;">
               <p style="color: #f97316; font-size: 13px; margin: 0;">
-                💡 <strong>Dica:</strong> Mantenha o Modo Host aberto durante todo o evento para ter controle total das apresentações.
+                💡 <strong>Dica:</strong> Mantenha o Modo Host aberto no celular enquanto o Modo TV roda na televisão para ter controle total das apresentações.
               </p>
             </div>
           </div>
@@ -343,26 +373,28 @@ async function sendManualEmail(resendApiKey: string, email: string, name: string
           <!-- MODO TV -->
           <div style="background-color: #2a2a2a; border: 2px solid #3b82f6; border-radius: 12px; padding: 25px; margin: 20px 0;">
             <h2 style="color: #3b82f6; margin: 0 0 20px 0; font-size: 20px;">
-              📺 MODO TV (Telão)
+              📺 MODO TV (Telão + Controle Integrado)
             </h2>
             
             <p style="color: #cccccc; font-size: 14px; margin: 0 0 20px 0;">
-              O Modo TV é projetado para ser exibido na televisão ou projetor do estabelecimento. Ele mostra o conteúdo para todos os participantes.
+              O Modo TV exibe o conteúdo para os participantes E permite gerenciar o evento. <strong style="color: #22c55e;">Perfeito para quem tem apenas um dispositivo!</strong>
             </p>
             
-            <h4 style="color: #ffffff; margin: 20px 0 10px 0; font-size: 14px;">📺 O que aparece na TV:</h4>
+            <h4 style="color: #ffffff; margin: 20px 0 10px 0; font-size: 14px;">📺 Funcionalidades do Modo TV:</h4>
             <ul style="color: #cccccc; font-size: 14px; margin: 0; padding-left: 20px; line-height: 1.8;">
-              <li><strong style="color: #22c55e;">Vídeo do Karaokê:</strong> Reproduz automaticamente o vídeo selecionado pelo Host</li>
+              <li><strong style="color: #22c55e;">Vídeo do Karaokê:</strong> Reproduz automaticamente o vídeo selecionado</li>
               <li><strong style="color: #22c55e;">Nome do Cantor:</strong> Exibe quem está cantando no momento</li>
-              <li><strong style="color: #22c55e;">Próximos da Fila:</strong> Mostra os próximos cantores</li>
-              <li><strong style="color: #22c55e;">Código do Evento:</strong> Exibe o código para novos participantes entrarem</li>
-              <li><strong style="color: #22c55e;">Ranking ao Vivo:</strong> Classificação atualizada automaticamente</li>
-              <li><strong style="color: #22c55e;">QR Code:</strong> Código escaneável para acesso rápido</li>
+              <li><strong style="color: #22c55e;">Notas em Tempo Real:</strong> Pontuação visível mesmo com vídeo em tela cheia</li>
+              <li><strong style="color: #22c55e;">Fila Completa:</strong> Menu dropdown para visualizar todos os próximos cantores</li>
+              <li><strong style="color: #22c55e;">Próximo Cantor:</strong> Chamar o próximo com um clique</li>
+              <li><strong style="color: #22c55e;">Trocar Música:</strong> Alterar vídeo durante a apresentação</li>
+              <li><strong style="color: #22c55e;">Controle de Inscrições:</strong> Abrir/fechar inscrições</li>
+              <li><strong style="color: #22c55e;">Vídeos Instrucionais:</strong> Reproduzir entre apresentações</li>
             </ul>
             
             <div style="background-color: #1a1a1a; border-radius: 8px; padding: 15px; margin-top: 15px;">
               <p style="color: #3b82f6; font-size: 13px; margin: 0;">
-                💡 <strong>Dica:</strong> Conecte um notebook/computador na TV via HDMI e abra o Modo TV em tela cheia (F11).
+                💡 <strong>Dica:</strong> Conecte um notebook/computador na TV via HDMI e use o Modo TV para controlar tudo diretamente do telão!
               </p>
             </div>
           </div>
