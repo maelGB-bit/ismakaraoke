@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX, Pencil, Check } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX, Pencil, Check, List, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InstructionVideoButtons } from '@/components/InstructionVideoButtons';
@@ -20,6 +20,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useEventSettings } from '@/hooks/useEventSettings';
 import { InstructionVideo } from '@/hooks/useInstructionVideos';
 
@@ -37,6 +45,8 @@ interface TVModeViewProps {
   isPlayingInstructionVideo?: boolean;
   onPlayInstructionVideo?: (video: InstructionVideo) => void;
   onUpdateSingerName?: (entryId: string, newName: string) => Promise<boolean>;
+  // Full waitlist for dropdown
+  waitlistEntries?: WaitlistEntry[];
 }
 
 function extractVideoId(url: string): string | null {
@@ -80,6 +90,7 @@ export function TVModeView({
   isPlayingInstructionVideo = false,
   onPlayInstructionVideo,
   onUpdateSingerName,
+  waitlistEntries = [],
 }: TVModeViewProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -140,6 +151,7 @@ export function TVModeView({
   
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFloatingScore, setShowFloatingScore] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Track vote changes for effects
@@ -652,12 +664,50 @@ export function TVModeView({
 
         {/* Row 2: Coordinator Controls (Secondary - Smaller) */}
         <div className="flex flex-wrap items-center justify-center gap-2 px-2 py-1.5 text-muted-foreground">
-          {/* Queue Stats */}
-          <div className="flex items-center gap-1 text-xs">
-            <Users className="w-3 h-3" />
-            <span className="font-medium text-foreground">{queueCount}</span>
-            <span>{t('tv.queueCount')}</span>
-          </div>
+          {/* Queue Stats with Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1 text-xs hover:bg-accent/50 px-2 py-0.5 rounded transition-colors">
+                <List className="w-3 h-3" />
+                <span className="font-medium text-foreground">{queueCount}</span>
+                <span>{t('tv.queueCount')}</span>
+                <ChevronDown className="w-3 h-3 ml-0.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="center" 
+              className="w-72 max-h-80 overflow-y-auto bg-popover border border-border shadow-lg z-[100]"
+            >
+              <DropdownMenuLabel className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-primary" />
+                Fila de Espera ({queueCount})
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {waitlistEntries.length === 0 ? (
+                <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+                  <Music className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>Nenhum cantor na fila</p>
+                </div>
+              ) : (
+                waitlistEntries.map((entry, index) => (
+                  <DropdownMenuItem key={entry.id} className="flex items-center gap-2 py-2 cursor-default">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">
+                        {entry.singer_name}
+                        {entry.times_sung > 0 && (
+                          <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
+                    </div>
+                  </DropdownMenuItem>
+                ))
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {queueCount > 0 && (
             <>
@@ -684,6 +734,20 @@ export function TVModeView({
               />
             </>
           )}
+
+          {/* Toggle Floating Score */}
+          <button
+            onClick={() => setShowFloatingScore(!showFloatingScore)}
+            className="flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors hover:bg-accent/50"
+            title={showFloatingScore ? 'Ocultar notas flutuantes' : 'Mostrar notas flutuantes'}
+          >
+            {showFloatingScore ? (
+              <EyeOff className="w-3 h-3" />
+            ) : (
+              <Eye className="w-3 h-3" />
+            )}
+            <span className="hidden sm:inline">Notas</span>
+          </button>
 
           {/* Registration Toggle */}
           <button
@@ -753,6 +817,37 @@ export function TVModeView({
       >
         {t('tv.exitHint')}
       </motion.p>
+
+      {/* Floating Score Panel - Stays visible even with YouTube fullscreen */}
+      <AnimatePresence>
+        {showFloatingScore && isActive && performance?.allow_voting !== false && !isPlayingInstructionVideo && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            className="fixed bottom-20 right-4 z-[9999] flex items-center gap-3 px-5 py-3 rounded-xl bg-background/95 backdrop-blur-md border-2 border-primary/50 shadow-2xl"
+            style={{ pointerEvents: 'none' }}
+          >
+            <Star className="w-8 h-8 text-accent fill-accent flex-shrink-0" />
+            <div className="flex flex-col">
+              <span className={`text-4xl font-black font-display ${
+                score >= 9 ? 'neon-text-gold' : score >= 7 ? 'neon-text-cyan' : 'text-foreground'
+              }`}>
+                {score.toFixed(1)}
+              </span>
+              <span className="text-xs text-muted-foreground">{totalVotes} votos</span>
+            </div>
+            <div className="flex flex-col border-l border-border/50 pl-3 ml-1">
+              <span className="text-sm font-bold truncate max-w-[120px]">
+                {performance.cantor}
+              </span>
+              <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                {performance.musica}
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
