@@ -420,19 +420,43 @@ export function useWaitlist(instanceId?: string | null) {
     }
   };
 
-  const updateSingerName = async (entryId: string, newName: string) => {
+  const updateSingerName = async (entryId: string, newName: string, updateAll = true) => {
     try {
-      const { error } = await supabase
-        .from('waitlist')
-        .update({ singer_name: newName.trim() })
-        .eq('id', entryId);
+      // Get the current entry to find the old name
+      const currentEntry = entries.find(e => e.id === entryId);
+      const oldName = currentEntry?.singer_name;
       
-      if (error) throw error;
-      
-      // Update local state immediately
-      setEntries(prev => prev.map(e => 
-        e.id === entryId ? { ...e, singer_name: newName.trim() } : e
-      ));
+      if (updateAll && oldName && instanceId) {
+        // Update ALL entries with the same singer name in this instance
+        const { error } = await supabase
+          .from('waitlist')
+          .update({ singer_name: newName.trim() })
+          .eq('karaoke_instance_id', instanceId)
+          .eq('status', 'waiting')
+          .ilike('singer_name', oldName);
+        
+        if (error) throw error;
+        
+        // Update local state - change all entries with the same name
+        setEntries(prev => prev.map(e => 
+          e.singer_name.toLowerCase() === oldName.toLowerCase() 
+            ? { ...e, singer_name: newName.trim() } 
+            : e
+        ));
+      } else {
+        // Update only the specific entry
+        const { error } = await supabase
+          .from('waitlist')
+          .update({ singer_name: newName.trim() })
+          .eq('id', entryId);
+        
+        if (error) throw error;
+        
+        // Update local state immediately
+        setEntries(prev => prev.map(e => 
+          e.id === entryId ? { ...e, singer_name: newName.trim() } : e
+        ));
+      }
       
       toast({ title: t('waitlist.nameUpdated') });
       return true;

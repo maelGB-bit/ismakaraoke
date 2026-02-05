@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX, Pencil, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -42,6 +42,7 @@ interface TVModeViewProps {
   onInstructionVideoEnded?: () => void;
   activeInstructionVideos?: InstructionVideo[];
   insertionFrequency?: number;
+  onUpdateSingerName?: (entryId: string, newName: string) => Promise<boolean>;
 }
 
 function extractVideoId(url: string): string | null {
@@ -89,6 +90,7 @@ export function TVModeView({
   onInstructionVideoEnded,
   activeInstructionVideos = [],
   insertionFrequency = 3,
+  onUpdateSingerName,
 }: TVModeViewProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -157,6 +159,10 @@ export function TVModeView({
   
   // Autoplay state - starts paused when loading next singer
   const [shouldAutoplay, setShouldAutoplay] = useState(true);
+  
+  // Edit singer name state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingName, setEditingName] = useState('');
   
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -576,33 +582,98 @@ export function TVModeView({
           )}
 
           {/* Next in Queue - Prominent button */}
-          <motion.button
+          <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            onClick={handleSelectNext}
-            disabled={!nextInQueue || isLoadingNext}
-            className="flex items-center gap-2 px-4 py-2 glass-card hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="flex items-center gap-2 px-4 py-2 glass-card"
           >
-            <span className="text-xs uppercase tracking-wider text-muted-foreground">
-              {t('tv.nextUp')}:
-            </span>
-            {isLoadingNext ? (
-              <>
-                <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs text-muted-foreground">{t('waitlist.loading')}</span>
-              </>
-            ) : nextInQueue ? (
-              <>
-                <span className="text-base font-bold font-display neon-text-gold truncate max-w-[150px]">
-                  {nextInQueue.singer_name}
+            {isEditingName && nextInQueue ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {t('tv.nextUp')}:
                 </span>
-                <Play className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-              </>
+                <Input
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && onUpdateSingerName && nextInQueue) {
+                      onUpdateSingerName(nextInQueue.id, editingName).then(() => {
+                        setIsEditingName(false);
+                      });
+                    } else if (e.key === 'Escape') {
+                      setIsEditingName(false);
+                    }
+                  }}
+                  className="h-8 w-32 text-sm"
+                  autoFocus
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-primary"
+                  onClick={() => {
+                    if (onUpdateSingerName && nextInQueue) {
+                      onUpdateSingerName(nextInQueue.id, editingName).then(() => {
+                        setIsEditingName(false);
+                      });
+                    }
+                  }}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => setIsEditingName(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             ) : (
-              <span className="text-xs text-muted-foreground">-</span>
+              <button
+                onClick={handleSelectNext}
+                disabled={!nextInQueue || isLoadingNext}
+                className="flex items-center gap-2 hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group rounded px-2 py-1"
+              >
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {t('tv.nextUp')}:
+                </span>
+                {isLoadingNext ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs text-muted-foreground">{t('waitlist.loading')}</span>
+                  </>
+                ) : nextInQueue ? (
+                  <>
+                    <span className="text-base font-bold font-display neon-text-gold truncate max-w-[150px]">
+                      {nextInQueue.singer_name}
+                    </span>
+                    <Play className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </>
+                ) : (
+                  <span className="text-xs text-muted-foreground">-</span>
+                )}
+              </button>
             )}
-          </motion.button>
+            
+            {/* Edit name button */}
+            {onUpdateSingerName && nextInQueue && !isEditingName && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7"
+                onClick={() => {
+                  setEditingName(nextInQueue.singer_name);
+                  setIsEditingName(true);
+                }}
+                title={t('waitlist.editName')}
+              >
+                <Pencil className="h-3 w-3 text-muted-foreground" />
+              </Button>
+            )}
+          </motion.div>
         </div>
 
         {/* Row 2: Coordinator Controls (Secondary - Smaller) */}

@@ -630,6 +630,7 @@ function HostContent() {
             onInstructionVideoEnded={handleInstructionVideoEnded}
             activeInstructionVideos={instructionVideoQueue.activeVideos}
             insertionFrequency={instructionVideoQueue.insertionFrequency}
+            onUpdateSingerName={updateSingerName}
           />
         )}
       </AnimatePresence>
