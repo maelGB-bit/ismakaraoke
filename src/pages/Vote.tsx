@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, CheckCircle, Trophy, AlertCircle, Clock, Music, VolumeX } from 'lucide-react';
+import { Mic2, CheckCircle, Trophy, AlertCircle, Clock, Music, VolumeX, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VoteSlider } from '@/components/VoteSlider';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
@@ -15,6 +15,7 @@ import { useWaitlist } from '@/hooks/useWaitlist';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useInstanceByCode } from '@/hooks/useInstanceByCode';
 import { useParticipant } from '@/hooks/useParticipant';
+import { useInstructionVideos } from '@/hooks/useInstructionVideos';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -33,9 +34,17 @@ export default function Vote() {
   const { performance, loading } = useActivePerformance(instanceId);
   const { entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
   const { profile: userProfile } = useUserProfile();
+  const { data: instructionVideos } = useInstructionVideos();
   const deviceId = useDeviceId();
   const { participant, loading: participantLoading, registerParticipant } = useParticipant(instanceId, deviceId);
 
+  // Check if current performance is an instruction video
+  const isInstructionVideo = useMemo(() => {
+    if (!performance?.youtube_url || !instructionVideos?.length) return false;
+    return instructionVideos.some(video => 
+      video.is_active && video.youtube_url === performance.youtube_url
+    );
+  }, [performance?.youtube_url, instructionVideos]);
   const [hasVoted, setHasVoted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checkingVote, setCheckingVote] = useState(true);
@@ -314,8 +323,43 @@ export default function Vote() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col gap-4">
         <AnimatePresence mode="wait">
-          {/* Voting disabled for this performance */}
-          {performance.allow_voting === false ? (
+          {/* Instruction video playing */}
+          {isInstructionVideo ? (
+            <motion.div
+              key="instruction-video"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="glass-card p-8 text-center max-w-md w-full mx-auto"
+            >
+              <Video className="w-16 h-16 mx-auto text-primary mb-4" />
+              <h2 className="text-xl font-bold font-display mb-2">
+                Vídeo explicativo em execução
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Aguarde o término do vídeo para a próxima apresentação.
+              </p>
+              <div className="flex flex-col gap-3">
+                <Button
+                  onClick={() => navigate(instanceCode ? `/app/inscricao/${instanceCode}` : '/app/inscricao')}
+                  className="w-full"
+                >
+                  <Music className="mr-2 h-4 w-4" />
+                  {t('vote.wantToSing')}
+                </Button>
+                <Button
+                  onClick={() => navigate(instanceCode ? `/app/ranking/${instanceCode}` : '/app/ranking')}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Trophy className="mr-2 h-4 w-4" />
+                  {t('vote.showNightRanking')}
+                </Button>
+                <LeaveButton />
+              </div>
+            </motion.div>
+          ) : /* Voting disabled for this performance */
+          performance.allow_voting === false ? (
             <motion.div
               key="no-voting"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -323,7 +367,7 @@ export default function Vote() {
               exit={{ opacity: 0, scale: 0.9 }}
               className="glass-card p-8 text-center max-w-md w-full mx-auto"
             >
-              <VolumeX className="w-16 h-16 mx-auto text-orange-500 mb-4" />
+              <VolumeX className="w-16 h-16 mx-auto text-accent mb-4" />
               <h2 className="text-xl font-bold font-display mb-2">
                 Apresentação sem votação
               </h2>
