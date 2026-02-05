@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2, AlertCircle, Clock, Film } from 'lucide-react';
@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { YouTubeSearch } from '@/components/YouTubeSearch';
+import { SingerNameAutocomplete } from '@/components/SingerNameAutocomplete';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
 import { QRCodeDisplay } from '@/components/QRCodeDisplay';
 import { ConfettiEffect } from '@/components/ConfettiEffect';
@@ -100,7 +101,13 @@ function HostContent() {
     updateSingerName,
     getNextInQueue,
     addToWaitlist,
+    getUniqueSingerNames,
   } = useWaitlist(instanceId);
+  
+  // Memoize the function to avoid re-renders
+  const fetchSingerSuggestions = useCallback(() => {
+    return getUniqueSingerNames();
+  }, [getUniqueSingerNames]);
 
   // ALL HOOKS MUST BE DECLARED BEFORE ANY CONDITIONAL RETURNS
   const { isRegistrationOpen, toggleRegistration } = useEventSettings(instanceId);
@@ -788,7 +795,15 @@ function HostContent() {
               <div className="grid grid-cols-1 gap-3 mb-3">
                 <div>
                   <Label htmlFor="cantor" className="text-xs">{t('host.singerName')}</Label>
-                  <Input id="cantor" value={cantor} onChange={(e) => setCantor(e.target.value)} placeholder={t('host.singerPlaceholder')} disabled={isRoundActive} className="mt-1 h-8 text-sm" />
+                  <SingerNameAutocomplete
+                    id="cantor"
+                    value={cantor}
+                    onChange={setCantor}
+                    onFetchSuggestions={fetchSingerSuggestions}
+                    placeholder={t('host.singerPlaceholder')}
+                    disabled={isRoundActive}
+                    className="mt-1 h-8 text-sm"
+                  />
                 </div>
                 
                 {/* Queue position selection - only show when singer name is filled */}

@@ -20,8 +20,6 @@ export function useInstanceByCode(instanceCode?: string) {
       return;
     }
 
-    console.log('[useInstanceByCode] Fetching instance with code:', instanceCode);
-
     const fetchInstance = async () => {
       setLoading(true);
       setError(null);
@@ -32,22 +30,17 @@ export function useInstanceByCode(instanceCode?: string) {
         .eq('instance_code', instanceCode)
         .maybeSingle();
 
-      console.log('[useInstanceByCode] Query result:', { data, fetchError, instanceCode });
-
       if (fetchError) {
         console.error('Error fetching instance:', fetchError);
         setError('Instance not found');
         setInstance(null);
       } else if (!data) {
-        console.log('[useInstanceByCode] No data returned for instance code:', instanceCode);
         setError('Instance not found');
         setInstance(null);
       } else if (data.status !== 'active') {
-        console.log('[useInstanceByCode] Instance not active:', data.status);
         setError('Instance is not active');
         setInstance(null);
       } else {
-        console.log('[useInstanceByCode] Instance found successfully:', data);
         setInstance(data);
       }
       
