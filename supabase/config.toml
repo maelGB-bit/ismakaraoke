@@ -41,3 +41,15 @@ verify_jwt = false
 
 [functions.get-secrets-status]
 verify_jwt = false
+
+[functions.send-bulk-message]
+verify_jwt = false
+
+[functions.send-credentials-email]
+verify_jwt = false
+
+[functions.request-password-reset]
+verify_jwt = false
+
+[functions.verify-reset-token]
+verify_jwt = false
