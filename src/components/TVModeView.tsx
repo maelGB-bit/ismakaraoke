@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX, Pencil, Check, List, ChevronDown } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX, Pencil, Check, List, ChevronDown, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InstructionVideoButtons } from '@/components/InstructionVideoButtons';
@@ -39,6 +39,8 @@ interface TVModeViewProps {
   instanceId: string | null;
   onExit: () => void;
   onSelectNext: () => void;
+  onSelectPrevious?: () => void;
+  previousPerformer?: { cantor: string; musica: string } | null;
   onChangeVideo?: (newUrl: string, newSongTitle?: string) => Promise<void>;
   // Video instruction props
   currentInstructionVideo?: InstructionVideo | null;
@@ -85,6 +87,8 @@ export function TVModeView({
   instanceId, 
   onExit, 
   onSelectNext, 
+  onSelectPrevious,
+  previousPerformer,
   onChangeVideo,
   currentInstructionVideo,
   isPlayingInstructionVideo = false,
@@ -108,6 +112,7 @@ export function TVModeView({
   // Loading states for buttons
   const [isExiting, setIsExiting] = useState(false);
   const [isLoadingNext, setIsLoadingNext] = useState(false);
+  const [isLoadingPrevious, setIsLoadingPrevious] = useState(false);
   const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
   
   // Calculate estimated end time (4 min per song + 1 min break)
@@ -222,6 +227,14 @@ export function TVModeView({
     setShouldAutoplay(false); // Load video paused
     await onSelectNext();
     setIsLoadingNext(false);
+  };
+
+  const handleSelectPrevious = async () => {
+    if (isLoadingPrevious || !onSelectPrevious || !previousPerformer) return;
+    setIsLoadingPrevious(true);
+    setShouldAutoplay(false);
+    await onSelectPrevious();
+    setIsLoadingPrevious(false);
   };
 
   const handleChangeVideo = async (url?: string, songTitle?: string) => {
@@ -563,6 +576,35 @@ export function TVModeView({
                 </motion.div>
               ))}
             </AnimatePresence>
+            </motion.div>
+          )}
+
+          {/* Previous Performer - Go back button */}
+          {onSelectPrevious && previousPerformer && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.15 }}
+              className="flex items-center gap-2 px-4 py-2 glass-card"
+            >
+              <button
+                onClick={handleSelectPrevious}
+                disabled={isLoadingPrevious}
+                className="flex items-center gap-2 hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group rounded px-2 py-1"
+                title="Voltar ao cantor anterior"
+              >
+                <ChevronLeft className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Anterior:
+                </span>
+                {isLoadingPrevious ? (
+                  <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span className="text-sm font-medium text-foreground/80 truncate max-w-[120px]">
+                    {previousPerformer.cantor}
+                  </span>
+                )}
+              </button>
             </motion.div>
           )}
 
