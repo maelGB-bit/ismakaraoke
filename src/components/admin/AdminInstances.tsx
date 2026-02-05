@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mic2, Plus, Pencil, Trash2, Loader2, Clock, Radio, WifiOff, Video, Lock } from 'lucide-react';
+import { Mic2, Plus, Pencil, Trash2, Loader2, Clock, Radio, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -36,8 +36,6 @@ export function AdminInstances() {
   const [instanceCode, setInstanceCode] = useState('');
   const [coordinatorId, setCoordinatorId] = useState('');
   const [status, setStatus] = useState<'active' | 'paused' | 'closed'>('active');
-  const [videoInsertionsEnabled, setVideoInsertionsEnabled] = useState(true);
-  const [videoInsertionsMandatory, setVideoInsertionsMandatory] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   
   // Available coordinators (without instance)
@@ -166,9 +164,7 @@ export function AdminInstances() {
           .update({ 
             name, 
             instance_code: instanceCode, 
-            status,
-            video_insertions_enabled: videoInsertionsEnabled,
-            video_insertions_mandatory: videoInsertionsMandatory
+            status
           })
           .eq('id', editingId);
 
@@ -181,9 +177,7 @@ export function AdminInstances() {
             name, 
             instance_code: instanceCode, 
             coordinator_id: coordinatorId,
-            status,
-            video_insertions_enabled: videoInsertionsEnabled,
-            video_insertions_mandatory: videoInsertionsMandatory
+            status
           });
 
         if (error) throw error;
@@ -229,8 +223,6 @@ export function AdminInstances() {
     setInstanceCode('');
     setCoordinatorId('');
     setStatus('active');
-    setVideoInsertionsEnabled(true);
-    setVideoInsertionsMandatory(true);
     setEditingId(null);
     setIsDialogOpen(false);
   };
@@ -239,8 +231,6 @@ export function AdminInstances() {
     setName(instance.name);
     setInstanceCode(instance.instance_code);
     setStatus(instance.status);
-    setVideoInsertionsEnabled(instance.video_insertions_enabled ?? true);
-    setVideoInsertionsMandatory(instance.video_insertions_mandatory ?? true);
     setEditingId(instance.id);
     setIsDialogOpen(true);
   };
@@ -345,42 +335,6 @@ export function AdminInstances() {
                     </SelectContent>
                   </Select>
                 </div>
-                
-                <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Video className="h-4 w-4" />
-                    Inserções de Vídeos Explicativos
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-sm">Habilitado</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Permite exibir vídeos explicativos
-                      </p>
-                    </div>
-                    <Switch
-                      checked={videoInsertionsEnabled}
-                      onCheckedChange={setVideoInsertionsEnabled}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label className="text-sm flex items-center gap-1">
-                        <Lock className="h-3 w-3" />
-                        Obrigatório
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        Coordenador não pode desativar
-                      </p>
-                    </div>
-                    <Switch
-                      checked={videoInsertionsMandatory}
-                      onCheckedChange={setVideoInsertionsMandatory}
-                    />
-                  </div>
-                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={resetForm}>Cancelar</Button>
@@ -445,7 +399,6 @@ export function AdminInstances() {
                             <TableHead>Nome</TableHead>
                             <TableHead>Código</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead>Vídeos</TableHead>
                             <TableHead>Tempo Restante</TableHead>
                             <TableHead>Email do Coordenador</TableHead>
                             <TableHead className="text-right">Ações</TableHead>
@@ -477,18 +430,6 @@ export function AdminInstances() {
                                     Offline
                                   </Badge>
                                 )}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-1">
-                                  {instance.video_insertions_enabled ? (
-                                    <Badge variant="secondary" className="flex items-center gap-1 text-xs">
-                                      <Video className="h-3 w-3" />
-                                      {instance.video_insertions_mandatory && <Lock className="h-3 w-3" />}
-                                    </Badge>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground">-</span>
-                                  )}
-                                </div>
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1">

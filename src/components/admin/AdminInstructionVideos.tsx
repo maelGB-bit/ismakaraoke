@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Video, Loader2, Plus, Save, Trash2, GripVertical, Play, ExternalLink, Settings, Edit } from 'lucide-react';
+import { Video, Loader2, Plus, Save, Trash2, GripVertical, Play, ExternalLink, Edit } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,11 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { 
   useInstructionVideos, 
-  useInstructionVideoSettings,
   useCreateInstructionVideo,
   useUpdateInstructionVideo,
   useDeleteInstructionVideo,
-  useUpdateInstructionVideoSettings,
   InstructionVideo
 } from '@/hooks/useInstructionVideos';
 import { useToast } from '@/hooks/use-toast';
@@ -38,11 +36,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 export function AdminInstructionVideos() {
   const { data: videos, isLoading } = useInstructionVideos();
-  const { data: settings } = useInstructionVideoSettings();
   const createVideo = useCreateInstructionVideo();
   const updateVideo = useUpdateInstructionVideo();
   const deleteVideo = useDeleteInstructionVideo();
-  const updateSettings = useUpdateInstructionVideoSettings();
   const { toast } = useToast();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -53,15 +49,9 @@ export function AdminInstructionVideos() {
     title: '',
     youtube_url: '',
     duration_seconds: 0,
+    button_name: 'Assistir',
   });
   const [isLoadingDuration, setIsLoadingDuration] = useState(false);
-  const [insertionFrequency, setInsertionFrequency] = useState(settings?.insertion_frequency ?? 3);
-
-  useEffect(() => {
-    if (settings?.insertion_frequency) {
-      setInsertionFrequency(settings.insertion_frequency);
-    }
-  }, [settings?.insertion_frequency]);
 
   const getVideoId = (url: string) => {
     const patterns = [
@@ -128,10 +118,10 @@ export function AdminInstructionVideos() {
   };
 
   const handleAddVideo = async () => {
-    if (!newVideo.title || !newVideo.youtube_url) {
+    if (!newVideo.title || !newVideo.youtube_url || !newVideo.button_name) {
       toast({
         title: 'Campos obrigatórios',
-        description: 'Preencha o título e a URL do vídeo.',
+        description: 'Preencha o título, URL do vídeo e nome do botão.',
         variant: 'destructive',
       });
       return;
@@ -154,12 +144,13 @@ export function AdminInstructionVideos() {
         duration_seconds: newVideo.duration_seconds || null,
         sort_order: (videos?.length ?? 0) + 1,
         is_active: true,
+        button_name: newVideo.button_name,
       });
       toast({
         title: 'Vídeo adicionado',
         description: 'O vídeo foi adicionado com sucesso.',
       });
-      setNewVideo({ title: '', youtube_url: '', duration_seconds: 0 });
+      setNewVideo({ title: '', youtube_url: '', duration_seconds: 0, button_name: 'Assistir' });
       setIsAddDialogOpen(false);
     } catch (error) {
       toast({
@@ -173,10 +164,10 @@ export function AdminInstructionVideos() {
   const handleEditVideo = async () => {
     if (!editingVideo) return;
     
-    if (!editingVideo.title || !editingVideo.youtube_url) {
+    if (!editingVideo.title || !editingVideo.youtube_url || !editingVideo.button_name) {
       toast({
         title: 'Campos obrigatórios',
-        description: 'Preencha o título e a URL do vídeo.',
+        description: 'Preencha o título, URL do vídeo e nome do botão.',
         variant: 'destructive',
       });
       return;
@@ -188,6 +179,7 @@ export function AdminInstructionVideos() {
         title: editingVideo.title,
         youtube_url: editingVideo.youtube_url,
         duration_seconds: editingVideo.duration_seconds || null,
+        button_name: editingVideo.button_name,
       });
       toast({
         title: 'Vídeo atualizado',
@@ -247,22 +239,6 @@ export function AdminInstructionVideos() {
     }
   };
 
-  const handleUpdateFrequency = async () => {
-    try {
-      await updateSettings.mutateAsync({ insertion_frequency: insertionFrequency });
-      toast({
-        title: 'Configuração salva',
-        description: `Vídeos serão inseridos a cada ${insertionFrequency} apresentações.`,
-      });
-    } catch (error) {
-      toast({
-        title: 'Erro ao salvar',
-        description: 'Não foi possível salvar a configuração.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -277,50 +253,6 @@ export function AdminInstructionVideos() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* Settings Card */}
-      <Card className="glass-card neon-border-pink">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <Settings className="w-6 h-6 text-primary" />
-            <div>
-              <CardTitle className="neon-text-pink">Configurações de Inserção</CardTitle>
-              <CardDescription>
-                Configure a frequência de inserção dos vídeos explicativos
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-end gap-4">
-            <div className="flex-1 max-w-xs">
-              <Label htmlFor="frequency">Inserir vídeo a cada X apresentações</Label>
-              <Input
-                id="frequency"
-                type="number"
-                min={1}
-                max={20}
-                value={insertionFrequency}
-                onChange={(e) => setInsertionFrequency(parseInt(e.target.value) || 3)}
-              />
-            </div>
-            <Button 
-              onClick={handleUpdateFrequency}
-              disabled={updateSettings.isPending || insertionFrequency === settings?.insertion_frequency}
-            >
-              {updateSettings.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              Salvar
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            Os vídeos explicativos serão exibidos automaticamente no Modo TV entre as apresentações dos cantores.
-          </p>
-        </CardContent>
-      </Card>
-
       {/* Videos List Card */}
       <Card className="glass-card neon-border-pink">
         <CardHeader>
@@ -330,7 +262,7 @@ export function AdminInstructionVideos() {
               <div>
                 <CardTitle className="neon-text-pink">Vídeos Explicativos</CardTitle>
                 <CardDescription>
-                  Gerencie os vídeos que serão exibidos entre as apresentações
+                  Gerencie os vídeos explicativos que podem ser acionados pelos coordenadores
                 </CardDescription>
               </div>
             </div>
@@ -345,7 +277,7 @@ export function AdminInstructionVideos() {
                 <DialogHeader>
                   <DialogTitle>Adicionar Vídeo Explicativo</DialogTitle>
                   <DialogDescription>
-                    Adicione um vídeo do YouTube para ser exibido entre as apresentações.
+                    Adicione um vídeo do YouTube que coordenadores podem acionar manualmente.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -357,6 +289,18 @@ export function AdminInstructionVideos() {
                       value={newVideo.title}
                       onChange={(e) => setNewVideo(prev => ({ ...prev, title: e.target.value }))}
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="button_name">Nome do Botão</Label>
+                    <Input
+                      id="button_name"
+                      placeholder="Ex: Como Votar"
+                      value={newVideo.button_name}
+                      onChange={(e) => setNewVideo(prev => ({ ...prev, button_name: e.target.value }))}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Este texto aparecerá no botão para o coordenador
+                    </p>
                   </div>
                   <div>
                     <Label htmlFor="url">URL do YouTube</Label>
@@ -426,7 +370,7 @@ export function AdminInstructionVideos() {
             <div className="text-center py-8 text-muted-foreground">
               <Video className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Nenhum vídeo explicativo cadastrado</p>
-              <p className="text-sm">Adicione vídeos para serem exibidos entre as apresentações</p>
+              <p className="text-sm">Adicione vídeos que coordenadores poderão acionar manualmente</p>
             </div>
           ) : (
             videos?.map((video, index) => {
@@ -443,13 +387,20 @@ export function AdminInstructionVideos() {
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-semibold truncate">{video.title}</h4>
                         {video.duration_seconds && (
                           <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
                             {Math.floor(video.duration_seconds / 60)}:{String(video.duration_seconds % 60).padStart(2, '0')}
                           </span>
                         )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs text-muted-foreground">Botão:</span>
+                        <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary font-medium">
+                          {video.button_name}
+                        </span>
                       </div>
                       
                       {videoId && (
@@ -550,6 +501,18 @@ export function AdminInstructionVideos() {
                   value={editingVideo.title}
                   onChange={(e) => setEditingVideo({ ...editingVideo, title: e.target.value })}
                 />
+              </div>
+              <div>
+                <Label htmlFor="edit-button_name">Nome do Botão</Label>
+                <Input
+                  id="edit-button_name"
+                  placeholder="Ex: Como Votar"
+                  value={editingVideo.button_name}
+                  onChange={(e) => setEditingVideo({ ...editingVideo, button_name: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Este texto aparecerá no botão para o coordenador
+                </p>
               </div>
               <div>
                 <Label htmlFor="edit-url">URL do YouTube</Label>
