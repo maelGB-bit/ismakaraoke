@@ -791,10 +791,9 @@ export function TVModeView({
           {videoId ? (
             <iframe
               key={`${videoId}-${shouldAutoplay}`}
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=${shouldAutoplay ? 1 : 0}&rel=0`}
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=${shouldAutoplay ? 1 : 0}&rel=0&fs=0`}
               className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
               title="YouTube video player"
             />
           ) : (
