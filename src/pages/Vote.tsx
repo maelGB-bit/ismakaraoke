@@ -19,6 +19,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+// Force republish - SPA routing fix
 export default function Vote() {
   const navigate = useNavigate();
   const { instanceCode } = useParams<{ instanceCode?: string }>();
