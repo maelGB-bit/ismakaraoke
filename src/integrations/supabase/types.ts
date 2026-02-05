@@ -311,6 +311,7 @@ export type Database = {
       }
       instruction_videos: {
         Row: {
+          button_name: string
           created_at: string
           duration_seconds: number | null
           id: string
@@ -321,6 +322,7 @@ export type Database = {
           youtube_url: string
         }
         Insert: {
+          button_name?: string
           created_at?: string
           duration_seconds?: number | null
           id?: string
@@ -331,6 +333,7 @@ export type Database = {
           youtube_url: string
         }
         Update: {
+          button_name?: string
           created_at?: string
           duration_seconds?: number | null
           id?: string

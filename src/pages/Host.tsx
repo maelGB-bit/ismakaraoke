@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2, AlertCircle, Clock, Film } from 'lucide-react';
+import { Play, Square, Trophy, Video, Mic2, LogOut, Menu, Trash2, Monitor, Home, Edit, Lock, Unlock, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Switch } from '@/components/ui/switch';
 import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { YouTubeSearch } from '@/components/YouTubeSearch';
 import { SingerNameAutocomplete } from '@/components/SingerNameAutocomplete';
@@ -28,7 +27,7 @@ import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
 import { useEventSettings } from '@/hooks/useEventSettings';
 import { useKaraokeInstance } from '@/hooks/useKaraokeInstance';
-import { useInstructionVideoQueue } from '@/hooks/useInstructionVideoQueue';
+import { useInstructionVideos, InstructionVideo } from '@/hooks/useInstructionVideos';
 import { useLanguage } from '@/i18n/LanguageContext';
 import type { Performance } from '@/types/karaoke';
 import { useToast } from '@/hooks/use-toast';
@@ -126,24 +125,10 @@ function HostContent() {
   const [insertFirst, setInsertFirst] = useState(true); // Toggle: first in queue or fair order
   const [showManualInput, setShowManualInput] = useState(false); // Show manual URL input when search fails
   
-  // Video insertions toggle (coordinator can toggle if not mandatory)
-  const [videoInsertionsLocalEnabled, setVideoInsertionsLocalEnabled] = useState(
-    instance?.video_insertions_enabled ?? true
-  );
-  
-  // Instruction video queue management
-  const videoIsMandatory = instance?.video_insertions_mandatory ?? false;
-  const effectiveVideoEnabled = videoIsMandatory || videoInsertionsLocalEnabled;
-  const instructionVideoQueue = useInstructionVideoQueue(
-    instanceId,
-    effectiveVideoEnabled && (instance?.video_insertions_enabled ?? false),
-    videoIsMandatory
-  );
-  
-  // State for playing instruction videos
+  // State for playing instruction videos (manual trigger only)
   const [isPlayingInstructionVideo, setIsPlayingInstructionVideo] = useState(false);
-  const [currentInstructionVideo, setCurrentInstructionVideo] = useState(instructionVideoQueue.currentVideo);
-  const [performanceCount, setPerformanceCount] = useState(0);
+  const [currentInstructionVideo, setCurrentInstructionVideo] = useState<InstructionVideo | null>(null);
+
   
   // Check if user needs to change password
   const [mustChangePassword, setMustChangePassword] = useState(false);
@@ -429,32 +414,24 @@ function HostContent() {
   const handleTVSelectNext = async () => {
     // If currently playing instruction video, end it and proceed to next singer
     if (isPlayingInstructionVideo) {
-      await handleInstructionVideoEnded();
-      return;
-    }
-    
-    // Check if we should play an instruction video first
-    if (effectiveVideoEnabled && instructionVideoQueue.activeVideos.length > 0) {
-      const shouldInsert = (performanceCount + 1) % (instructionVideoQueue.insertionFrequency + 1) === 0;
-      
-      if (shouldInsert) {
-        // Play instruction video
-        const videoIndex = instructionVideoQueue.currentVideoIndex % instructionVideoQueue.activeVideos.length;
-        const video = instructionVideoQueue.activeVideos[videoIndex];
-        setCurrentInstructionVideo(video);
-        setIsPlayingInstructionVideo(true);
-        
-        toast({ 
-          title: 'Vídeo Explicativo', 
-          description: video.title 
-        });
-        return;
+      setIsPlayingInstructionVideo(false);
+      setCurrentInstructionVideo(null);
+      // Proceed to next singer automatically
+      const next = getTrueNextInQueue();
+      if (next) {
+        await selectNextSinger(next);
       }
+      return;
     }
     
     const next = getTrueNextInQueue();
     if (!next) return;
     
+    await selectNextSinger(next);
+  };
+
+  // Helper function to select next singer (used by both manual and after instruction video)
+  const selectNextSinger = async (next: { id: string; singer_name: string; song_title: string; youtube_url: string; allow_voting?: boolean }) => {
     // Capture current state before updating
     const previousEntryId = currentWaitlistEntryId;
     const previousPerformance = performance;
@@ -467,10 +444,6 @@ function HostContent() {
     setLoadedUrl(next.youtube_url);
     setCurrentWaitlistEntryId(next.id);
     setLastHighScore(0);
-    
-    // Increment performance count for video insertion tracking
-    setPerformanceCount(prev => prev + 1);
-    
     // Run cleanup in background (non-blocking) - don't wait for these
     if (wasActive && previousPerformance) {
       (async () => {
@@ -505,45 +478,14 @@ function HostContent() {
     }
   };
 
-  // Handle instruction video ending
-  const handleInstructionVideoEnded = async () => {
-    // Advance to next video in rotation
-    await instructionVideoQueue.advanceToNextVideo();
-    setIsPlayingInstructionVideo(false);
-    setCurrentInstructionVideo(null);
-    
-    // Automatically proceed to next singer
-    const next = getTrueNextInQueue();
-    if (next) {
-      // Increment performance count since we're moving to next singer
-      setPerformanceCount(prev => prev + 1);
-      
-      setCantor(next.singer_name);
-      setMusica(next.song_title);
-      setYoutubeUrl(next.youtube_url);
-      setLoadedUrl(next.youtube_url);
-      setCurrentWaitlistEntryId(next.id);
-      setLastHighScore(0);
-      
-      // Start new performance
-      try {
-        const { data, error } = await supabase.from('performances').insert({ 
-          cantor: next.singer_name, 
-          musica: next.song_title, 
-          youtube_url: next.youtube_url, 
-          status: 'ativa',
-          karaoke_instance_id: instanceId,
-          allow_voting: next.allow_voting !== false, // Default to true if undefined
-        }).select().single();
-        
-        if (!error && data) {
-          setPerformance(data as Performance);
-          toast({ title: t('host.singerSelected'), description: `${next.singer_name} - ${next.song_title}` });
-        }
-      } catch (error) {
-        console.error('Error starting next round:', error);
-      }
-    }
+  // Handle playing an instruction video manually
+  const handlePlayInstructionVideo = (video: InstructionVideo) => {
+    setCurrentInstructionVideo(video);
+    setIsPlayingInstructionVideo(true);
+    toast({ 
+      title: 'Vídeo Explicativo', 
+      description: video.title 
+    });
   };
 
   const handleChangeVideo = async (newUrl: string, newSongTitle?: string) => {
@@ -628,15 +570,9 @@ function HostContent() {
             }}
             onSelectNext={handleTVSelectNext}
             onChangeVideo={handleChangeVideo}
-            // Video insertions props
-            videoInsertionsEnabled={effectiveVideoEnabled && (instance?.video_insertions_enabled ?? false)}
-            videoInsertionsMandatory={videoIsMandatory}
-            onToggleVideoInsertions={!videoIsMandatory ? setVideoInsertionsLocalEnabled : undefined}
             currentInstructionVideo={currentInstructionVideo}
             isPlayingInstructionVideo={isPlayingInstructionVideo}
-            onInstructionVideoEnded={handleInstructionVideoEnded}
-            activeInstructionVideos={instructionVideoQueue.activeVideos}
-            insertionFrequency={instructionVideoQueue.insertionFrequency}
+            onPlayInstructionVideo={handlePlayInstructionVideo}
             onUpdateSingerName={updateSingerName}
           />
         )}
@@ -678,21 +614,6 @@ function HostContent() {
             
             {/* Right side actions */}
             <div className="flex flex-wrap items-center gap-2 ml-auto">
-              {/* Video Insertions Toggle - show always, disabled if mandatory */}
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md bg-card/50 border border-border/50 ${
-                instance?.video_insertions_mandatory ? 'opacity-50' : ''
-              }`}>
-                <Film className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="video-insertions" className="text-xs text-muted-foreground">
-                  Vídeos Explicativos
-                </Label>
-                <Switch
-                  id="video-insertions"
-                  checked={videoInsertionsLocalEnabled}
-                  onCheckedChange={setVideoInsertionsLocalEnabled}
-                  disabled={instance?.video_insertions_mandatory}
-                />
-              </div>
               
               <Button
                 onClick={handleToggleRegistration}

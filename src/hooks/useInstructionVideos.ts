@@ -8,6 +8,7 @@ export interface InstructionVideo {
   duration_seconds: number | null;
   sort_order: number;
   is_active: boolean;
+  button_name: string;
   created_at: string;
   updated_at: string;
 }

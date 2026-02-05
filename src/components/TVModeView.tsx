@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX, Pencil, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { InstructionVideoButtons } from '@/components/InstructionVideoButtons';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,15 +32,10 @@ interface TVModeViewProps {
   onExit: () => void;
   onSelectNext: () => void;
   onChangeVideo?: (newUrl: string, newSongTitle?: string) => Promise<void>;
-  // Video insertions props
-  videoInsertionsEnabled?: boolean;
-  videoInsertionsMandatory?: boolean;
-  onToggleVideoInsertions?: (enabled: boolean) => void;
+  // Video instruction props
   currentInstructionVideo?: InstructionVideo | null;
   isPlayingInstructionVideo?: boolean;
-  onInstructionVideoEnded?: () => void;
-  activeInstructionVideos?: InstructionVideo[];
-  insertionFrequency?: number;
+  onPlayInstructionVideo?: (video: InstructionVideo) => void;
   onUpdateSingerName?: (entryId: string, newName: string) => Promise<boolean>;
 }
 
@@ -82,14 +76,9 @@ export function TVModeView({
   onExit, 
   onSelectNext, 
   onChangeVideo,
-  videoInsertionsEnabled = false,
-  videoInsertionsMandatory = false,
-  onToggleVideoInsertions,
   currentInstructionVideo,
   isPlayingInstructionVideo = false,
-  onInstructionVideoEnded,
-  activeInstructionVideos = [],
-  insertionFrequency = 3,
+  onPlayInstructionVideo,
   onUpdateSingerName,
 }: TVModeViewProps) {
   const { t } = useLanguage();
@@ -110,29 +99,14 @@ export function TVModeView({
   const [isLoadingNext, setIsLoadingNext] = useState(false);
   const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
   
-  // Calculate estimated end time (4 min per song + 1 min break + instruction video durations)
+  // Calculate estimated end time (4 min per song + 1 min break)
   const estimatedEndTime = useMemo(() => {
     const SONG_DURATION_MINUTES = 4;
     const BREAK_MINUTES = 1;
-    
-    // Calculate total song time
-    let totalMinutes = queueCount * (SONG_DURATION_MINUTES + BREAK_MINUTES);
-    
-    // Add instruction video time if enabled
-    if (videoInsertionsEnabled && activeInstructionVideos.length > 0 && queueCount > 0) {
-      // Calculate how many instruction videos will be inserted
-      const videoInsertions = Math.floor(queueCount / (insertionFrequency + 1));
-      
-      // Calculate average instruction video duration (default to 2 minutes if not set)
-      const avgVideoDuration = activeInstructionVideos.reduce((sum, v) => sum + (v.duration_seconds || 120), 0) / activeInstructionVideos.length;
-      
-      // Add instruction video time in minutes
-      totalMinutes += (videoInsertions * avgVideoDuration) / 60;
-    }
-    
+    const totalMinutes = queueCount * (SONG_DURATION_MINUTES + BREAK_MINUTES);
     const endTime = new Date(Date.now() + totalMinutes * 60 * 1000);
     return endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }, [queueCount, videoInsertionsEnabled, activeInstructionVideos, insertionFrequency]);
+  }, [queueCount]);
 
   const handleToggleRegistration = async () => {
     if (isTogglingRegistration) return;
@@ -696,22 +670,18 @@ export function TVModeView({
             </>
           )}
 
-          <span className="text-xs">•</span>
-
-          {/* Video Insertions Toggle - show always but disable if mandatory */}
-          {onToggleVideoInsertions && (
+          {/* Instruction Video Buttons */}
+          {onPlayInstructionVideo && !isPlayingInstructionVideo && (
             <>
-              <div className={`flex items-center gap-1 text-xs ${videoInsertionsMandatory ? 'opacity-50' : ''}`}>
-                <Film className="w-3 h-3" />
-                <span>Vídeos</span>
-                <Switch
-                  checked={videoInsertionsEnabled}
-                  onCheckedChange={onToggleVideoInsertions}
-                  disabled={videoInsertionsMandatory}
-                  className="scale-75"
-                />
-              </div>
               <span className="text-xs">•</span>
+              <InstructionVideoButtons
+                onPlayVideo={onPlayInstructionVideo}
+                disabled={false}
+                currentPlayingId={currentInstructionVideo?.id}
+                size="sm"
+                variant="ghost"
+                className="text-xs"
+              />
             </>
           )}
 
