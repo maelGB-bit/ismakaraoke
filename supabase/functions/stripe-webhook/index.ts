@@ -148,8 +148,8 @@ serve(async (req) => {
           userId = existingUser.id;
           logStep("Found existing user", { userId });
         } else {
-          // Generate temp password and create user
-          tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase();
+          // Use the standard temporary password for consistency with the system
+          tempPassword = 'mamutekaraoke';
           
           const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
             email: customerEmail,
@@ -166,7 +166,7 @@ serve(async (req) => {
           }
 
           userId = newUser.user.id;
-          logStep("Created new user", { userId, email: customerEmail });
+          logStep("Created new user with standard temp password", { userId, email: customerEmail });
         }
 
         // ALWAYS ensure coordinator role exists (for both new and existing users)
