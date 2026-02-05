@@ -128,8 +128,15 @@ function HostContent() {
   // State for playing instruction videos (manual trigger only)
   const [isPlayingInstructionVideo, setIsPlayingInstructionVideo] = useState(false);
   const [currentInstructionVideo, setCurrentInstructionVideo] = useState<InstructionVideo | null>(null);
-
   
+  // State to track previous performer for "go back" functionality
+  const [previousPerformer, setPreviousPerformer] = useState<{
+    cantor: string;
+    musica: string;
+    youtubeUrl: string;
+    waitlistEntryId: string | null;
+    allowVoting?: boolean;
+  } | null>(null);
   // Check if user needs to change password
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [checkingPasswordStatus, setCheckingPasswordStatus] = useState(true);
@@ -432,10 +439,21 @@ function HostContent() {
 
   // Helper function to select next singer (used by both manual and after instruction video)
   const selectNextSinger = async (next: { id: string; singer_name: string; song_title: string; youtube_url: string; allow_voting?: boolean }) => {
-    // Capture current state before updating
+    // Capture current state before updating - save as previous for "go back" functionality
     const previousEntryId = currentWaitlistEntryId;
     const previousPerformance = performance;
     const wasActive = isRoundActive;
+    
+    // Save current performer as previous (for go back functionality)
+    if (wasActive && previousPerformance && cantor && musica) {
+      setPreviousPerformer({
+        cantor: previousPerformance.cantor,
+        musica: previousPerformance.musica,
+        youtubeUrl: previousPerformance.youtube_url || '',
+        waitlistEntryId: previousEntryId,
+        allowVoting: previousPerformance.allow_voting ?? true,
+      });
+    }
     
     // Update UI state immediately (optimistic update for instant feedback)
     setCantor(next.singer_name);
@@ -476,6 +494,54 @@ function HostContent() {
     } catch (error) {
       console.error('Error starting next round:', error);
     }
+  };
+
+  // Handle going back to the previous performer
+  const handleTVSelectPrevious = async () => {
+    if (!previousPerformer) return;
+    
+    // Close current performance
+    if (performance?.id) {
+      try {
+        await supabase.from('performances').update({ status: 'encerrada' }).eq('id', performance.id);
+      } catch (err) {
+        console.error('Error closing current performance:', err);
+      }
+    }
+    
+    // Restore UI state for previous performer
+    setCantor(previousPerformer.cantor);
+    setMusica(previousPerformer.musica);
+    setYoutubeUrl(previousPerformer.youtubeUrl);
+    setLoadedUrl(previousPerformer.youtubeUrl);
+    setCurrentWaitlistEntryId(previousPerformer.waitlistEntryId);
+    setLastHighScore(0);
+    
+    // Reopen voting for previous performer
+    try {
+      const { data, error } = await supabase.from('performances').insert({ 
+        cantor: previousPerformer.cantor, 
+        musica: previousPerformer.musica, 
+        youtube_url: previousPerformer.youtubeUrl, 
+        status: 'ativa',
+        karaoke_instance_id: instanceId,
+        allow_voting: previousPerformer.allowVoting !== false,
+      }).select().single();
+      
+      if (!error && data) {
+        setPerformance(data as Performance);
+        toast({ 
+          title: 'Voltou ao cantor anterior', 
+          description: `${previousPerformer.cantor} - ${previousPerformer.musica}` 
+        });
+      }
+    } catch (error) {
+      console.error('Error restoring previous performance:', error);
+      toast({ title: t('host.error'), description: 'Não foi possível voltar ao cantor anterior', variant: 'destructive' });
+    }
+    
+    // Clear previous performer after restoring (can only go back once)
+    setPreviousPerformer(null);
   };
 
   // Handle playing an instruction video manually
@@ -569,6 +635,8 @@ function HostContent() {
               setShowTVMode(false);
             }}
             onSelectNext={handleTVSelectNext}
+            onSelectPrevious={handleTVSelectPrevious}
+            previousPerformer={previousPerformer}
             onChangeVideo={handleChangeVideo}
             currentInstructionVideo={currentInstructionVideo}
             isPlayingInstructionVideo={isPlayingInstructionVideo}
