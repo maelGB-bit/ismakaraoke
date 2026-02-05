@@ -20,17 +20,28 @@ function normalizeSingerName(name: string) {
   return name.trim().toLowerCase();
 }
 
-function buildFairOrder(waitingEntries: WaitlistEntry[]): WaitlistEntry[] {
-  // Fair rules:
-  // 1) People with lower times_sung go first
-  // 2) If a person has multiple songs waiting, they get 1 song per "round" (round-robin)
-  // 3) Ties are broken by earliest created_at of the next song
+interface SingerHistory {
+  timesSung: number;
+  lastPerformed: Date | null;
+}
 
+function buildFairOrder(waitingEntries: WaitlistEntry[], singerHistories: Map<string, SingerHistory>): WaitlistEntry[] {
+  // Fair rules:
+  // 1) People with lower total historical performances go first
+  // 2) If equal, prioritize who hasn't sung for longer (or never sang)
+  // 3) If a person has multiple songs waiting, they get 1 song per "round" (round-robin)
+  // 4) Ties are broken by earliest created_at of the next song
+
+  // Group entries by their effective times_sung (from history + current queue position)
   const byTimes = new Map<number, Map<string, WaitlistEntry[]>>();
 
   for (const entry of waitingEntries) {
-    const base = entry.times_sung ?? 0;
     const singerKey = normalizeSingerName(entry.singer_name);
+    const history = singerHistories.get(singerKey);
+    
+    // Use historical times_sung if available, otherwise use entry's times_sung
+    const base = history?.timesSung ?? entry.times_sung ?? 0;
+    
     if (!byTimes.has(base)) byTimes.set(base, new Map());
     const group = byTimes.get(base)!;
     if (!group.has(singerKey)) group.set(singerKey, []);
@@ -49,10 +60,25 @@ function buildFairOrder(waitingEntries: WaitlistEntry[]): WaitlistEntry[] {
 
   for (const base of bases) {
     const group = byTimes.get(base)!;
-    // Order singers by who signed up first (within this base bucket)
+    
+    // Order singers by: last performance time (longer ago = higher priority), then signup time
     const singerKeys = Array.from(group.keys()).sort((aKey, bKey) => {
+      const aHistory = singerHistories.get(aKey);
+      const bHistory = singerHistories.get(bKey);
       const aFirst = group.get(aKey)?.[0];
       const bFirst = group.get(bKey)?.[0];
+      
+      // If one never performed and other did, prioritize who never performed
+      if (!aHistory?.lastPerformed && bHistory?.lastPerformed) return -1;
+      if (aHistory?.lastPerformed && !bHistory?.lastPerformed) return 1;
+      
+      // Both have performed - prioritize who performed longer ago
+      if (aHistory?.lastPerformed && bHistory?.lastPerformed) {
+        const timeDiff = aHistory.lastPerformed.getTime() - bHistory.lastPerformed.getTime();
+        if (timeDiff !== 0) return timeDiff; // Earlier = lower timestamp = goes first
+      }
+      
+      // Fallback to signup time
       if (!aFirst || !bFirst) return 0;
       return new Date(aFirst.created_at).getTime() - new Date(bFirst.created_at).getTime();
     });
@@ -82,6 +108,39 @@ export function useWaitlist(instanceId?: string | null) {
   const { toast } = useToast();
   const { t } = useLanguage();
 
+  // Fetch singer history from performances table
+  const fetchSingerHistories = async (singerNames: string[]): Promise<Map<string, SingerHistory>> => {
+    const histories = new Map<string, SingerHistory>();
+    if (!instanceId || singerNames.length === 0) return histories;
+
+    // Get performance history for all singers in the waitlist
+    const { data: performances } = await supabase
+      .from('performances')
+      .select('cantor, created_at')
+      .eq('karaoke_instance_id', instanceId)
+      .eq('status', 'encerrada');
+
+    if (!performances) return histories;
+
+    // Count performances and track last performance time for each singer
+    for (const perf of performances) {
+      const singerKey = normalizeSingerName(perf.cantor);
+      const existing = histories.get(singerKey);
+      const perfDate = new Date(perf.created_at);
+      
+      if (existing) {
+        existing.timesSung++;
+        if (!existing.lastPerformed || perfDate > existing.lastPerformed) {
+          existing.lastPerformed = perfDate;
+        }
+      } else {
+        histories.set(singerKey, { timesSung: 1, lastPerformed: perfDate });
+      }
+    }
+
+    return histories;
+  };
+
   const applyFairOrderIfNeeded = async (waitingEntries: WaitlistEntry[], forceRebalance = false) => {
     // Separate coordinator insertions (negative priority) from regular entries
     const coordinatorEntries = waitingEntries.filter(e => e.priority < 0);
@@ -99,8 +158,12 @@ export function useWaitlist(instanceId?: string | null) {
       return waitingEntries;
     }
 
+    // Fetch historical performance data for fair ordering
+    const singerNames = regularEntries.map(e => e.singer_name);
+    const singerHistories = await fetchSingerHistories(singerNames);
+
     // Apply fair order only to regular entries (not coordinator insertions)
-    const fair = forceRebalance ? buildFairOrder(regularEntries) : regularEntries;
+    const fair = forceRebalance ? buildFairOrder(regularEntries, singerHistories) : regularEntries;
     
     // Combine: coordinator entries first, then fair/regular entries
     const combined = [...coordinatorEntries, ...fair];
@@ -471,6 +534,48 @@ export function useWaitlist(instanceId?: string | null) {
     return entries.length > 0 ? entries[0] : null;
   };
 
+  // Get unique singer names for autocomplete suggestions
+  const getUniqueSingerNames = async (): Promise<string[]> => {
+    if (!instanceId) return [];
+    
+    try {
+      // Get unique names from both waitlist and performances
+      const [waitlistResult, performancesResult] = await Promise.all([
+        supabase
+          .from('waitlist')
+          .select('singer_name')
+          .eq('karaoke_instance_id', instanceId),
+        supabase
+          .from('performances')
+          .select('cantor')
+          .eq('karaoke_instance_id', instanceId)
+      ]);
+
+      const namesSet = new Set<string>();
+      
+      // Add names from waitlist
+      waitlistResult.data?.forEach(entry => {
+        if (entry.singer_name?.trim()) {
+          namesSet.add(entry.singer_name.trim());
+        }
+      });
+      
+      // Add names from performances
+      performancesResult.data?.forEach(entry => {
+        if (entry.cantor?.trim()) {
+          namesSet.add(entry.cantor.trim());
+        }
+      });
+
+      return Array.from(namesSet).sort((a, b) => 
+        a.toLowerCase().localeCompare(b.toLowerCase())
+      );
+    } catch (error) {
+      console.error('Error fetching singer names:', error);
+      return [];
+    }
+  };
+
   return { 
     entries, 
     historyEntries,
@@ -483,6 +588,7 @@ export function useWaitlist(instanceId?: string | null) {
     movePriority,
     updateSingerName,
     getNextInQueue, 
+    getUniqueSingerNames,
     refetch: fetchEntries 
   };
 }

@@ -149,10 +149,16 @@ export function ResetEventDialog({
         }
       }
 
-      // Now perform the reset
+      // Now perform the reset - PRESERVE performances for monthly ranking!
+      // Only delete votes and waitlist, keep performances for historical ranking
       await supabase.from('votes').delete().eq('karaoke_instance_id', instanceId);
-      await supabase.from('performances').delete().eq('karaoke_instance_id', instanceId);
       await supabase.from('waitlist').delete().eq('karaoke_instance_id', instanceId);
+      
+      // Mark all performances as closed instead of deleting
+      await supabase.from('performances')
+        .update({ status: 'encerrada' })
+        .eq('karaoke_instance_id', instanceId)
+        .eq('status', 'ativa');
 
       toast({ title: t('host.eventReset'), description: t('host.allDataDeleted') });
       onResetComplete();
@@ -176,13 +182,13 @@ export function ResetEventDialog({
           <AlertDialogDescription asChild>
             <div className="space-y-4">
               <p className="text-muted-foreground">
-                Tem certeza que deseja resetar o evento? Esta ação irá apagar todas as performances, votos e a fila de espera.
+                Tem certeza que deseja resetar o evento? Esta ação irá apagar os votos e a fila de espera para iniciar um novo evento.
               </p>
 
-              <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-3">
-                <p className="text-sm text-amber-600 dark:text-amber-400 font-medium flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  Atenção: Após esta ação os dados do ranking não estarão mais disponíveis para você.
+              <div className="rounded-lg border border-green-500/50 bg-green-500/10 p-3">
+                <p className="text-sm text-green-600 dark:text-green-400 font-medium flex items-center gap-2">
+                  <Trophy className="h-4 w-4" />
+                  As performances serão preservadas no ranking mensal da página principal.
                 </p>
               </div>
 
