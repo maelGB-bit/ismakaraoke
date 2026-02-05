@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX, Pencil, Check, List, ChevronDown, Eye, EyeOff } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX, Pencil, Check, List, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InstructionVideoButtons } from '@/components/InstructionVideoButtons';
@@ -151,7 +151,6 @@ export function TVModeView({
   
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showFloatingScore, setShowFloatingScore] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Track vote changes for effects
@@ -531,12 +530,12 @@ export function TVModeView({
                 <span className="text-sm">{t('tv.votes')}</span>
               </div>
             
-            {/* Logo - Same height as votes section */}
+            {/* Logo - Larger in top bar */}
             <div className="flex items-center border-l-2 border-border/50 pl-4 ml-2">
               <img 
                 src="/img/mamute-logo.png" 
                 alt="Mamute Karaokê" 
-                className="h-12 md:h-14 object-contain"
+                className="h-16 md:h-20 object-contain"
               />
             </div>
             
@@ -735,19 +734,6 @@ export function TVModeView({
             </>
           )}
 
-          {/* Toggle Floating Score */}
-          <button
-            onClick={() => setShowFloatingScore(!showFloatingScore)}
-            className="flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-colors hover:bg-accent/50"
-            title={showFloatingScore ? 'Ocultar notas flutuantes' : 'Mostrar notas flutuantes'}
-          >
-            {showFloatingScore ? (
-              <EyeOff className="w-3 h-3" />
-            ) : (
-              <Eye className="w-3 h-3" />
-            )}
-            <span className="hidden sm:inline">Notas</span>
-          </button>
 
           {/* Registration Toggle */}
           <button
@@ -817,36 +803,6 @@ export function TVModeView({
         {t('tv.exitHint')}
       </motion.p>
 
-      {/* Floating Score Panel - Stays visible even with YouTube fullscreen */}
-      <AnimatePresence>
-        {showFloatingScore && isActive && performance?.allow_voting !== false && !isPlayingInstructionVideo && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className="fixed bottom-20 right-4 z-[9999] flex items-center gap-3 px-5 py-3 rounded-xl bg-background/95 backdrop-blur-md border-2 border-primary/50 shadow-2xl"
-            style={{ pointerEvents: 'none' }}
-          >
-            <Star className="w-8 h-8 text-accent fill-accent flex-shrink-0" />
-            <div className="flex flex-col">
-              <span className={`text-4xl font-black font-display ${
-                score >= 9 ? 'neon-text-gold' : score >= 7 ? 'neon-text-cyan' : 'text-foreground'
-              }`}>
-                {score.toFixed(1)}
-              </span>
-              <span className="text-xs text-muted-foreground">{totalVotes} votos</span>
-            </div>
-            <div className="flex flex-col border-l border-border/50 pl-3 ml-1">
-              <span className="text-sm font-bold truncate max-w-[120px]">
-                {performance.cantor}
-              </span>
-              <span className="text-xs text-muted-foreground truncate max-w-[120px]">
-                {performance.musica}
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }
