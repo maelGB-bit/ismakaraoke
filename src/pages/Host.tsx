@@ -439,14 +439,15 @@ function HostContent() {
   };
 
   // Helper function to select next singer (used by both manual and after instruction video)
-  const selectNextSinger = async (next: { id: string; singer_name: string; song_title: string; youtube_url: string; allow_voting?: boolean }) => {
+  // skipCleanup: true when the caller already handled the current performance cleanup (e.g., now_return)
+  const selectNextSinger = async (next: { id: string; singer_name: string; song_title: string; youtube_url: string; allow_voting?: boolean }, skipCleanup = false) => {
     // Capture current state before updating - save as previous for "go back" functionality
     const previousEntryId = currentWaitlistEntryId;
     const previousPerformance = performance;
     const wasActive = isRoundActive;
     
-    // Save current performer as previous (for go back functionality)
-    if (wasActive && previousPerformance && cantor && musica) {
+    // Save current performer as previous (for go back functionality) - only if not skipping cleanup
+    if (!skipCleanup && wasActive && previousPerformance && cantor && musica) {
       setPreviousPerformer({
         cantor: previousPerformance.cantor,
         musica: previousPerformance.musica,
@@ -463,8 +464,10 @@ function HostContent() {
     setLoadedUrl(next.youtube_url);
     setCurrentWaitlistEntryId(next.id);
     setLastHighScore(0);
+    
     // Run cleanup in background (non-blocking) - don't wait for these
-    if (wasActive && previousPerformance) {
+    // Skip cleanup if already handled by caller (e.g., now_return already inserted current to waitlist)
+    if (!skipCleanup && wasActive && previousPerformance) {
       (async () => {
         try {
           await supabase.from('performances').update({ status: 'encerrada' }).eq('id', previousPerformance.id);
@@ -601,8 +604,11 @@ function HostContent() {
             .eq('id', performance.id);
         }
         
-        // Now start the selected singer
-        await selectNextSinger(entry);
+        // Clear previous performer since we're returning current to queue (not ending normally)
+        setPreviousPerformer(null);
+        
+        // Now start the selected singer - skip cleanup since we already handled it above
+        await selectNextSinger(entry, true);
         
         toast({ 
           title: 'Cantor selecionado', 

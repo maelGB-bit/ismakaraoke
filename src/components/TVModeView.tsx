@@ -933,50 +933,61 @@ export function TVModeView({
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col gap-2">
-            <div className="flex flex-col sm:flex-row gap-2 w-full">
-              <Button
-                onClick={() => handleJumpConfirm('next')}
-                disabled={isJumping}
-                variant="outline"
-                className="flex-1"
-              >
-                {isJumping ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <SkipForward className="h-4 w-4 mr-2" />
-                )}
-                Será o próximo
-              </Button>
+          <AlertDialogFooter className="flex flex-col gap-3 sm:gap-4 items-center">
+            {/* Option 1: Set as next */}
+            <Button
+              onClick={() => handleJumpConfirm('next')}
+              disabled={isJumping}
+              variant="outline"
+              className="w-full"
+            >
+              {isJumping ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <SkipForward className="h-4 w-4 mr-2" />
+              )}
+              Será o próximo
+            </Button>
+            
+            {/* Divider */}
+            <div className="w-full flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex-1 h-px bg-border" />
+              <span>ou cantar agora</span>
+              <div className="flex-1 h-px bg-border" />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full">
+            
+            {/* Option 2: Sing now options */}
+            <div className="w-full grid grid-cols-2 gap-2">
               <Button
                 onClick={() => handleJumpConfirm('now_return')}
                 disabled={isJumping}
                 variant="secondary"
-                className="flex-1"
+                className="flex flex-col items-center gap-1 h-auto py-3"
               >
                 {isJumping ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  <Play className="h-4 w-4 mr-2" />
+                  <Play className="h-5 w-5" />
                 )}
-                Cantar agora (atual volta à fila)
+                <span className="text-xs font-medium">Cantar agora</span>
+                <span className="text-[10px] text-muted-foreground">atual volta à fila</span>
               </Button>
               <Button
                 onClick={() => handleJumpConfirm('now_end')}
                 disabled={isJumping}
-                className="flex-1"
+                className="flex flex-col items-center gap-1 h-auto py-3"
               >
                 {isJumping ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  <Play className="h-4 w-4 mr-2" />
+                  <Play className="h-5 w-5" />
                 )}
-                Cantar agora (encerrar atual)
+                <span className="text-xs font-medium">Cantar agora</span>
+                <span className="text-[10px] text-muted-foreground/70">encerrar atual</span>
               </Button>
             </div>
-            <AlertDialogCancel disabled={isJumping} className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
+            
+            <AlertDialogCancel disabled={isJumping} className="w-full mt-2">Cancelar</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
