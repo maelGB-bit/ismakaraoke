@@ -902,9 +902,26 @@ function HostContent() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Top row: Score Display and Waitlist side by side */}
+          <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ScoreDisplay score={performance ? Number(performance.nota_media) : 0} totalVotes={performance?.total_votos || 0} cantor={performance?.cantor || cantor} musica={performance?.musica || musica} />
+            <HostWaitlistPanel
+              entries={waitlistEntries}
+              loading={waitlistLoading}
+              historyEntries={historyEntries}
+              historyLoading={historyLoading}
+              onSelectEntry={handleSelectFromWaitlist}
+              onRemoveEntry={removeFromWaitlist}
+              onMovePriority={movePriority}
+              onUpdateSingerName={updateSingerName}
+              currentSinger={isRoundActive ? performance?.cantor : null}
+            />
+          </div>
+          
+          {/* Left column: Manual registration form */}
           <div className="lg:col-span-8 flex flex-col gap-4">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="glass-card p-4">
-              <h2 className="text-lg font-bold font-display mb-3 flex items-center gap-2"><Video className="w-4 h-4 text-secondary" />{t('host.configureRound')}</h2>
+              <h2 className="text-lg font-bold font-display mb-3 flex items-center gap-2"><Mic2 className="w-4 h-4 text-secondary" />{t('host.addParticipantManually')}</h2>
               
               {/* Singer name and queue position toggle */}
               <div className="grid grid-cols-1 gap-3 mb-3">
@@ -1013,8 +1030,9 @@ function HostContent() {
               <Button onClick={handleEndRound} disabled={!isRoundActive} size="sm" variant="destructive" className="flex-1 font-bold"><Square className="mr-1 h-4 w-4" />{t('host.endVoting')}</Button>
             </div>
           </div>
+          
+          {/* Right column: QR Code and Info Card */}
           <div className="lg:col-span-4 flex flex-col gap-4">
-            {/* QR Code and Info Card first */}
             <div className="flex flex-col gap-2">
               <QRCodeDisplay instanceCode={instance?.instance_code} />
               {instance?.instance_code && (
@@ -1029,22 +1047,6 @@ function HostContent() {
                 isLoading={isCreating}
               />
             )}
-            
-            {/* Score Display ("Cantando Agora") */}
-            <ScoreDisplay score={performance ? Number(performance.nota_media) : 0} totalVotes={performance?.total_votos || 0} cantor={performance?.cantor || cantor} musica={performance?.musica || musica} />
-            
-            {/* Waitlist Panel */}
-            <HostWaitlistPanel
-              entries={waitlistEntries}
-              loading={waitlistLoading}
-              historyEntries={historyEntries}
-              historyLoading={historyLoading}
-              onSelectEntry={handleSelectFromWaitlist}
-              onRemoveEntry={removeFromWaitlist}
-              onMovePriority={movePriority}
-              onUpdateSingerName={updateSingerName}
-              currentSinger={isRoundActive ? performance?.cantor : null}
-            />
           </div>
         </div>
       </motion.div>
