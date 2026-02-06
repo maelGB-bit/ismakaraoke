@@ -1014,18 +1014,7 @@ function HostContent() {
             </div>
           </div>
           <div className="lg:col-span-4 flex flex-col gap-4">
-            <ScoreDisplay score={performance ? Number(performance.nota_media) : 0} totalVotes={performance?.total_votos || 0} cantor={performance?.cantor || cantor} musica={performance?.musica || musica} />
-            <HostWaitlistPanel
-              entries={waitlistEntries}
-              loading={waitlistLoading}
-              historyEntries={historyEntries}
-              historyLoading={historyLoading}
-              onSelectEntry={handleSelectFromWaitlist}
-              onRemoveEntry={removeFromWaitlist}
-              onMovePriority={movePriority}
-              onUpdateSingerName={updateSingerName}
-              currentSinger={isRoundActive ? performance?.cantor : null}
-            />
+            {/* QR Code and Info Card first */}
             <div className="flex flex-col gap-2">
               <QRCodeDisplay instanceCode={instance?.instance_code} />
               {instance?.instance_code && (
@@ -1040,6 +1029,22 @@ function HostContent() {
                 isLoading={isCreating}
               />
             )}
+            
+            {/* Score Display ("Cantando Agora") */}
+            <ScoreDisplay score={performance ? Number(performance.nota_media) : 0} totalVotes={performance?.total_votos || 0} cantor={performance?.cantor || cantor} musica={performance?.musica || musica} />
+            
+            {/* Waitlist Panel */}
+            <HostWaitlistPanel
+              entries={waitlistEntries}
+              loading={waitlistLoading}
+              historyEntries={historyEntries}
+              historyLoading={historyLoading}
+              onSelectEntry={handleSelectFromWaitlist}
+              onRemoveEntry={removeFromWaitlist}
+              onMovePriority={movePriority}
+              onUpdateSingerName={updateSingerName}
+              currentSinger={isRoundActive ? performance?.cantor : null}
+            />
           </div>
         </div>
       </motion.div>
