@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+// Language context for internationalization
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Language, translations, languages } from './translations';
 
 interface LanguageContextType {
