@@ -915,6 +915,7 @@ function HostContent() {
               onRemoveEntry={removeFromWaitlist}
               onMovePriority={movePriority}
               onUpdateSingerName={updateSingerName}
+              onRecoverFromHistory={handleJumpToEntry}
               currentSinger={isRoundActive ? performance?.cantor : null}
             />
           </div>

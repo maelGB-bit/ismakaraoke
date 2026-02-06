@@ -828,10 +828,16 @@ export function TVModeView({
                       </div>
                     ) : (
                       <div className="p-1">
-                        {historyEntries.map((entry, index) => (
-                          <div 
+                        {onJumpToEntry && (
+                          <div className="px-2 py-1 text-xs text-muted-foreground bg-muted/50 rounded mb-1">
+                            Clique para recuperar uma música
+                          </div>
+                        )}
+                        {historyEntries.map((entry) => (
+                          <button 
                             key={entry.id} 
-                            className="flex items-center gap-2 py-2 px-2 rounded opacity-70"
+                            className={`w-full flex items-center gap-2 py-2 px-2 rounded text-left ${onJumpToEntry ? 'cursor-pointer hover:bg-accent/50 hover:opacity-100' : 'cursor-default'} opacity-70`}
+                            onClick={() => onJumpToEntry && handleEntryClick(entry)}
                           >
                             <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs font-bold flex-shrink-0">
                               <UserCheck className="w-3 h-3" />
@@ -845,7 +851,10 @@ export function TVModeView({
                               </p>
                               <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
                             </div>
-                          </div>
+                            {onJumpToEntry && (
+                              <Play className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                            )}
+                          </button>
                         ))}
                       </div>
                     )}
@@ -963,7 +972,7 @@ export function TVModeView({
 
       {/* Jump to Entry Confirmation Dialog */}
       <AlertDialog open={jumpDialogOpen} onOpenChange={setJumpDialogOpen}>
-        <AlertDialogContent className="z-[200]" container={containerRef.current}>
+        <AlertDialogContent className="z-[200] sm:max-w-md" container={containerRef.current}>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <UserPlus className="h-5 w-5 text-primary" />
@@ -981,62 +990,65 @@ export function TVModeView({
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col gap-3 sm:gap-4 items-center">
+          <div className="flex flex-col gap-4 mt-4">
             {/* Option 1: Set as next */}
             <Button
               onClick={() => handleJumpConfirm('next')}
               disabled={isJumping}
               variant="outline"
-              className="w-full"
+              size="lg"
+              className="w-full h-12 text-base"
             >
               {isJumping ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
               ) : (
-                <SkipForward className="h-4 w-4 mr-2" />
+                <SkipForward className="h-5 w-5 mr-2" />
               )}
               Será o próximo
             </Button>
             
             {/* Divider */}
-            <div className="w-full flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="w-full flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex-1 h-px bg-border" />
               <span>ou cantar agora</span>
               <div className="flex-1 h-px bg-border" />
             </div>
             
             {/* Option 2: Sing now options */}
-            <div className="w-full grid grid-cols-2 gap-2">
+            <div className="w-full grid grid-cols-2 gap-3">
               <Button
                 onClick={() => handleJumpConfirm('now_return')}
                 disabled={isJumping}
                 variant="secondary"
-                className="flex flex-col items-center gap-1 h-auto py-3"
+                size="lg"
+                className="flex flex-col items-center gap-1 h-auto py-4"
               >
                 {isJumping ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-6 w-6 animate-spin" />
                 ) : (
-                  <Play className="h-5 w-5" />
+                  <Play className="h-6 w-6" />
                 )}
-                <span className="text-xs font-medium">Cantar agora</span>
-                <span className="text-[10px] text-muted-foreground">atual volta à fila</span>
+                <span className="text-sm font-medium">Cantar agora</span>
+                <span className="text-xs text-muted-foreground">atual volta à fila</span>
               </Button>
               <Button
                 onClick={() => handleJumpConfirm('now_end')}
                 disabled={isJumping}
-                className="flex flex-col items-center gap-1 h-auto py-3"
+                size="lg"
+                className="flex flex-col items-center gap-1 h-auto py-4"
               >
                 {isJumping ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="h-6 w-6 animate-spin" />
                 ) : (
-                  <Play className="h-5 w-5" />
+                  <Play className="h-6 w-6" />
                 )}
-                <span className="text-xs font-medium">Cantar agora</span>
-                <span className="text-[10px] text-muted-foreground/70">encerrar atual</span>
+                <span className="text-sm font-medium">Cantar agora</span>
+                <span className="text-xs text-muted-foreground/70">encerrar atual</span>
               </Button>
             </div>
             
-            <AlertDialogCancel disabled={isJumping} className="w-full mt-2">Cancelar</AlertDialogCancel>
-          </AlertDialogFooter>
+            <AlertDialogCancel disabled={isJumping} className="w-full h-11 text-base mt-2">Cancelar</AlertDialogCancel>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
 
