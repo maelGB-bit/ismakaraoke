@@ -174,30 +174,28 @@ export function TVAddSingerDialog({ onAddToWaitlist, onFetchSuggestions, contain
             />
           </div>
 
-          {/* Queue Position */}
-          {singerName.trim() && (
-            <div className="p-3 rounded-md bg-muted/50 border border-border">
-              <span className="text-xs font-medium mb-2 block">Posição na fila</span>
-              <RadioGroup
-                value={insertFirst ? 'first' : 'fair'}
-                onValueChange={(value) => setInsertFirst(value === 'first')}
-                className="flex gap-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="first" id="tv-position-first" />
-                  <Label htmlFor="tv-position-first" className="text-sm font-normal cursor-pointer">
-                    🎤 Será o próximo
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="fair" id="tv-position-fair" />
-                  <Label htmlFor="tv-position-fair" className="text-sm font-normal cursor-pointer">
-                    ⚖️ Ordem justa
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-          )}
+          {/* Queue Position - always visible */}
+          <div className="p-3 rounded-md bg-muted/50 border border-border">
+            <span className="text-xs font-medium mb-2 block">Posição na fila</span>
+            <RadioGroup
+              value={insertFirst ? 'first' : 'fair'}
+              onValueChange={(value) => setInsertFirst(value === 'first')}
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="first" id="tv-position-first" />
+                <Label htmlFor="tv-position-first" className="text-sm font-normal cursor-pointer">
+                  🎤 Será o próximo
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="fair" id="tv-position-fair" />
+                <Label htmlFor="tv-position-fair" className="text-sm font-normal cursor-pointer">
+                  ⚖️ Ordem justa
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
 
           {/* YouTube Search Tabs */}
           <Tabs defaultValue="search" className="w-full">
