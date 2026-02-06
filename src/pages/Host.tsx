@@ -872,16 +872,20 @@ function HostContent() {
                   Inscrever cantores • Editar fila • QR Codes • Exportar dados
                 </p>
               </div>
-              <div className="flex-1 px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-left">
+              <button
+                onClick={handleEnterTVMode}
+                className="flex-1 px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-left hover:bg-primary/20 hover:border-primary/50 transition-all cursor-pointer group"
+              >
                 <div className="flex items-center gap-2 mb-1">
-                  <Monitor className="w-4 h-4 text-primary" />
+                  <Monitor className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                   <span className="text-xs font-semibold text-primary">Modo TV</span>
                   <span className="text-[10px] text-muted-foreground">(apresentação)</span>
+                  <Play className="w-3 h-3 text-primary ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-tight">
                   Tela cheia • Transições • Votação ao vivo • Pular cantores
                 </p>
-              </div>
+              </button>
             </div>
           </div>
         </header>
