@@ -60,6 +60,8 @@ interface TVModeViewProps {
   onUpdateSingerName?: (entryId: string, newName: string) => Promise<boolean>;
   // Full waitlist for dropdown
   waitlistEntries?: WaitlistEntry[];
+  // History entries for dropdown
+  historyEntries?: WaitlistEntry[];
   // Jump to specific entry in the queue
   // action: 'next' = move to top of queue, 'now_end' = start now and end current, 'now_return' = start now and return current to queue
   onJumpToEntry?: (entry: WaitlistEntry, action: 'now_end' | 'now_return' | 'next') => Promise<void>;
@@ -111,6 +113,7 @@ export function TVModeView({
   onPlayInstructionVideo,
   onUpdateSingerName,
   waitlistEntries = [],
+  historyEntries = [],
   onJumpToEntry,
   onAddToWaitlist,
 }: TVModeViewProps) {
@@ -759,51 +762,96 @@ export function TVModeView({
             </DropdownMenuTrigger>
             <DropdownMenuContent 
               align="center" 
-              className="w-72 max-h-80 overflow-y-auto bg-popover border border-border shadow-lg z-[100]"
+              className="w-80 bg-popover border border-border shadow-lg z-[100]"
               container={containerRef.current}
             >
-              <DropdownMenuLabel className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary" />
-                Fila de Espera ({queueCount})
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {waitlistEntries.length === 0 ? (
-                <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-                  <Music className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>Nenhum cantor na fila</p>
-                </div>
-              ) : (
-                <>
-                  {onJumpToEntry && (
-                    <div className="px-2 py-1 text-xs text-muted-foreground bg-muted/50">
-                      Clique para pular para um cantor
-                    </div>
-                  )}
-                  {waitlistEntries.map((entry, index) => (
-                    <DropdownMenuItem 
-                      key={entry.id} 
-                      className={`flex items-center gap-2 py-2 ${onJumpToEntry ? 'cursor-pointer hover:bg-primary/10' : 'cursor-default'}`}
-                      onClick={() => onJumpToEntry && handleEntryClick(entry)}
-                    >
-                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                        {index + 1}
+              <Tabs defaultValue="queue" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 h-8">
+                  <TabsTrigger value="queue" className="text-xs flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    Fila ({queueCount})
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="text-xs flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Histórico ({historyEntries.length})
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="queue" className="mt-0">
+                  <ScrollArea className="h-64">
+                    {waitlistEntries.length === 0 ? (
+                      <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+                        <Music className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p>Nenhum cantor na fila</p>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {entry.singer_name}
-                          {entry.times_sung > 0 && (
-                            <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
-                          )}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
+                    ) : (
+                      <div className="p-1">
+                        {onJumpToEntry && (
+                          <div className="px-2 py-1 text-xs text-muted-foreground bg-muted/50 rounded mb-1">
+                            Clique para pular para um cantor
+                          </div>
+                        )}
+                        {waitlistEntries.map((entry, index) => (
+                          <button 
+                            key={entry.id} 
+                            className={`w-full flex items-center gap-2 py-2 px-2 rounded text-left ${onJumpToEntry ? 'cursor-pointer hover:bg-accent/50' : 'cursor-default'}`}
+                            onClick={() => onJumpToEntry && handleEntryClick(entry)}
+                          >
+                            <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">
+                                {entry.singer_name}
+                                {entry.times_sung > 0 && (
+                                  <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
+                                )}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
+                            </div>
+                            {onJumpToEntry && (
+                              <SkipForward className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                            )}
+                          </button>
+                        ))}
                       </div>
-                      {onJumpToEntry && (
-                        <SkipForward className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </>
-              )}
+                    )}
+                  </ScrollArea>
+                </TabsContent>
+                
+                <TabsContent value="history" className="mt-0">
+                  <ScrollArea className="h-64">
+                    {historyEntries.length === 0 ? (
+                      <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+                        <UserCheck className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p>Nenhum cantor cantou ainda</p>
+                      </div>
+                    ) : (
+                      <div className="p-1">
+                        {historyEntries.map((entry, index) => (
+                          <div 
+                            key={entry.id} 
+                            className="flex items-center gap-2 py-2 px-2 rounded opacity-70"
+                          >
+                            <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs font-bold flex-shrink-0">
+                              <UserCheck className="w-3 h-3" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">
+                                {entry.singer_name}
+                                {entry.times_sung > 1 && (
+                                  <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
+                                )}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
             </DropdownMenuContent>
           </DropdownMenu>
 
