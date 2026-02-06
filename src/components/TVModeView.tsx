@@ -60,7 +60,8 @@ interface TVModeViewProps {
   // Full waitlist for dropdown
   waitlistEntries?: WaitlistEntry[];
   // Jump to specific entry in the queue
-  onJumpToEntry?: (entry: WaitlistEntry, action: 'now' | 'next') => Promise<void>;
+  // action: 'next' = move to top of queue, 'now_end' = start now and end current, 'now_return' = start now and return current to queue
+  onJumpToEntry?: (entry: WaitlistEntry, action: 'now_end' | 'now_return' | 'next') => Promise<void>;
 }
 
 function extractVideoId(url: string): string | null {
@@ -189,7 +190,7 @@ export function TVModeView({
     setJumpDialogOpen(true);
   };
 
-  const handleJumpConfirm = async (action: 'now' | 'next') => {
+  const handleJumpConfirm = async (action: 'now_end' | 'now_return' | 'next') => {
     if (!selectedJumpEntry || !onJumpToEntry) return;
     setIsJumping(true);
     try {
@@ -917,32 +918,50 @@ export function TVModeView({
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel disabled={isJumping}>Cancelar</AlertDialogCancel>
-            <Button
-              onClick={() => handleJumpConfirm('next')}
-              disabled={isJumping}
-              variant="outline"
-            >
-              {isJumping ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <SkipForward className="h-4 w-4 mr-2" />
-              )}
-              Será o próximo
-            </Button>
-            <Button
-              onClick={() => handleJumpConfirm('now')}
-              disabled={isJumping}
-              className="bg-primary"
-            >
-              {isJumping ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Play className="h-4 w-4 mr-2" />
-              )}
-              Cantar agora
-            </Button>
+          <AlertDialogFooter className="flex-col gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <Button
+                onClick={() => handleJumpConfirm('next')}
+                disabled={isJumping}
+                variant="outline"
+                className="flex-1"
+              >
+                {isJumping ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <SkipForward className="h-4 w-4 mr-2" />
+                )}
+                Será o próximo
+              </Button>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <Button
+                onClick={() => handleJumpConfirm('now_return')}
+                disabled={isJumping}
+                variant="secondary"
+                className="flex-1"
+              >
+                {isJumping ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Play className="h-4 w-4 mr-2" />
+                )}
+                Cantar agora (atual volta à fila)
+              </Button>
+              <Button
+                onClick={() => handleJumpConfirm('now_end')}
+                disabled={isJumping}
+                className="flex-1"
+              >
+                {isJumping ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Play className="h-4 w-4 mr-2" />
+                )}
+                Cantar agora (encerrar atual)
+              </Button>
+            </div>
+            <AlertDialogCancel disabled={isJumping} className="w-full sm:w-auto">Cancelar</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
