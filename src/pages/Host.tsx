@@ -738,6 +738,7 @@ function HostContent() {
             onPlayInstructionVideo={handlePlayInstructionVideo}
             onUpdateSingerName={updateSingerName}
             waitlistEntries={waitlistEntries.filter(e => e.status === 'waiting')}
+            historyEntries={historyEntries}
             onJumpToEntry={handleJumpToEntry}
             onAddToWaitlist={addToWaitlist}
           />
