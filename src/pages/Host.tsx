@@ -554,6 +554,46 @@ function HostContent() {
     });
   };
 
+  // Handle jumping to a specific entry in the queue
+  const handleJumpToEntry = async (entry: { id: string; singer_name: string; song_title: string; youtube_url: string; allow_voting?: boolean }, action: 'now' | 'next') => {
+    if (action === 'now') {
+      // Encerrar apresentação atual e iniciar o selecionado imediatamente
+      await selectNextSinger(entry);
+      toast({ 
+        title: 'Cantor selecionado', 
+        description: `${entry.singer_name} está cantando agora!` 
+      });
+    } else {
+      // Mover para ser o próximo (priority mais baixa)
+      try {
+        // Get current minimum priority
+        const { data: minEntry } = await supabase
+          .from('waitlist')
+          .select('priority')
+          .eq('karaoke_instance_id', instanceId)
+          .eq('status', 'waiting')
+          .order('priority', { ascending: true })
+          .limit(1);
+        
+        const minPriority = minEntry?.[0]?.priority ?? 0;
+        
+        // Set this entry to be before the current minimum
+        await supabase
+          .from('waitlist')
+          .update({ priority: minPriority - 1 })
+          .eq('id', entry.id);
+        
+        toast({ 
+          title: 'Próximo na fila', 
+          description: `${entry.singer_name} será o próximo a cantar` 
+        });
+      } catch (error) {
+        console.error('Error moving entry to next:', error);
+        toast({ title: t('host.error'), description: 'Não foi possível mover na fila', variant: 'destructive' });
+      }
+    }
+  };
+
   const handleChangeVideo = async (newUrl: string, newSongTitle?: string) => {
     setYoutubeUrl(newUrl);
     setLoadedUrl(newUrl);
@@ -643,6 +683,7 @@ function HostContent() {
             onPlayInstructionVideo={handlePlayInstructionVideo}
             onUpdateSingerName={updateSingerName}
             waitlistEntries={waitlistEntries.filter(e => e.status === 'waiting')}
+            onJumpToEntry={handleJumpToEntry}
           />
         )}
       </AnimatePresence>

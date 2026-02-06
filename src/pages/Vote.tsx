@@ -431,6 +431,7 @@ export default function Vote() {
                   {t('vote.showNightRanking')}
                 </Button>
                 <LeaveButton />
+                <LeaveButton />
               </div>
             </motion.div>
           ) : (
@@ -439,9 +440,12 @@ export default function Vote() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full"
+              className="w-full space-y-4"
             >
               <VoteSlider onSubmit={handleSubmitVote} isSubmitting={isSubmitting} />
+              <div className="flex justify-center">
+                <LeaveButton />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

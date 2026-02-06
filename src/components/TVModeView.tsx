@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX, Pencil, Check, List, ChevronDown, ChevronLeft } from 'lucide-react';
+import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maximize, Minimize, Edit, Search, Link, Loader2, Clock, UserCheck, Lock, Unlock, Film, VolumeX, Pencil, Check, List, ChevronDown, ChevronLeft, SkipForward, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InstructionVideoButtons } from '@/components/InstructionVideoButtons';
@@ -20,6 +20,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,6 +59,8 @@ interface TVModeViewProps {
   onUpdateSingerName?: (entryId: string, newName: string) => Promise<boolean>;
   // Full waitlist for dropdown
   waitlistEntries?: WaitlistEntry[];
+  // Jump to specific entry in the queue
+  onJumpToEntry?: (entry: WaitlistEntry, action: 'now' | 'next') => Promise<void>;
 }
 
 function extractVideoId(url: string): string | null {
@@ -95,6 +107,7 @@ export function TVModeView({
   onPlayInstructionVideo,
   onUpdateSingerName,
   waitlistEntries = [],
+  onJumpToEntry,
 }: TVModeViewProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -154,6 +167,11 @@ export function TVModeView({
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingName, setEditingName] = useState('');
   
+  // Jump to entry dialog state
+  const [jumpDialogOpen, setJumpDialogOpen] = useState(false);
+  const [selectedJumpEntry, setSelectedJumpEntry] = useState<WaitlistEntry | null>(null);
+  const [isJumping, setIsJumping] = useState(false);
+  
   // Fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -163,6 +181,25 @@ export function TVModeView({
   const [prevVotes, setPrevVotes] = useState(0);
   const [prevScore, setPrevScore] = useState(0);
   const effectIdRef = useRef(0);
+
+  // Handle clicking on an entry in the dropdown to jump to it
+  const handleEntryClick = (entry: WaitlistEntry) => {
+    if (!onJumpToEntry) return;
+    setSelectedJumpEntry(entry);
+    setJumpDialogOpen(true);
+  };
+
+  const handleJumpConfirm = async (action: 'now' | 'next') => {
+    if (!selectedJumpEntry || !onJumpToEntry) return;
+    setIsJumping(true);
+    try {
+      await onJumpToEntry(selectedJumpEntry, action);
+      setJumpDialogOpen(false);
+      setSelectedJumpEntry(null);
+    } finally {
+      setIsJumping(false);
+    }
+  };
 
   // Fullscreen handlers
   const enterFullscreen = useCallback(async () => {
@@ -730,22 +767,36 @@ export function TVModeView({
                   <p>Nenhum cantor na fila</p>
                 </div>
               ) : (
-                waitlistEntries.map((entry, index) => (
-                  <DropdownMenuItem key={entry.id} className="flex items-center gap-2 py-2 cursor-default">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                      {index + 1}
+                <>
+                  {onJumpToEntry && (
+                    <div className="px-2 py-1 text-xs text-muted-foreground bg-muted/50">
+                      Clique para pular para um cantor
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
-                        {entry.singer_name}
-                        {entry.times_sung > 0 && (
-                          <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
-                    </div>
-                  </DropdownMenuItem>
-                ))
+                  )}
+                  {waitlistEntries.map((entry, index) => (
+                    <DropdownMenuItem 
+                      key={entry.id} 
+                      className={`flex items-center gap-2 py-2 ${onJumpToEntry ? 'cursor-pointer hover:bg-primary/10' : 'cursor-default'}`}
+                      onClick={() => onJumpToEntry && handleEntryClick(entry)}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">
+                          {entry.singer_name}
+                          {entry.times_sung > 0 && (
+                            <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
+                      </div>
+                      {onJumpToEntry && (
+                        <SkipForward className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -844,6 +895,56 @@ export function TVModeView({
       >
         {t('tv.exitHint')}
       </motion.p>
+
+      {/* Jump to Entry Confirmation Dialog */}
+      <AlertDialog open={jumpDialogOpen} onOpenChange={setJumpDialogOpen}>
+        <AlertDialogContent className="z-[200]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-primary" />
+              Pular para cantor
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div>
+                {selectedJumpEntry && (
+                  <div className="mt-2 p-3 rounded-lg bg-muted/50 border border-border">
+                    <p className="font-medium text-foreground">{selectedJumpEntry.singer_name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedJumpEntry.song_title}</p>
+                  </div>
+                )}
+                <p className="mt-3">O que deseja fazer?</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel disabled={isJumping}>Cancelar</AlertDialogCancel>
+            <Button
+              onClick={() => handleJumpConfirm('next')}
+              disabled={isJumping}
+              variant="outline"
+            >
+              {isJumping ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <SkipForward className="h-4 w-4 mr-2" />
+              )}
+              Será o próximo
+            </Button>
+            <Button
+              onClick={() => handleJumpConfirm('now')}
+              disabled={isJumping}
+              className="bg-primary"
+            >
+              {isJumping ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Play className="h-4 w-4 mr-2" />
+              )}
+              Cantar agora
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </motion.div>
   );
