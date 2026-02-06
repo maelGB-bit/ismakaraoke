@@ -755,6 +755,7 @@ export function TVModeView({
             <DropdownMenuContent 
               align="center" 
               className="w-72 max-h-80 overflow-y-auto bg-popover border border-border shadow-lg z-[100]"
+              container={containerRef.current}
             >
               <DropdownMenuLabel className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-primary" />
