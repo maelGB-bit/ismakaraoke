@@ -555,14 +555,62 @@ function HostContent() {
   };
 
   // Handle jumping to a specific entry in the queue
-  const handleJumpToEntry = async (entry: { id: string; singer_name: string; song_title: string; youtube_url: string; allow_voting?: boolean }, action: 'now' | 'next') => {
-    if (action === 'now') {
+  const handleJumpToEntry = async (entry: { id: string; singer_name: string; song_title: string; youtube_url: string; allow_voting?: boolean }, action: 'now_end' | 'now_return' | 'next') => {
+    if (action === 'now_end') {
       // Encerrar apresentação atual e iniciar o selecionado imediatamente
       await selectNextSinger(entry);
       toast({ 
         title: 'Cantor selecionado', 
-        description: `${entry.singer_name} está cantando agora!` 
+        description: `${entry.singer_name} está cantando agora! (apresentação anterior encerrada)` 
       });
+    } else if (action === 'now_return') {
+      // Devolver apresentação atual à fila como próximo e iniciar o selecionado
+      try {
+        // If there's a current performance, return it to the waitlist as next
+        if (performance?.id) {
+          // Get current minimum priority to insert the current singer at the top
+          const { data: minEntry } = await supabase
+            .from('waitlist')
+            .select('priority')
+            .eq('karaoke_instance_id', instanceId)
+            .eq('status', 'waiting')
+            .order('priority', { ascending: true })
+            .limit(1);
+          
+          const minPriority = minEntry?.[0]?.priority ?? 0;
+          
+          // Create a new waitlist entry for the current performance
+          await supabase
+            .from('waitlist')
+            .insert({
+              singer_name: performance.cantor,
+              song_title: performance.musica,
+              youtube_url: performance.youtube_url || '',
+              karaoke_instance_id: instanceId,
+              status: 'waiting',
+              priority: minPriority - 1, // Put at the very top
+              times_sung: 0,
+              allow_voting: performance.allow_voting ?? true
+            });
+          
+          // Delete the current performance without marking as done
+          await supabase
+            .from('performances')
+            .delete()
+            .eq('id', performance.id);
+        }
+        
+        // Now start the selected singer
+        await selectNextSinger(entry);
+        
+        toast({ 
+          title: 'Cantor selecionado', 
+          description: `${entry.singer_name} está cantando agora! (anterior volta à fila)` 
+        });
+      } catch (error) {
+        console.error('Error returning current to queue:', error);
+        toast({ title: t('host.error'), description: 'Não foi possível devolver à fila', variant: 'destructive' });
+      }
     } else {
       // Mover para ser o próximo (priority mais baixa)
       try {
