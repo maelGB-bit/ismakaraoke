@@ -15,6 +15,7 @@ import { ConfettiEffect } from '@/components/ConfettiEffect';
 import { HostWaitlistPanel } from '@/components/HostWaitlistPanel';
 import { HostAuth, useHostAuth } from '@/components/HostAuth';
 import { TVModeView } from '@/components/TVModeView';
+import { HostModeInfoCard } from '@/components/HostModeInfoCard';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { NoInstanceAssigned } from '@/components/NoInstanceAssigned';
 import { SubscriptionExpired } from '@/components/SubscriptionExpired';
@@ -732,6 +733,7 @@ function HostContent() {
             onUpdateSingerName={updateSingerName}
             waitlistEntries={waitlistEntries.filter(e => e.status === 'waiting')}
             onJumpToEntry={handleJumpToEntry}
+            onAddToWaitlist={addToWaitlist}
           />
         )}
       </AnimatePresence>
@@ -999,9 +1001,10 @@ function HostContent() {
               )}
             </div>
             {!isRoundActive && (
-              <div className="glass-card p-4 text-center">
-                <p className="text-muted-foreground text-sm">{performance?.status === 'encerrada' ? t('host.roundEnded') : t('host.waitingStart')}</p>
-              </div>
+              <HostModeInfoCard 
+                onEnterTVMode={handleEnterTVMode} 
+                isLoading={isCreating}
+              />
             )}
           </div>
         </div>

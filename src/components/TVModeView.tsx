@@ -4,6 +4,7 @@ import { Mic2, Music, User, Star, X, Users, Play, TrendingUp, TrendingDown, Maxi
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InstructionVideoButtons } from '@/components/InstructionVideoButtons';
+import { TVAddSingerDialog } from '@/components/TVAddSingerDialog';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,6 +63,8 @@ interface TVModeViewProps {
   // Jump to specific entry in the queue
   // action: 'next' = move to top of queue, 'now_end' = start now and end current, 'now_return' = start now and return current to queue
   onJumpToEntry?: (entry: WaitlistEntry, action: 'now_end' | 'now_return' | 'next') => Promise<void>;
+  // Add singer to waitlist (for TV mode enrollment)
+  onAddToWaitlist?: (singerName: string, youtubeUrl: string, songTitle: string, registeredBy?: string, insertFirst?: boolean) => Promise<boolean>;
 }
 
 function extractVideoId(url: string): string | null {
@@ -109,6 +112,7 @@ export function TVModeView({
   onUpdateSingerName,
   waitlistEntries = [],
   onJumpToEntry,
+  onAddToWaitlist,
 }: TVModeViewProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -829,6 +833,17 @@ export function TVModeView({
             </>
           )}
 
+
+          {/* Add Singer Button */}
+          {onAddToWaitlist && (
+            <>
+              <span className="text-xs">•</span>
+              <TVAddSingerDialog 
+                onAddToWaitlist={onAddToWaitlist}
+                container={containerRef.current}
+              />
+            </>
+          )}
 
           {/* Registration Toggle */}
           <button
