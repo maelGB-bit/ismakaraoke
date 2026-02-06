@@ -899,7 +899,7 @@ export function TVModeView({
 
       {/* Jump to Entry Confirmation Dialog */}
       <AlertDialog open={jumpDialogOpen} onOpenChange={setJumpDialogOpen}>
-        <AlertDialogContent className="z-[200]">
+        <AlertDialogContent className="z-[200]" container={containerRef.current}>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <UserPlus className="h-5 w-5 text-primary" />
