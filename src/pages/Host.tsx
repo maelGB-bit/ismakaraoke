@@ -859,6 +859,30 @@ function HostContent() {
               </h1>
             </div>
             <p className="text-muted-foreground text-sm">{t('host.subtitle')} • {instance?.instance_code}</p>
+            
+            {/* Mode Info Banner */}
+            <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center items-stretch max-w-3xl mx-auto">
+              <div className="flex-1 px-4 py-2 rounded-lg bg-card/50 border border-border/50 text-left">
+                <div className="flex items-center gap-2 mb-1">
+                  <Mic2 className="w-4 h-4 text-secondary" />
+                  <span className="text-xs font-semibold text-secondary">Modo Host</span>
+                  <span className="text-[10px] text-muted-foreground">(gerenciamento)</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-tight">
+                  Inscrever cantores • Editar fila • QR Codes • Exportar dados
+                </p>
+              </div>
+              <div className="flex-1 px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-left">
+                <div className="flex items-center gap-2 mb-1">
+                  <Monitor className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-semibold text-primary">Modo TV</span>
+                  <span className="text-[10px] text-muted-foreground">(apresentação)</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-tight">
+                  Tela cheia • Transições • Votação ao vivo • Pular cantores
+                </p>
+              </div>
+            </div>
           </div>
         </header>
 
