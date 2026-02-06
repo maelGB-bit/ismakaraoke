@@ -342,15 +342,21 @@ export function useWaitlist(instanceId?: string | null) {
       // For coordinator insertions (insertFirst), use the singerName for fair order calculation
       // This ensures the typed name is considered for times_sung, not the coordinator's name
       const nameForFairOrder = singerName.trim();
-      // Get how many times this singer has sung before (using the typed name for fair order)
-      const { data: previousEntries } = await supabase
-        .from('waitlist')
-        .select('times_sung')
-        .ilike('singer_name', nameForFairOrder)
-        .order('times_sung', { ascending: false })
-        .limit(1);
+      
+      // Get how many times this singer has sung before IN THIS INSTANCE ONLY
+      // Each event is independent - times_sung should NOT carry over between instances
+      let timesSung = 0;
+      if (instanceId) {
+        const { data: previousEntries } = await supabase
+          .from('waitlist')
+          .select('times_sung')
+          .eq('karaoke_instance_id', instanceId)
+          .ilike('singer_name', nameForFairOrder)
+          .order('times_sung', { ascending: false })
+          .limit(1);
 
-      const timesSung = previousEntries?.[0]?.times_sung || 0;
+        timesSung = previousEntries?.[0]?.times_sung || 0;
+      }
 
       // If insertFirst, use negative priority to ensure this entry comes first
       // Negative priorities are sorted before 0+, so each new insertFirst gets a more negative value
@@ -426,12 +432,18 @@ export function useWaitlist(instanceId?: string | null) {
       const { error: updateError } = await supabase.from('waitlist').update({ status: 'done' }).eq('id', entryId);
       if (updateError) throw updateError;
 
-      // Increment times_sung for all waiting entries from this singer
-      const { data: waitingEntries } = await supabase
+      // Increment times_sung for all waiting entries from this singer IN THIS INSTANCE
+      let query = supabase
         .from('waitlist')
         .select('id, times_sung, priority')
         .ilike('singer_name', singerName.trim())
         .eq('status', 'waiting');
+      
+      if (instanceId) {
+        query = query.eq('karaoke_instance_id', instanceId);
+      }
+      
+      const { data: waitingEntries } = await query;
 
       if (waitingEntries && waitingEntries.length > 0) {
         for (const entry of waitingEntries) {
