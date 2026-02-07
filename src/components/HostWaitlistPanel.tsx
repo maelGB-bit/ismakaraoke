@@ -13,7 +13,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { WaitlistEntry } from '@/hooks/useWaitlist';
+import { WaitlistEntry, QueueDisplayInfo } from '@/hooks/useWaitlist';
+import { QueueEntryIndicators } from '@/components/QueueEntryIndicators';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 interface HostWaitlistPanelProps {
@@ -27,6 +28,7 @@ interface HostWaitlistPanelProps {
   onUpdateSingerName?: (entryId: string, newName: string) => Promise<boolean>;
   onRecoverFromHistory?: (entry: WaitlistEntry, action: 'now_end' | 'now_return' | 'next') => Promise<void>;
   currentSinger?: string | null;
+  getDisplayInfo?: (entry: WaitlistEntry) => QueueDisplayInfo;
 }
 
 export function HostWaitlistPanel({ 
@@ -39,7 +41,8 @@ export function HostWaitlistPanel({
   onMovePriority,
   onUpdateSingerName,
   onRecoverFromHistory,
-  currentSinger 
+  currentSinger,
+  getDisplayInfo,
 }: HostWaitlistPanelProps) {
   const { t } = useLanguage();
   const nextInQueue = entries.length > 0 ? entries[0] : null;
@@ -59,7 +62,6 @@ export function HostWaitlistPanel({
 
   const handleSaveEdit = async () => {
     if (!editingId || !editingName.trim() || !onUpdateSingerName) return;
-    
     const success = await onUpdateSingerName(editingId, editingName);
     if (success) {
       setEditingId(null);
@@ -73,11 +75,8 @@ export function HostWaitlistPanel({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSaveEdit();
-    } else if (e.key === 'Escape') {
-      handleCancelEdit();
-    }
+    if (e.key === 'Enter') handleSaveEdit();
+    else if (e.key === 'Escape') handleCancelEdit();
   };
 
   const handleHistoryClick = (entry: WaitlistEntry) => {
@@ -119,6 +118,11 @@ export function HostWaitlistPanel({
           </div>
           <p className="font-bold text-lg">{nextInQueue.singer_name}</p>
           <p className="text-sm text-muted-foreground truncate">{nextInQueue.song_title}</p>
+          {getDisplayInfo && (
+            <div className="mt-1">
+              <QueueEntryIndicators info={getDisplayInfo(nextInQueue)} />
+            </div>
+          )}
         </motion.button>
       )}
 
@@ -140,117 +144,76 @@ export function HostWaitlistPanel({
             <ScrollArea className="h-[250px]">
               <div className="space-y-2 pr-2">
                 <AnimatePresence>
-                  {entries.map((entry, index) => (
-                    <motion.div
-                      key={entry.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors group"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold shrink-0">
-                        {index + 1}
-                      </div>
+                  {entries.map((entry, index) => {
+                    const info = getDisplayInfo?.(entry);
+                    return (
+                      <motion.div
+                        key={entry.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors group"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold shrink-0">
+                          {index + 1}
+                        </div>
 
-                      <div className="flex-1 min-w-0 max-w-[140px]">
-                        {editingId === entry.id ? (
-                          <div className="flex items-center gap-1">
-                            <Input
-                              value={editingName}
-                              onChange={(e) => setEditingName(e.target.value)}
-                              onKeyDown={handleKeyDown}
-                              className="h-6 text-sm py-0 px-1"
-                              autoFocus
-                            />
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-5 w-5 text-green-500 hover:text-green-600"
-                              onClick={handleSaveEdit}
-                            >
-                              <Check className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-5 w-5 text-muted-foreground"
-                              onClick={handleCancelEdit}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <>
-                            <p className="font-medium text-sm truncate flex items-center gap-1">
-                              {entry.singer_name}
-                              {entry.times_sung > 0 && (
-                                <span className="text-xs text-muted-foreground">({entry.times_sung}x)</span>
-                              )}
-                              {entry.allow_voting === false && (
-                                <span title="Sem votação">
-                                  <VolumeX className="h-3 w-3 text-orange-500 flex-shrink-0" />
-                                </span>
-                              )}
-                            </p>
-                            <p className="text-xs text-muted-foreground line-clamp-2 break-words">{entry.song_title}</p>
-                          </>
-                        )}
-                      </div>
+                        <div className="flex-1 min-w-0 max-w-[140px]">
+                          {editingId === entry.id ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                value={editingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                className="h-6 text-sm py-0 px-1"
+                                autoFocus
+                              />
+                              <Button size="icon" variant="ghost" className="h-5 w-5 text-green-500 hover:text-green-600" onClick={handleSaveEdit}>
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground" onClick={handleCancelEdit}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="font-medium text-sm truncate flex items-center gap-1">
+                                {entry.singer_name}
+                                {entry.allow_voting === false && (
+                                  <span title="Sem votação">
+                                    <VolumeX className="h-3 w-3 text-orange-500 flex-shrink-0" />
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-xs text-muted-foreground line-clamp-2 break-words">{entry.song_title}</p>
+                              {info && <QueueEntryIndicators info={info} compact />}
+                            </>
+                          )}
+                        </div>
 
-                      <div className="flex items-center gap-1 shrink-0">
-                        {onUpdateSingerName && editingId !== entry.id && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6"
-                            onClick={() => handleStartEdit(entry)}
-                            title={t('waitlist.editName')}
-                          >
-                            <Pencil className="h-3 w-3 text-muted-foreground" />
+                        <div className="flex items-center gap-1 shrink-0">
+                          {onUpdateSingerName && editingId !== entry.id && (
+                            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleStartEdit(entry)} title={t('waitlist.editName')}>
+                              <Pencil className="h-3 w-3 text-muted-foreground" />
+                            </Button>
+                          )}
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMovePriority(entry.id, 'up')} disabled={index === 0} title={t('waitlist.moveUp')}>
+                            <ChevronUp className="h-4 w-4" />
                           </Button>
-                        )}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6"
-                          onClick={() => onMovePriority(entry.id, 'up')}
-                          disabled={index === 0}
-                          title={t('waitlist.moveUp')}
-                        >
-                          <ChevronUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6"
-                          onClick={() => onMovePriority(entry.id, 'down')}
-                          disabled={index === entries.length - 1}
-                          title={t('waitlist.moveDown')}
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6 text-primary hover:text-primary"
-                          onClick={() => onSelectEntry(entry)}
-                          title={t('waitlist.select')}
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6 text-destructive hover:text-destructive"
-                          onClick={() => onRemoveEntry(entry.id)}
-                          title={t('waitlist.remove')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMovePriority(entry.id, 'down')} disabled={index === entries.length - 1} title={t('waitlist.moveDown')}>
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-6 w-6 text-primary hover:text-primary" onClick={() => onSelectEntry(entry)} title={t('waitlist.select')}>
+                            <Play className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => onRemoveEntry(entry.id)} title={t('waitlist.remove')}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </AnimatePresence>
               </div>
             </ScrollArea>
@@ -273,27 +236,31 @@ export function HostWaitlistPanel({
                 </div>
               )}
               <div className="space-y-2 pr-2">
-                {historyEntries.map((entry, index) => (
-                  <button
-                    key={entry.id}
-                    onClick={() => handleHistoryClick(entry)}
-                    disabled={!onRecoverFromHistory}
-                    className={`w-full flex items-center gap-2 p-2 rounded-lg bg-background/40 text-left transition-colors ${
-                      onRecoverFromHistory ? 'hover:bg-background/60 cursor-pointer group' : 'cursor-default'
-                    }`}
-                  >
-                    <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-xs font-bold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{entry.singer_name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
-                    </div>
-                    {onRecoverFromHistory && (
-                      <RotateCcw className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                    )}
-                  </button>
-                ))}
+                {historyEntries.map((entry, index) => {
+                  const info = getDisplayInfo?.(entry);
+                  return (
+                    <button
+                      key={entry.id}
+                      onClick={() => handleHistoryClick(entry)}
+                      disabled={!onRecoverFromHistory}
+                      className={`w-full flex items-center gap-2 p-2 rounded-lg bg-background/40 text-left transition-colors ${
+                        onRecoverFromHistory ? 'hover:bg-background/60 cursor-pointer group' : 'cursor-default'
+                      }`}
+                    >
+                      <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{entry.singer_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
+                        {info && <QueueEntryIndicators info={info} compact />}
+                      </div>
+                      {onRecoverFromHistory && (
+                        <RotateCcw className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </ScrollArea>
           )}
@@ -321,62 +288,27 @@ export function HostWaitlistPanel({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex flex-col gap-4 mt-4">
-            {/* Option 1: Set as next */}
-            <Button
-              onClick={() => handleRecoverConfirm('next')}
-              disabled={isRecovering}
-              variant="outline"
-              size="lg"
-              className="w-full h-12 text-base"
-            >
-              {isRecovering ? (
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              ) : (
-                <SkipForward className="h-5 w-5 mr-2" />
-              )}
+            <Button onClick={() => handleRecoverConfirm('next')} disabled={isRecovering} variant="outline" size="lg" className="w-full h-12 text-base">
+              {isRecovering ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <SkipForward className="h-5 w-5 mr-2" />}
               Será o próximo
             </Button>
-            
-            {/* Divider */}
             <div className="w-full flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex-1 h-px bg-border" />
               <span>ou cantar agora</span>
               <div className="flex-1 h-px bg-border" />
             </div>
-            
-            {/* Option 2: Sing now options */}
             <div className="w-full grid grid-cols-2 gap-3">
-              <Button
-                onClick={() => handleRecoverConfirm('now_return')}
-                disabled={isRecovering}
-                variant="secondary"
-                size="lg"
-                className="flex flex-col items-center gap-1 h-auto py-4"
-              >
-                {isRecovering ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : (
-                  <Play className="h-6 w-6" />
-                )}
+              <Button onClick={() => handleRecoverConfirm('now_return')} disabled={isRecovering} variant="secondary" size="lg" className="flex flex-col items-center gap-1 h-auto py-4">
+                {isRecovering ? <Loader2 className="h-6 w-6 animate-spin" /> : <Play className="h-6 w-6" />}
                 <span className="text-sm font-medium">Cantar agora</span>
                 <span className="text-xs text-muted-foreground">atual volta à fila</span>
               </Button>
-              <Button
-                onClick={() => handleRecoverConfirm('now_end')}
-                disabled={isRecovering}
-                size="lg"
-                className="flex flex-col items-center gap-1 h-auto py-4"
-              >
-                {isRecovering ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : (
-                  <Play className="h-6 w-6" />
-                )}
+              <Button onClick={() => handleRecoverConfirm('now_end')} disabled={isRecovering} size="lg" className="flex flex-col items-center gap-1 h-auto py-4">
+                {isRecovering ? <Loader2 className="h-6 w-6 animate-spin" /> : <Play className="h-6 w-6" />}
                 <span className="text-sm font-medium">Cantar agora</span>
                 <span className="text-xs text-muted-foreground/70">encerrar atual</span>
               </Button>
             </div>
-            
             <AlertDialogCancel disabled={isRecovering} className="w-full h-11 text-base mt-2">Cancelar</AlertDialogCancel>
           </div>
         </AlertDialogContent>

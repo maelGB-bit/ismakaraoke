@@ -10,7 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { decodeHtmlEntities } from '@/lib/htmlUtils';
 import type { Performance } from '@/types/karaoke';
-import type { WaitlistEntry } from '@/hooks/useWaitlist';
+import type { WaitlistEntry, QueueDisplayInfo } from '@/hooks/useWaitlist';
+import { QueueEntryIndicators } from '@/components/QueueEntryIndicators';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -67,6 +68,7 @@ interface TVModeViewProps {
   onJumpToEntry?: (entry: WaitlistEntry, action: 'now_end' | 'now_return' | 'next') => Promise<void>;
   // Add singer to waitlist (for TV mode enrollment)
   onAddToWaitlist?: (singerName: string, youtubeUrl: string, songTitle: string, registeredBy?: string, insertFirst?: boolean) => Promise<boolean>;
+  getDisplayInfo?: (entry: WaitlistEntry) => QueueDisplayInfo;
 }
 
 function extractVideoId(url: string): string | null {
@@ -116,6 +118,7 @@ export function TVModeView({
   historyEntries = [],
   onJumpToEntry,
   onAddToWaitlist,
+  getDisplayInfo,
 }: TVModeViewProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -791,7 +794,9 @@ export function TVModeView({
                             Clique para pular para um cantor
                           </div>
                         )}
-                        {waitlistEntries.map((entry, index) => (
+                        {waitlistEntries.map((entry, index) => {
+                          const info = getDisplayInfo?.(entry);
+                          return (
                           <button 
                             key={entry.id} 
                             className={`w-full flex items-center gap-2 py-2 px-2 rounded text-left ${onJumpToEntry ? 'cursor-pointer hover:bg-accent/50' : 'cursor-default'}`}
@@ -803,17 +808,16 @@ export function TVModeView({
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">
                                 {entry.singer_name}
-                                {entry.times_sung > 0 && (
-                                  <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
-                                )}
                               </p>
                               <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
+                              {info && <QueueEntryIndicators info={info} compact />}
                             </div>
                             {onJumpToEntry && (
                               <SkipForward className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
                             )}
                           </button>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </ScrollArea>
@@ -833,7 +837,9 @@ export function TVModeView({
                             Clique para recuperar uma música
                           </div>
                         )}
-                        {historyEntries.map((entry) => (
+                        {historyEntries.map((entry) => {
+                          const info = getDisplayInfo?.(entry);
+                          return (
                           <button 
                             key={entry.id} 
                             className={`w-full flex items-center gap-2 py-2 px-2 rounded text-left ${onJumpToEntry ? 'cursor-pointer hover:bg-accent/50 hover:opacity-100' : 'cursor-default'} opacity-70`}
@@ -845,17 +851,16 @@ export function TVModeView({
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">
                                 {entry.singer_name}
-                                {entry.times_sung > 1 && (
-                                  <span className="ml-1 text-xs text-muted-foreground">({entry.times_sung}x)</span>
-                                )}
                               </p>
                               <p className="text-xs text-muted-foreground truncate">{entry.song_title}</p>
+                              {info && <QueueEntryIndicators info={info} compact />}
                             </div>
                             {onJumpToEntry && (
                               <Play className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />
                             )}
                           </button>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </ScrollArea>
