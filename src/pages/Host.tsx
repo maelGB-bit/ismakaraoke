@@ -102,6 +102,7 @@ function HostContent() {
     getNextInQueue,
     addToWaitlist,
     getUniqueSingerNames,
+    getDisplayInfo,
   } = useWaitlist(instanceId);
   
   // Memoize the function to avoid re-renders
@@ -741,6 +742,7 @@ function HostContent() {
             historyEntries={historyEntries}
             onJumpToEntry={handleJumpToEntry}
             onAddToWaitlist={addToWaitlist}
+            getDisplayInfo={getDisplayInfo}
           />
         )}
       </AnimatePresence>
@@ -917,6 +919,7 @@ function HostContent() {
               onUpdateSingerName={updateSingerName}
               onRecoverFromHistory={handleJumpToEntry}
               currentSinger={isRoundActive ? performance?.cantor : null}
+              getDisplayInfo={getDisplayInfo}
             />
           </div>
           
