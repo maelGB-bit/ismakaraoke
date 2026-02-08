@@ -160,6 +160,28 @@ export function ResetEventDialog({
         .eq('karaoke_instance_id', instanceId)
         .eq('status', 'ativa');
 
+      // Reset session boundary - performances after this timestamp count for the new session
+      // This ensures the fair queue algorithm starts fresh after each reset
+      const { data: existingSettings } = await supabase
+        .from('event_settings')
+        .select('id')
+        .eq('karaoke_instance_id', instanceId)
+        .maybeSingle();
+
+      if (existingSettings) {
+        await supabase
+          .from('event_settings')
+          .update({ session_started_at: new Date().toISOString() })
+          .eq('id', existingSettings.id);
+      } else {
+        await supabase
+          .from('event_settings')
+          .insert({
+            karaoke_instance_id: instanceId,
+            session_started_at: new Date().toISOString(),
+          });
+      }
+
       toast({ title: t('host.eventReset'), description: t('host.allDataDeleted') });
       onResetComplete();
       onOpenChange(false);

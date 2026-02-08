@@ -50,15 +50,33 @@ export function useWaitlist(instanceId?: string | null) {
   const lastSingerIdRef = useRef<string | null>(null);
 
   // ─── Fetch singer history from performances table ───
+  // Filtra apenas performances da sessão atual (após session_started_at)
   const fetchSingerHistories = useCallback(async (): Promise<Map<string, SingerStats>> => {
     const histories = new Map<string, SingerStats>();
     if (!instanceId) return histories;
 
-    const { data: performances } = await supabase
+    // Buscar session_started_at para delimitar a sessão atual
+    const { data: settingsData } = await supabase
+      .from('event_settings')
+      .select('session_started_at')
+      .eq('karaoke_instance_id', instanceId)
+      .maybeSingle();
+
+    const sessionStartedAt = settingsData?.session_started_at || null;
+
+    // Buscar performances apenas da sessão atual
+    let query = supabase
       .from('performances')
       .select('cantor, created_at')
       .eq('karaoke_instance_id', instanceId)
       .eq('status', 'encerrada');
+
+    // Filtrar por sessão: apenas performances criadas após o início da sessão
+    if (sessionStartedAt) {
+      query = query.gte('created_at', sessionStartedAt);
+    }
+
+    const { data: performances } = await query;
 
     if (!performances) return histories;
 
@@ -291,18 +309,31 @@ export function useWaitlist(instanceId?: string | null) {
         }
       }
 
-      // Buscar times_sung para esta instância
+      // Buscar times_sung baseado no histórico da sessão atual (performances)
       let timesSung = 0;
       if (instanceId) {
-        const { data: previousEntries } = await supabase
-          .from('waitlist')
-          .select('times_sung')
+        // Buscar session_started_at
+        const { data: settingsData } = await supabase
+          .from('event_settings')
+          .select('session_started_at')
           .eq('karaoke_instance_id', instanceId)
-          .ilike('singer_name', singerName.trim())
-          .order('times_sung', { ascending: false })
-          .limit(1);
+          .maybeSingle();
 
-        timesSung = previousEntries?.[0]?.times_sung || 0;
+        const sessionStartedAt = settingsData?.session_started_at || null;
+
+        let perfQuery = supabase
+          .from('performances')
+          .select('id')
+          .eq('karaoke_instance_id', instanceId)
+          .eq('status', 'encerrada')
+          .ilike('cantor', singerName.trim());
+
+        if (sessionStartedAt) {
+          perfQuery = perfQuery.gte('created_at', sessionStartedAt);
+        }
+
+        const { data: perfCount } = await perfQuery;
+        timesSung = perfCount?.length || 0;
       }
 
       // Se insertFirst, usar prioridade negativa para override do coordenador

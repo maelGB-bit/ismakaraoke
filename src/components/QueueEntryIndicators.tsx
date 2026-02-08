@@ -41,7 +41,7 @@ export function QueueEntryIndicators({ info, compact = false }: QueueEntryIndica
             {songsSung}x
           </span>
         )}
-        {waitMinutes >= 5 && (
+        {waitMinutes >= 1 && (
           <span
             title={`Espera ${formatWaitTime(waitMinutes)}`}
             className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground"
@@ -72,8 +72,8 @@ export function QueueEntryIndicators({ info, compact = false }: QueueEntryIndica
         </span>
       )}
 
-      {/* Tempo de espera (mostra a partir de 5 minutos) */}
-      {waitMinutes >= 5 && (
+      {/* Tempo de espera (mostra a partir de 1 minuto) */}
+      {waitMinutes >= 1 && (
         <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground bg-muted/40 rounded-full px-1.5 py-0.5">
           <Clock className="w-2.5 h-2.5" />
           espera {formatWaitTime(waitMinutes)}
