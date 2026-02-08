@@ -201,6 +201,7 @@ export type Database = {
           id: string
           karaoke_instance_id: string | null
           registration_open: boolean
+          session_started_at: string
           updated_at: string
           updated_by: string | null
         }
@@ -208,6 +209,7 @@ export type Database = {
           id?: string
           karaoke_instance_id?: string | null
           registration_open?: boolean
+          session_started_at?: string
           updated_at?: string
           updated_by?: string | null
         }
@@ -215,6 +217,7 @@ export type Database = {
           id?: string
           karaoke_instance_id?: string | null
           registration_open?: boolean
+          session_started_at?: string
           updated_at?: string
           updated_by?: string | null
         }
