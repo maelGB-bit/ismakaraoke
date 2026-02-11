@@ -64,19 +64,27 @@ export function useWaitlist(instanceId?: string | null) {
 
     const sessionStartedAt = settingsData?.session_started_at || null;
 
-    // Buscar performances apenas da sessão atual
+    // Buscar performances encerradas da sessão atual
     let query = supabase
       .from('performances')
       .select('cantor, created_at')
       .eq('karaoke_instance_id', instanceId)
       .eq('status', 'encerrada');
 
-    // Filtrar por sessão: apenas performances criadas após o início da sessão
     if (sessionStartedAt) {
       query = query.gte('created_at', sessionStartedAt);
     }
 
     const { data: performances } = await query;
+
+    // Buscar performance ativa (cantando agora) para lastSingerId
+    const { data: activePerf } = await supabase
+      .from('performances')
+      .select('cantor, created_at')
+      .eq('karaoke_instance_id', instanceId)
+      .eq('status', 'ativa')
+      .order('created_at', { ascending: false })
+      .limit(1);
 
     if (!performances) return histories;
 
@@ -95,52 +103,44 @@ export function useWaitlist(instanceId?: string | null) {
       }
     }
 
-    // Determinar automaticamente o lastSingerId a partir do histórico mais recente
-    let mostRecent: { key: string; date: Date } | null = null;
-    for (const [key, stats] of histories) {
-      if (stats.lastSungAt && (!mostRecent || stats.lastSungAt > mostRecent.date)) {
-        mostRecent = { key, date: stats.lastSungAt };
+    // Priorizar performance ativa como lastSingerId (quem está cantando agora)
+    if (activePerf && activePerf.length > 0) {
+      lastSingerIdRef.current = normalizeSingerName(activePerf[0].cantor);
+    } else {
+      // Fallback: último cantor que terminou de cantar
+      let mostRecent: { key: string; date: Date } | null = null;
+      for (const [key, stats] of histories) {
+        if (stats.lastSungAt && (!mostRecent || stats.lastSungAt > mostRecent.date)) {
+          mostRecent = { key, date: stats.lastSungAt };
+        }
       }
-    }
-    if (mostRecent) {
-      lastSingerIdRef.current = mostRecent.key;
+      if (mostRecent) {
+        lastSingerIdRef.current = mostRecent.key;
+      }
     }
 
     return histories;
   }, [instanceId]);
 
   // ─── Apply PRO fair order ───
+  // SEMPRE aplica o algoritmo justo para manter a fila atualizada em tempo real
   const applyProFairOrder = useCallback(async (
     waitingEntries: WaitlistEntry[],
-    forceRebalance = false,
   ) => {
-    // Se coordenador fez manual ordering e não é rebalance, respeitar
-    const coordinatorEntries = waitingEntries.filter(e => e.priority < 0);
-    const regularEntries = waitingEntries.filter(e => e.priority >= 0);
+    if (waitingEntries.length === 0) return waitingEntries;
 
-    const hasManualOrder =
-      regularEntries.length > 0 &&
-      regularEntries.every(
-        (e, idx) =>
-          e.priority === idx || e.priority === idx + coordinatorEntries.length,
-      );
-
-    if (hasManualOrder && !forceRebalance && coordinatorEntries.length === 0) {
-      return waitingEntries;
-    }
-
-    // Buscar histórico completo de performances
+    // Buscar histórico completo de performances (inclui performance ativa)
     const histories = await fetchSingerHistories();
     setSingerHistories(histories);
 
     // Aplicar algoritmo PRO adaptativo
     const fair = buildProFairOrder(
-      forceRebalance ? waitingEntries : waitingEntries,
+      waitingEntries,
       histories,
       lastSingerIdRef.current,
     );
 
-    // Persistir prioridades sequenciais no banco
+    // Persistir prioridades sequenciais no banco (apenas se mudou)
     const needsUpdate = fair.some((e, idx) => e.priority !== idx);
     if (needsUpdate) {
       await Promise.all(
@@ -154,7 +154,7 @@ export function useWaitlist(instanceId?: string | null) {
   }, [fetchSingerHistories]);
 
   // ─── Fetch waiting entries ───
-  const fetchWaitingEntries = useCallback(async (forceRebalance = false) => {
+  const fetchWaitingEntries = useCallback(async () => {
     if (!instanceId) {
       console.log('[useWaitlist] No instanceId provided, skipping fetch');
       setEntries([]);
@@ -175,7 +175,7 @@ export function useWaitlist(instanceId?: string | null) {
       if (error) throw error;
       const waiting = (data as WaitlistEntry[]) || [];
       console.log('[useWaitlist] Fetched', waiting.length, 'entries for instance', instanceId);
-      const fair = await applyProFairOrder(waiting, forceRebalance);
+      const fair = await applyProFairOrder(waiting);
       setEntries(fair);
     } catch (error) {
       console.error('Error fetching waitlist:', error);
@@ -373,12 +373,9 @@ export function useWaitlist(instanceId?: string | null) {
 
       if (!insertFirst) {
         localStorage.setItem(RATE_LIMIT_KEY, Date.now().toString());
-        // Rebalancear com algoritmo PRO para inscrições regulares
-        await fetchWaitingEntries(true);
-      } else {
-        // Apenas refetch sem rebalancear para overrides do coordenador
-        await fetchWaitingEntries(false);
       }
+      // Sempre rebalancear com algoritmo PRO
+      await fetchWaitingEntries();
 
       toast({ title: t('signup.signupConfirmed'), description: t('signup.addedToQueue') });
       return true;
@@ -440,7 +437,7 @@ export function useWaitlist(instanceId?: string | null) {
       }
 
       // Forçar rebalance com algoritmo PRO após alguém cantar
-      await fetchWaitingEntries(true);
+      await fetchWaitingEntries();
       await fetchHistory();
     } catch (error) {
       console.error('Error marking as done:', error);
