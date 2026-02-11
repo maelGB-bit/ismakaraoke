@@ -743,6 +743,7 @@ function HostContent() {
             onJumpToEntry={handleJumpToEntry}
             onAddToWaitlist={addToWaitlist}
             getDisplayInfo={getDisplayInfo}
+            instanceCode={instance?.instance_code}
           />
         )}
       </AnimatePresence>

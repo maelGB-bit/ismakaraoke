@@ -12,6 +12,7 @@ import { decodeHtmlEntities } from '@/lib/htmlUtils';
 import type { Performance } from '@/types/karaoke';
 import type { WaitlistEntry, QueueDisplayInfo } from '@/hooks/useWaitlist';
 import { QueueEntryIndicators } from '@/components/QueueEntryIndicators';
+import { QRCodeSVG } from 'qrcode.react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -69,6 +70,7 @@ interface TVModeViewProps {
   // Add singer to waitlist (for TV mode enrollment)
   onAddToWaitlist?: (singerName: string, youtubeUrl: string, songTitle: string, registeredBy?: string, insertFirst?: boolean) => Promise<boolean>;
   getDisplayInfo?: (entry: WaitlistEntry) => QueueDisplayInfo;
+  instanceCode?: string;
 }
 
 function extractVideoId(url: string): string | null {
@@ -119,6 +121,7 @@ export function TVModeView({
   onJumpToEntry,
   onAddToWaitlist,
   getDisplayInfo,
+  instanceCode,
 }: TVModeViewProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -945,7 +948,7 @@ export function TVModeView({
 
       {/* Video Area - Full Space */}
       <div className="flex-1 p-2">
-        <div className="w-full h-full rounded-lg overflow-hidden neon-border-cyan border">
+        <div className="w-full h-full rounded-lg overflow-hidden neon-border-cyan border relative">
           {videoId ? (
             <iframe
               key={`${videoId}-${shouldAutoplay}`}
@@ -960,6 +963,24 @@ export function TVModeView({
                 <Mic2 className="w-24 h-24 mx-auto mb-4 animate-pulse" />
                 <p className="text-2xl">{t('tv.waitingPerformance')}</p>
               </div>
+            </div>
+          )}
+
+          {/* QR Code Overlay */}
+          {instanceCode && (
+            <div className="absolute top-3 right-3 z-10 bg-white/90 backdrop-blur-sm rounded-xl p-2.5 shadow-lg flex flex-col items-center gap-1.5" style={{ minWidth: '120px' }}>
+              <QRCodeSVG
+                value={`${window.location.origin}/app/vote/${instanceCode}`}
+                size={80}
+                level="L"
+                includeMargin={false}
+              />
+              <p className="text-[10px] font-bold text-gray-900 uppercase tracking-wide text-center leading-tight">
+                Cante e Vote
+              </p>
+              <p className="text-[8px] text-gray-600 text-center leading-tight break-all max-w-[100px]">
+                {window.location.origin}/app/vote/{instanceCode}
+              </p>
             </div>
           )}
         </div>
