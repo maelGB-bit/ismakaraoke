@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mic, Search, Loader2, Play, ArrowLeft, Music, UserPlus, Link, AlertCircle, ExternalLink, Lock } from 'lucide-react';
@@ -11,6 +11,7 @@ import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { ParticipantRegistrationModal } from '@/components/ParticipantRegistrationModal';
 import { ConsentTermsModal } from '@/components/ConsentTermsModal';
 import { VotingPreferenceToggle } from '@/components/VotingPreferenceToggle';
+import { SingerNameAutocomplete } from '@/components/SingerNameAutocomplete';
 import { LeaveButton } from '@/components/LeaveButton';
 import { YouTubePreview } from '@/components/YouTubePreview';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -59,7 +60,7 @@ export default function Inscricao() {
   const deviceId = useDeviceId();
   const { participant, loading: participantLoading, registerParticipant } = useParticipant(instanceId, deviceId);
   
-  const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
+  const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading, getUniqueSingerNames } = useWaitlist(instanceId);
   const { performance } = useActivePerformance(instanceId);
   const { profile, loading: profileLoading, saveProfile, updateVotingPreference, acceptTerms } = useUserProfile();
   const { isRegistrationOpen, loading: settingsLoading } = useEventSettings(instanceId);
@@ -80,6 +81,11 @@ export default function Inscricao() {
   const [searchError, setSearchError] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  // Memoize singer suggestions fetcher for autocomplete
+  const fetchSingerSuggestions = useCallback(() => {
+    return getUniqueSingerNames();
+  }, [getUniqueSingerNames]);
 
   // Set singer name from participant when loaded
   useEffect(() => {
@@ -414,14 +420,25 @@ export default function Inscricao() {
                 <Mic className="h-4 w-4" />
                 {registerForOther ? t('signup.newSingerName') : t('signup.yourName')}
               </Label>
-            <Input
-              id="singer-name"
-              value={singerName}
-              onChange={(e) => setSingerName(e.target.value)}
-              placeholder={registerForOther ? t('signup.newSingerPlaceholder') : t('signup.namePlaceholder')}
-              className="text-lg"
-              disabled={!registerForOther && !!profile}
-            />
+            {registerForOther ? (
+              <SingerNameAutocomplete
+                id="singer-name"
+                value={singerName}
+                onChange={setSingerName}
+                onFetchSuggestions={fetchSingerSuggestions}
+                placeholder={t('signup.newSingerPlaceholder')}
+                className="text-lg"
+              />
+            ) : (
+              <Input
+                id="singer-name"
+                value={singerName}
+                onChange={(e) => setSingerName(e.target.value)}
+                placeholder={t('signup.namePlaceholder')}
+                className="text-lg"
+                disabled={!!profile}
+              />
+            )}
           </div>
 
           {/* Register for another person */}
