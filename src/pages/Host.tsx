@@ -425,10 +425,12 @@ function HostContent() {
     if (isPlayingInstructionVideo) {
       setIsPlayingInstructionVideo(false);
       setCurrentInstructionVideo(null);
-      // Proceed to next singer automatically
+      // Proceed to next singer if available
       const next = getTrueNextInQueue();
       if (next) {
         await selectNextSinger(next);
+      } else {
+        toast({ title: 'Vídeo encerrado', description: 'Nenhum cantor na fila. Aguardando inscrições.' });
       }
       return;
     }
