@@ -228,21 +228,26 @@ export function buildProFairOrder(
 export function getQueueItemDisplayInfo(
   entry: QueueItem,
   singerHistories: Map<string, SingerStats>,
+  sessionStartedAt?: Date | null,
 ) {
   const singerKey = normalizeName(entry.singer_name);
   const stats = singerHistories.get(singerKey);
   const songsSung = stats?.songsSung ?? 0;
   const isNewSinger = songsSung === 0;
 
-  // Tempo de espera na fila (desde que entrou)
+  // Tempo de espera na fila: usa o mais recente entre created_at e session_started_at
+  // Isso evita que entradas de sessões anteriores mostrem tempo acumulado
+  const entryTime = new Date(entry.created_at).getTime();
+  const sessionTime = sessionStartedAt ? sessionStartedAt.getTime() : 0;
+  const effectiveStart = Math.max(entryTime, sessionTime);
   const waitMinutes = Math.floor(
-    (Date.now() - new Date(entry.created_at).getTime()) / 60_000
+    (Date.now() - effectiveStart) / 60_000
   );
 
   return {
     songsSung,
     isNewSinger,
-    waitMinutes,
+    waitMinutes: Math.max(0, waitMinutes),
     isCoordinatorOverride: entry.priority < 0,
   };
 }

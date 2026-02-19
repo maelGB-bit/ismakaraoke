@@ -40,6 +40,7 @@ export function useWaitlist(instanceId?: string | null) {
   const [loading, setLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [singerHistories, setSingerHistories] = useState<Map<string, SingerStats>>(new Map());
+  const [sessionStartedAt, setSessionStartedAt] = useState<Date | null>(null);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -62,7 +63,8 @@ export function useWaitlist(instanceId?: string | null) {
       .eq('karaoke_instance_id', instanceId)
       .maybeSingle();
 
-    const sessionStartedAt = settingsData?.session_started_at || null;
+    const sessionStartedAtValue = settingsData?.session_started_at || null;
+    setSessionStartedAt(sessionStartedAtValue ? new Date(sessionStartedAtValue) : null);
 
     // Buscar performances encerradas da sessão atual
     let query = supabase
@@ -71,8 +73,8 @@ export function useWaitlist(instanceId?: string | null) {
       .eq('karaoke_instance_id', instanceId)
       .eq('status', 'encerrada');
 
-    if (sessionStartedAt) {
-      query = query.gte('created_at', sessionStartedAt);
+    if (sessionStartedAtValue) {
+      query = query.gte('created_at', sessionStartedAtValue);
     }
 
     const { data: performances } = await query;
@@ -573,9 +575,9 @@ export function useWaitlist(instanceId?: string | null) {
   // ─── getDisplayInfo helper ───
   const getDisplayInfo = useCallback(
     (entry: WaitlistEntry): QueueDisplayInfo => {
-      return getQueueItemDisplayInfo(entry, singerHistories);
+      return getQueueItemDisplayInfo(entry, singerHistories, sessionStartedAt);
     },
-    [singerHistories],
+    [singerHistories, sessionStartedAt],
   );
 
   return {
