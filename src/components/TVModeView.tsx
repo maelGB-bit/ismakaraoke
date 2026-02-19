@@ -273,7 +273,9 @@ export function TVModeView({
   };
 
   const handleSelectNext = async () => {
-    if (isLoadingNext || !nextInQueue) return;
+    // Allow clicking when instruction video is playing (to stop it), even if queue is empty
+    if (isLoadingNext) return;
+    if (!nextInQueue && !isPlayingInstructionVideo) return;
     setIsLoadingNext(true);
     setShouldAutoplay(false); // Load video paused
     await onSelectNext();
@@ -712,7 +714,7 @@ export function TVModeView({
             ) : (
               <button
                 onClick={handleSelectNext}
-                disabled={!nextInQueue || isLoadingNext}
+                disabled={(!nextInQueue && !isPlayingInstructionVideo) || isLoadingNext}
                 className="flex items-center gap-2 hover:bg-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group rounded px-2 py-1"
               >
                 <span className="text-xs uppercase tracking-wider text-muted-foreground">
