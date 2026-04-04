@@ -58,7 +58,7 @@ export default function Inscricao() {
   const deviceId = useDeviceId();
   const { participant, loading: participantLoading, registerParticipant } = useParticipant(instanceId, deviceId);
   
-  const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
+  const { addToWaitlist, updateSong, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
   const { performance } = useActivePerformance(instanceId);
   const { profile, loading: profileLoading, saveProfile, updateVotingPreference, acceptTerms } = useUserProfile();
   const { isRegistrationOpen, loading: settingsLoading } = useEventSettings(instanceId);
@@ -78,6 +78,8 @@ export default function Inscricao() {
   const [searchError, setSearchError] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [queuePosition, setQueuePosition] = useState<number | null>(null);
+  const [showQueuePositionDialog, setShowQueuePositionDialog] = useState(false);
 
   // Set singer name from participant when loaded
   useEffect(() => {
@@ -166,6 +168,33 @@ export default function Inscricao() {
     setShowConfirmDialog(true);
   };
 
+  const YT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+
+  const getSearchCache = (query: string): YouTubeVideo[] | null => {
+    try {
+      const key = `yt_search_${query.toLowerCase().trim()}`;
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const { data, ts } = JSON.parse(raw) as { data: YouTubeVideo[]; ts: number };
+      if (Date.now() - ts > YT_CACHE_TTL_MS) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      return data;
+    } catch {
+      return null;
+    }
+  };
+
+  const setSearchCache = (query: string, data: YouTubeVideo[]) => {
+    try {
+      const key = `yt_search_${query.toLowerCase().trim()}`;
+      localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
+    } catch {
+      // localStorage cheio ou indisponível — ignora silenciosamente
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast({
@@ -180,18 +209,36 @@ export default function Inscricao() {
     setSelectedVideo(null);
     setSearchError('');
 
+    const query = searchQuery.trim();
+
+    // Verifica cache antes de chamar a API
+    const cached = getSearchCache(query);
+    if (cached) {
+      setVideos(cached);
+      setIsSearching(false);
+      if (cached.length === 0) {
+        toast({
+          title: t('signup.noVideoFound'),
+          description: t('signup.tryOtherTerms'),
+        });
+      }
+      return;
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('youtube-search', {
-        body: { query: searchQuery.trim() },
+        body: { query },
       });
 
       if (error) throw new Error(error.message);
-      
+
       setVideos(data.videos || []);
 
       if (data.error) {
         setSearchError(data.error);
         setShowManualInput(true);
+      } else if (data.videos?.length > 0) {
+        setSearchCache(query, data.videos);
       }
 
       if (data.videos?.length === 0 && !data.error) {
@@ -262,7 +309,7 @@ export default function Inscricao() {
 
   const handleConfirmSubmit = async () => {
     if (!selectedVideo) return;
-    
+
     setIsSubmitting(true);
     setShowConfirmDialog(false);
 
@@ -283,9 +330,14 @@ export default function Inscricao() {
       setSearchQuery('');
       setVideos([]);
       setSelectedVideo(null);
-      
-      // Navigate to voting page
-      navigate(instanceCode ? `/app/vote/${instanceCode}` : '/app/vote');
+
+      // Calcula posição na fila (entradas waiting após o insert)
+      const waitingCount = waitlistEntries.filter(e => e.status === 'waiting').length;
+      // A nova entrada já foi inserida; waitlistEntries pode ainda não ter atualizado (realtime)
+      // então soma 1 para garantir que pelo menos posição 1 é exibida
+      const position = waitingCount > 0 ? waitingCount : 1;
+      setQueuePosition(position);
+      setShowQueuePositionDialog(true);
     }
   };
 
@@ -558,6 +610,38 @@ export default function Inscricao() {
             </div>
           )}
 
+          {/* Queue Position Dialog - shown after successful registration */}
+          <AlertDialog open={showQueuePositionDialog} onOpenChange={setShowQueuePositionDialog}>
+            <AlertDialogContent className="max-w-sm text-center">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-2xl">🎤 Você está na fila!</AlertDialogTitle>
+                <AlertDialogDescription asChild>
+                  <div className="space-y-3 pt-2">
+                    <p className="text-4xl font-bold text-primary">#{queuePosition}</p>
+                    <p className="text-base text-muted-foreground">
+                      {queuePosition === 1
+                        ? 'Você é o próximo a cantar!'
+                        : `Você está na posição ${queuePosition} da fila de espera.`}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Acompanhe a fila em tempo real na página de votação.
+                    </p>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="justify-center">
+                <AlertDialogAction
+                  onClick={() => {
+                    setShowQueuePositionDialog(false);
+                    navigate(instanceCode ? `/app/vote/${instanceCode}` : '/app/vote');
+                  }}
+                >
+                  Ver fila
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
           {/* Confirmation Dialog with Preview */}
           <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
             <AlertDialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -602,11 +686,12 @@ export default function Inscricao() {
         )}
 
         {/* Waitlist */}
-        <ParticipantWaitlist 
-          entries={waitlistEntries} 
+        <ParticipantWaitlist
+          entries={waitlistEntries}
           loading={waitlistLoading}
           currentSingerName={performance?.cantor}
           userProfile={profile}
+          onChangeSong={updateSong}
         />
 
         {/* Navigation */}

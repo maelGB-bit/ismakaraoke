@@ -23,6 +23,7 @@ import { ChangePasswordModal } from '@/components/ChangePasswordModal';
 import { CoordinatorDataExport } from '@/components/CoordinatorDataExport';
 import { QRCodePrintable } from '@/components/QRCodePrintable';
 import { ResetEventDialog } from '@/components/ResetEventDialog';
+import { EventStatsPanel } from '@/components/EventStatsPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useActivePerformance, useRanking } from '@/hooks/usePerformance';
 import { useWaitlist } from '@/hooks/useWaitlist';
@@ -140,6 +141,9 @@ function HostContent() {
     waitlistEntryId: string | null;
     allowVoting?: boolean;
   } | null>(null);
+  // Auto-reset after 15h inactivity
+  const [showAutoResetDialog, setShowAutoResetDialog] = useState(false);
+
   // Check if user needs to change password
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [checkingPasswordStatus, setCheckingPasswordStatus] = useState(true);
@@ -178,6 +182,46 @@ function HostContent() {
 
     checkPasswordStatusAndUpdateAccess();
   }, [user?.email]);
+
+  // Auto-reset: verifica inatividade de 15h ao carregar o painel
+  useEffect(() => {
+    const checkInactivity = async () => {
+      if (!instanceId) return;
+
+      const INACTIVITY_MS = 15 * 60 * 60 * 1000; // 15 horas
+
+      // Buscar atividade mais recente (performance ou entrada na fila)
+      const [perfRes, waitRes] = await Promise.all([
+        supabase
+          .from('performances')
+          .select('created_at')
+          .eq('karaoke_instance_id', instanceId)
+          .order('created_at', { ascending: false })
+          .limit(1),
+        supabase
+          .from('waitlist')
+          .select('created_at')
+          .eq('karaoke_instance_id', instanceId)
+          .order('created_at', { ascending: false })
+          .limit(1),
+      ]);
+
+      const lastPerfDate = perfRes.data?.[0]?.created_at
+        ? new Date(perfRes.data[0].created_at).getTime()
+        : 0;
+      const lastWaitDate = waitRes.data?.[0]?.created_at
+        ? new Date(waitRes.data[0].created_at).getTime()
+        : 0;
+
+      const lastActivity = Math.max(lastPerfDate, lastWaitDate);
+
+      if (lastActivity > 0 && Date.now() - lastActivity > INACTIVITY_MS) {
+        setShowAutoResetDialog(true);
+      }
+    };
+
+    checkInactivity();
+  }, [instanceId]);
 
   const highestScore = ranking.length > 0 ? Math.max(...ranking.map(p => Number(p.nota_media))) : 0;
 
@@ -845,6 +889,11 @@ function HostContent() {
                       instanceCode={instance?.instance_code || ''} 
                     />
                   )}
+                  {instanceId && (
+                    <DropdownMenuItem asChild>
+                      <EventStatsPanel instanceId={instanceId} instanceName={instance?.name} />
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => setShowResetDialog(true)} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />{t('host.resetEvent')}</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -912,6 +961,36 @@ function HostContent() {
           />
         )}
 
+        {/* Auto-reset dialog: evento inativo há mais de 15h */}
+        <AlertDialog open={showAutoResetDialog} onOpenChange={setShowAutoResetDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-yellow-500" />
+                Evento sem atividade há mais de 15 horas
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Parece que o último evento já terminou. Deseja resetar a fila e os votos para iniciar um novo evento?
+                {' '}O ranking mensal será preservado.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowAutoResetDialog(false)}>
+                Não, continuar assim
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  setShowAutoResetDialog(false);
+                  setShowResetDialog(true);
+                }}
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              >
+                Sim, resetar evento
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Top row: Score Display and Waitlist side by side */}
           <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -924,7 +1003,6 @@ function HostContent() {
               onSelectEntry={handleSelectFromWaitlist}
               onRemoveEntry={removeFromWaitlist}
               onMovePriority={movePriority}
-              onUpdateSingerName={updateSingerName}
               onRecoverFromHistory={handleJumpToEntry}
               currentSinger={isRoundActive ? performance?.cantor : null}
               getDisplayInfo={getDisplayInfo}

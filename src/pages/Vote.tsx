@@ -32,7 +32,7 @@ export default function Vote() {
   const instanceId = instance?.id || null;
   
   const { performance, loading } = useActivePerformance(instanceId);
-  const { entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
+  const { entries: waitlistEntries, loading: waitlistLoading, updateSong } = useWaitlist(instanceId);
   const { profile: userProfile } = useUserProfile();
   const { data: instructionVideos } = useInstructionVideos();
   const deviceId = useDeviceId();
@@ -237,6 +237,7 @@ export default function Vote() {
             loading={waitlistLoading}
             currentSingerName={null}
             userProfile={userProfile}
+            onChangeSong={updateSong}
           />
         </motion.div>
       </div>
@@ -274,6 +275,7 @@ export default function Vote() {
             loading={waitlistLoading}
             currentSingerName={null}
             userProfile={userProfile}
+            onChangeSong={updateSong}
           />
         </motion.div>
       </div>
@@ -461,9 +463,10 @@ export default function Vote() {
             loading={waitlistLoading}
             currentSingerName={performance?.cantor}
             userProfile={userProfile}
+            onChangeSong={updateSong}
           />
         </motion.div>
-        
+
         {/* Footer Promotional Message */}
         <motion.div
           initial={{ opacity: 0 }}

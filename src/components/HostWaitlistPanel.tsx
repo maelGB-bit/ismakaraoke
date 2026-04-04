@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Play, X, Music, ChevronUp, ChevronDown, VolumeX, Pencil, Check, SkipForward, Loader2, RotateCcw } from 'lucide-react';
+import { Users, Play, X, Music, ChevronUp, ChevronDown, VolumeX, SkipForward, Loader2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -25,59 +24,30 @@ interface HostWaitlistPanelProps {
   onSelectEntry: (entry: WaitlistEntry) => void;
   onRemoveEntry: (entryId: string) => void;
   onMovePriority: (entryId: string, direction: 'up' | 'down') => void;
-  onUpdateSingerName?: (entryId: string, newName: string) => Promise<boolean>;
   onRecoverFromHistory?: (entry: WaitlistEntry, action: 'now_end' | 'now_return' | 'next') => Promise<void>;
   currentSinger?: string | null;
   getDisplayInfo?: (entry: WaitlistEntry) => QueueDisplayInfo;
 }
 
-export function HostWaitlistPanel({ 
-  entries, 
-  loading, 
+export function HostWaitlistPanel({
+  entries,
+  loading,
   historyEntries = [],
   historyLoading = false,
-  onSelectEntry, 
+  onSelectEntry,
   onRemoveEntry,
   onMovePriority,
-  onUpdateSingerName,
   onRecoverFromHistory,
   currentSinger,
   getDisplayInfo,
 }: HostWaitlistPanelProps) {
   const { t } = useLanguage();
   const nextInQueue = entries.length > 0 ? entries[0] : null;
-  
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
-  
+
   // Recovery dialog state
   const [recoverDialogOpen, setRecoverDialogOpen] = useState(false);
   const [selectedRecoverEntry, setSelectedRecoverEntry] = useState<WaitlistEntry | null>(null);
   const [isRecovering, setIsRecovering] = useState(false);
-
-  const handleStartEdit = (entry: WaitlistEntry) => {
-    setEditingId(entry.id);
-    setEditingName(entry.singer_name);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingId || !editingName.trim() || !onUpdateSingerName) return;
-    const success = await onUpdateSingerName(editingId, editingName);
-    if (success) {
-      setEditingId(null);
-      setEditingName('');
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditingName('');
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSaveEdit();
-    else if (e.key === 'Escape') handleCancelEdit();
-  };
 
   const handleHistoryClick = (entry: WaitlistEntry) => {
     if (!onRecoverFromHistory) return;
@@ -160,44 +130,19 @@ export function HostWaitlistPanel({
                         </div>
 
                         <div className="flex-1 min-w-0 max-w-[140px]">
-                          {editingId === entry.id ? (
-                            <div className="flex items-center gap-1">
-                              <Input
-                                value={editingName}
-                                onChange={(e) => setEditingName(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                className="h-6 text-sm py-0 px-1"
-                                autoFocus
-                              />
-                              <Button size="icon" variant="ghost" className="h-5 w-5 text-green-500 hover:text-green-600" onClick={handleSaveEdit}>
-                                <Check className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground" onClick={handleCancelEdit}>
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <>
-                              <p className="font-medium text-sm truncate flex items-center gap-1">
-                                {entry.singer_name}
-                                {entry.allow_voting === false && (
-                                  <span title="Sem votação">
-                                    <VolumeX className="h-3 w-3 text-orange-500 flex-shrink-0" />
-                                  </span>
-                                )}
-                              </p>
-                              <p className="text-xs text-muted-foreground line-clamp-2 break-words">{entry.song_title}</p>
-                              {info && <QueueEntryIndicators info={info} compact />}
-                            </>
-                          )}
+                          <p className="font-medium text-sm truncate flex items-center gap-1">
+                            {entry.singer_name}
+                            {entry.allow_voting === false && (
+                              <span title="Sem votação">
+                                <VolumeX className="h-3 w-3 text-orange-500 flex-shrink-0" />
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground line-clamp-2 break-words">{entry.song_title}</p>
+                          {info && <QueueEntryIndicators info={info} compact />}
                         </div>
 
                         <div className="flex items-center gap-1 shrink-0">
-                          {onUpdateSingerName && editingId !== entry.id && (
-                            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleStartEdit(entry)} title={t('waitlist.editName')}>
-                              <Pencil className="h-3 w-3 text-muted-foreground" />
-                            </Button>
-                          )}
                           <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMovePriority(entry.id, 'up')} disabled={index === 0} title={t('waitlist.moveUp')}>
                             <ChevronUp className="h-4 w-4" />
                           </Button>

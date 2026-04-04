@@ -220,41 +220,19 @@ export function useWaitlist(instanceId?: string | null) {
   useEffect(() => {
     fetchEntries();
 
-    const channelName = instanceId ? `waitlist-${instanceId}` : 'waitlist-changes';
+    const channelName = instanceId ? `waitlist-perf-${instanceId}` : 'waitlist-perf-changes';
+    const tableFilter = instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {};
     const channel = supabase
       .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'waitlist',
-          ...(instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {}),
-        },
-        () => fetchEntries(),
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'waitlist',
-          ...(instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {}),
-        },
-        () => fetchEntries(),
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'waitlist',
-          ...(instanceId ? { filter: `karaoke_instance_id=eq.${instanceId}` } : {}),
-        },
-        () => fetchEntries(),
-      )
+      // ── waitlist changes ──
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'waitlist', ...tableFilter }, () => fetchEntries())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'waitlist', ...tableFilter }, () => fetchEntries())
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'waitlist', ...tableFilter }, () => fetchEntries())
+      // ── performances changes (rebalanceia fila quando performance muda) ──
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'performances', ...tableFilter }, () => fetchWaitingEntries())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'performances', ...tableFilter }, () => fetchWaitingEntries())
       .subscribe((status) => {
-        console.log('Waitlist realtime subscription status:', status);
+        console.log('Waitlist+Performances realtime subscription status:', status);
       });
 
     return () => {
@@ -528,6 +506,33 @@ export function useWaitlist(instanceId?: string | null) {
     }
   };
 
+  // ─── updateSong ─── (participante muda a própria música, sem alterar prioridade)
+  const updateSong = async (entryId: string, songTitle: string, youtubeUrl: string) => {
+    try {
+      const { error } = await supabase
+        .from('waitlist')
+        .update({ song_title: songTitle.trim(), youtube_url: youtubeUrl.trim() })
+        .eq('id', entryId);
+
+      if (error) throw error;
+
+      setEntries(prev =>
+        prev.map(e =>
+          e.id === entryId
+            ? { ...e, song_title: songTitle.trim(), youtube_url: youtubeUrl.trim() }
+            : e,
+        ),
+      );
+
+      toast({ title: 'Música atualizada!' });
+      return true;
+    } catch (error) {
+      console.error('Error updating song:', error);
+      toast({ title: t('host.error'), variant: 'destructive' });
+      return false;
+    }
+  };
+
   // ─── getNextInQueue ───
   const getNextInQueue = (): WaitlistEntry | null => {
     return entries.length > 0 ? entries[0] : null;
@@ -591,6 +596,7 @@ export function useWaitlist(instanceId?: string | null) {
     removeFromWaitlist,
     movePriority,
     updateSingerName,
+    updateSong,
     getNextInQueue,
     getUniqueSingerNames,
     getDisplayInfo,
