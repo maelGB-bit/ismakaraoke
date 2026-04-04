@@ -96,6 +96,7 @@ function HostContent() {
     loading: waitlistLoading,
     historyLoading,
     markAsDone,
+    markAsSinging,
     removeFromWaitlist,
     movePriority,
     updateSingerName,
@@ -273,6 +274,9 @@ function HostContent() {
       if (error) throw error;
       setPerformance(data as Performance);
       setLastHighScore(0);
+      if (currentWaitlistEntryId) {
+        await markAsSinging(currentWaitlistEntryId);
+      }
       toast({ title: t('host.roundStarted'), description: t('host.votingOpen') });
     } catch (error) {
       console.error('Error starting round:', error);
@@ -496,6 +500,7 @@ function HostContent() {
       
       if (!error && data) {
         setPerformance(data as Performance);
+        await markAsSinging(next.id);
         toast({ title: t('host.singerSelected'), description: `${next.singer_name} - ${next.song_title}` });
       }
     } catch (error) {
