@@ -42,7 +42,11 @@ export function AdminApiKeys() {
   const fetchKeys = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) {
+        toast({ title: 'Sessão expirada', description: 'Faça login novamente.', variant: 'destructive' });
+        setLoading(false);
+        return;
+      }
 
       const response = await supabase.functions.invoke('api-keys', {
         body: { action: 'list' },
@@ -52,10 +56,16 @@ export function AdminApiKeys() {
       });
 
       if (response.error) throw response.error;
-      setKeys(response.data?.data || []);
+      const data = response.data?.data;
+      if (!Array.isArray(data)) {
+        console.error('Unexpected response format:', response.data);
+        throw new Error('Resposta inesperada da função. Verifique se a Edge Function está publicada.');
+      }
+      setKeys(data);
     } catch (error) {
       console.error('Error fetching API keys:', error);
-      toast({ title: 'Erro ao carregar chaves', variant: 'destructive' });
+      const msg = error instanceof Error ? error.message : String(error);
+      toast({ title: 'Erro ao carregar chaves', description: msg, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
