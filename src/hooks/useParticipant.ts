@@ -70,31 +70,21 @@ export function useParticipant(instanceId: string | null, deviceId: string | nul
     const normalizedEmail = email.trim().toLowerCase();
 
     try {
-      // First check if email already exists for this instance
-      const { data: existingByEmail } = await supabase
-        .from('participants')
-        .select('*')
-        .eq('karaoke_instance_id', instanceId)
-        .eq('email', normalizedEmail)
-        .maybeSingle();
+      // First check if email already exists for this instance (via RPC)
+      const { data: emailResults } = await supabase
+        .rpc('get_participant_by_email', { _instance_id: instanceId, _email: normalizedEmail });
 
-      if (existingByEmail) {
-        // Email already registered - treat as success and set participant
-        setParticipant(existingByEmail as Participant);
+      if (emailResults && emailResults.length > 0) {
+        setParticipant(emailResults[0] as Participant);
         return { success: true };
       }
 
-      // Check if device already has a registration
-      const { data: existingByDevice } = await supabase
-        .from('participants')
-        .select('*')
-        .eq('karaoke_instance_id', instanceId)
-        .eq('device_id', deviceId)
-        .maybeSingle();
+      // Check if device already has a registration (via RPC)
+      const { data: deviceResults } = await supabase
+        .rpc('get_participant_by_device', { _instance_id: instanceId, _device_id: deviceId });
 
-      if (existingByDevice) {
-        // Device already registered - treat as success
-        setParticipant(existingByDevice as Participant);
+      if (deviceResults && deviceResults.length > 0) {
+        setParticipant(deviceResults[0] as Participant);
         return { success: true };
       }
 
