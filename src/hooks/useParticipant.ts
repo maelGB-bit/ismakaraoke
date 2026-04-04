@@ -25,16 +25,12 @@ export function useParticipant(instanceId: string | null, deviceId: string | nul
     const fetchParticipant = async () => {
       setLoading(true);
       
-      // First try to find by device_id
+      // First try to find by device_id using RPC (avoids direct SELECT on participants)
       const { data: byDevice, error: deviceError } = await supabase
-        .from('participants')
-        .select('*')
-        .eq('karaoke_instance_id', instanceId)
-        .eq('device_id', deviceId)
-        .maybeSingle();
+        .rpc('get_participant_by_device', { _instance_id: instanceId, _device_id: deviceId });
 
-      if (!deviceError && byDevice) {
-        setParticipant(byDevice as Participant);
+      if (!deviceError && byDevice && byDevice.length > 0) {
+        setParticipant(byDevice[0] as Participant);
         setLoading(false);
         return;
       }
@@ -46,16 +42,10 @@ export function useParticipant(instanceId: string | null, deviceId: string | nul
           const profile = JSON.parse(storedProfile);
           if (profile.email) {
             const { data: byEmail, error: emailError } = await supabase
-              .from('participants')
-              .select('*')
-              .eq('karaoke_instance_id', instanceId)
-              .eq('email', profile.email.trim().toLowerCase())
-              .maybeSingle();
+              .rpc('get_participant_by_email', { _instance_id: instanceId, _email: profile.email.trim().toLowerCase() });
 
-            if (!emailError && byEmail) {
-              // Found by email - this user is already registered, just with different device
-              // We'll treat them as registered and show them in the system
-              setParticipant(byEmail as Participant);
+            if (!emailError && byEmail && byEmail.length > 0) {
+              setParticipant(byEmail[0] as Participant);
               setLoading(false);
               return;
             }
