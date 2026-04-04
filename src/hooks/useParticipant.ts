@@ -105,30 +105,22 @@ export function useParticipant(instanceId: string | null, deviceId: string | nul
         // Handle race condition - if email constraint fails, fetch the existing record
         if (error.code === '23505') {
           if (error.message.includes('email')) {
-            // Race condition - email was just registered, fetch it
-            const { data: raceParticipant } = await supabase
-              .from('participants')
-              .select('*')
-              .eq('karaoke_instance_id', instanceId)
-              .eq('email', normalizedEmail)
-              .maybeSingle();
+            // Race condition - email was just registered, fetch it via RPC
+            const { data: raceEmail } = await supabase
+              .rpc('get_participant_by_email', { _instance_id: instanceId, _email: normalizedEmail });
 
-            if (raceParticipant) {
-              setParticipant(raceParticipant as Participant);
+            if (raceEmail && raceEmail.length > 0) {
+              setParticipant(raceEmail[0] as Participant);
               return { success: true };
             }
             return { success: false, error: 'Este email já está cadastrado neste evento' };
           }
-          // Device constraint violation - also check for race condition
+          // Device constraint violation - also check for race condition via RPC
           const { data: raceDevice } = await supabase
-            .from('participants')
-            .select('*')
-            .eq('karaoke_instance_id', instanceId)
-            .eq('device_id', deviceId)
-            .maybeSingle();
+            .rpc('get_participant_by_device', { _instance_id: instanceId, _device_id: deviceId });
 
-          if (raceDevice) {
-            setParticipant(raceDevice as Participant);
+          if (raceDevice && raceDevice.length > 0) {
+            setParticipant(raceDevice[0] as Participant);
             return { success: true };
           }
           return { success: false, error: 'Este dispositivo já está cadastrado neste evento' };
