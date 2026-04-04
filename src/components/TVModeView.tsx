@@ -138,6 +138,7 @@ export function TVModeView({
   
   // Loading states for buttons
   const [isExiting, setIsExiting] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [isLoadingNext, setIsLoadingNext] = useState(false);
   const [isLoadingPrevious, setIsLoadingPrevious] = useState(false);
   const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
@@ -266,8 +267,18 @@ export function TVModeView({
     };
   }, [enterFullscreen]);
 
-  const handleExit = async () => {
+  const handleExit = () => {
     if (isExiting) return;
+    if (isActive) {
+      setShowExitConfirm(true);
+      return;
+    }
+    setIsExiting(true);
+    onExit();
+  };
+
+  const handleExitConfirmed = async () => {
+    setShowExitConfirm(false);
     setIsExiting(true);
     await onExit();
   };
@@ -953,7 +964,7 @@ export function TVModeView({
         <div className="w-full h-full rounded-lg overflow-hidden neon-border-cyan border relative">
           {videoId ? (
             <iframe
-              key={`${videoId}-${shouldAutoplay}`}
+              key={videoId ?? 'no-video'}
               src={`https://www.youtube.com/embed/${videoId}?autoplay=${shouldAutoplay ? 1 : 0}&rel=0&fs=0`}
               className="w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
@@ -1077,6 +1088,34 @@ export function TVModeView({
             
             <AlertDialogCancel disabled={isJumping} className="w-full h-11 text-base mt-2">Cancelar</AlertDialogCancel>
           </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
+        <AlertDialogContent className="z-[200] sm:max-w-md" container={containerRef.current}>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <X className="h-5 w-5 text-destructive" />
+              Sair do modo host?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Há uma apresentação em andamento. Sair irá encerrar a votação e fechar o modo host.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isExiting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExitConfirmed}
+              disabled={isExiting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isExiting ? (
+                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+              ) : null}
+              Sair mesmo assim
+            </AlertDialogAction>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 

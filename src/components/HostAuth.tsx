@@ -87,10 +87,15 @@ export function HostAuth({ children }: HostAuthProps) {
         
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           hadSessionRef.current = true;
-          setIsLoading(true);
+          // For token refresh/update events, don't show loading - we already have a valid session
+          // Only show loading on the very first auth event before we know the role
+          const isRefreshEvent = event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED';
+          if (!isRefreshEvent) {
+            setIsLoading(true);
+          }
           setTimeout(() => {
             if (isMounted) {
               checkHostRole(session.user.id);
@@ -101,7 +106,7 @@ export function HostAuth({ children }: HostAuthProps) {
           setIsHost(false);
           setIsLoading(false);
         }
-        // If hadSession but now null and not explicit logout, 
+        // If hadSession but now null and not explicit logout,
         // wait for recovery attempt (handled above for SIGNED_OUT)
       }
     );
@@ -141,19 +146,10 @@ export function HostAuth({ children }: HostAuthProps) {
       if (error) {
         // If it's a network/auth error and we had a session, don't immediately kick out
         console.error('[HostAuth] Error checking host role:', error);
-        if (hadSessionRef.current && (error.message?.includes('JWT') || error.code === 'PGRST301')) {
-          console.log('[HostAuth] Auth error during role check, attempting token refresh...');
-          const { data: refreshData } = await supabase.auth.refreshSession();
-          if (refreshData.session) {
-            // Retry role check with refreshed token
-            const { data: retryData } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', userId)
-              .in('role', ['host', 'coordinator']);
-            setIsHost(!!(retryData && retryData.length > 0));
-            return;
-          }
+        if (hadSessionRef.current) {
+          // Already authenticated - don't revoke isHost on transient errors
+          console.log('[HostAuth] Role check error but session exists, keeping isHost state');
+          return;
         }
         setIsHost(false);
       } else {
