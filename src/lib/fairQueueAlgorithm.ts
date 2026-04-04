@@ -32,9 +32,12 @@
  * 2) lastSungAt mais antigo (quem espera há mais tempo)
  * 3) createdAt mais antigo (ordem de inscrição)
  *
- * --- ROUND-ROBIN POR CANTOR ---
- * Se um cantor tem várias músicas, apenas a primeira (por createdAt)
- * participa da ordenação; as demais são intercaladas depois.
+ * --- MÚLTIPLAS MÚSICAS POR CANTOR ---
+ * Cada música extra (2ª, 3ª…) de um cantor é pontuada individualmente
+ * como se ele já tivesse cantado K vezes a mais (onde K = posição na sua
+ * própria sub-fila, 0-indexado). Assim todas as músicas competem na mesma
+ * fila justa — músicas extras não "roubam" a vez de quem esperou mais
+ * ou cantou menos.
  */
 
 export interface SingerStats {
@@ -156,67 +159,65 @@ export function buildProFairOrder(
   const activeSingers = new Set(regularEntries.map(e => normalizeName(e.singer_name)));
   const N = activeSingers.size;
 
-  // 3) Agrupar músicas por cantor
+  // 3) Agrupar músicas por cantor, ordenadas por createdAt (mais antiga = 1ª da fila)
   const bySinger = new Map<string, QueueItem[]>();
   for (const entry of regularEntries) {
     const key = normalizeName(entry.singer_name);
     if (!bySinger.has(key)) bySinger.set(key, []);
     bySinger.get(key)!.push(entry);
   }
-
-  // Ordenar músicas de cada cantor por createdAt (mais antiga primeiro)
   for (const songs of bySinger.values()) {
     songs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   }
 
-  // 4) Calcular score para cada cantor (usando sua primeira música)
-  const singerScores: { key: string; score: number; firstCreatedAt: number; stats: SingerStats }[] = [];
+  // 4) Calcular score individual para cada música.
+  //
+  // Para a K-ésima música de um cantor (K=0 = primeira), simula como se ele
+  // já tivesse cantado K vezes a mais. Isso faz músicas extras competirem
+  // justamente com todos — sem "roubar" a vez de quem esperou mais ou cantou menos.
+  //
+  // effectiveSongsSung = real + K
+  // effectiveLastSungAt = K > 0 ? agora (sem tempo de espera acumulado) : real
+  const now = new Date();
+
+  type ScoredEntry = { entry: QueueItem; score: number; createdAt: number; effectiveLastSungAt: Date | null };
+  const scoredEntries: ScoredEntry[] = [];
 
   for (const [singerKey, songs] of bySinger) {
     const stats = singerHistories.get(singerKey) ?? { songsSung: 0, lastSungAt: null };
-    const score = calculateScore(stats, lastSingerId, singerKey, N);
-    singerScores.push({
-      key: singerKey,
-      score,
-      firstCreatedAt: new Date(songs[0].created_at).getTime(),
-      stats,
+
+    songs.forEach((entry, queueIndex) => {
+      const effectiveStats: SingerStats = {
+        songsSung: stats.songsSung + queueIndex,
+        lastSungAt: queueIndex > 0 ? now : stats.lastSungAt,
+      };
+      const score = calculateScore(effectiveStats, lastSingerId, singerKey, N);
+      scoredEntries.push({
+        entry,
+        score,
+        createdAt: new Date(entry.created_at).getTime(),
+        effectiveLastSungAt: effectiveStats.lastSungAt,
+      });
     });
   }
 
-  // 5) Ordenar cantores por:
-  //    a) Maior score
-  //    b) Desempate: lastSungAt mais antigo (ou nunca cantou = prioridade máxima)
-  //    c) Desempate: createdAt mais antigo
-  singerScores.sort((a, b) => {
-    // Maior score primeiro
+  // 5) Ordenar todas as músicas por score individual:
+  //    a) Maior score primeiro
+  //    b) Desempate: lastSungAt mais antigo (quem esperou mais vai antes)
+  //    c) Desempate final: inscrição mais antiga
+  scoredEntries.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
 
-    // Desempate: quem cantou há mais tempo (ou nunca) vai primeiro
-    const aMinutes = minutesSince(a.stats.lastSungAt);
-    const bMinutes = minutesSince(b.stats.lastSungAt);
+    const aMinutes = minutesSince(a.effectiveLastSungAt);
+    const bMinutes = minutesSince(b.effectiveLastSungAt);
     if (bMinutes !== aMinutes) return bMinutes - aMinutes;
 
-    // Desempate final: inscrição mais antiga
-    return a.firstCreatedAt - b.firstCreatedAt;
+    return a.createdAt - b.createdAt;
   });
 
-  // 6) Round-robin: intercalar músicas de cada cantor
-  const orderedSingerKeys = singerScores.map(s => s.key);
-  const result: QueueItem[] = [];
+  const result = scoredEntries.map(s => s.entry);
 
-  let hasMore = true;
-  while (hasMore) {
-    hasMore = false;
-    for (const key of orderedSingerKeys) {
-      const songs = bySinger.get(key);
-      if (songs && songs.length > 0) {
-        result.push(songs.shift()!);
-        hasMore = true;
-      }
-    }
-  }
-
-  // 7) Combinar: overrides do coordenador + fila justa
+  // 6) Combinar: overrides do coordenador + fila justa
   return [...coordinatorOverrides, ...result];
 }
 
