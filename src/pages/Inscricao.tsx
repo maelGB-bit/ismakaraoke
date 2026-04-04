@@ -1,17 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mic, Search, Loader2, Play, ArrowLeft, Music, UserPlus, Link, AlertCircle, ExternalLink, Lock } from 'lucide-react';
+import { Mic, Search, Loader2, Play, ArrowLeft, Music, Link, AlertCircle, ExternalLink, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ParticipantWaitlist } from '@/components/ParticipantWaitlist';
 import { ParticipantRegistrationModal } from '@/components/ParticipantRegistrationModal';
 import { ConsentTermsModal } from '@/components/ConsentTermsModal';
 import { VotingPreferenceToggle } from '@/components/VotingPreferenceToggle';
-import { SingerNameAutocomplete } from '@/components/SingerNameAutocomplete';
 import { LeaveButton } from '@/components/LeaveButton';
 import { YouTubePreview } from '@/components/YouTubePreview';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -60,7 +58,7 @@ export default function Inscricao() {
   const deviceId = useDeviceId();
   const { participant, loading: participantLoading, registerParticipant } = useParticipant(instanceId, deviceId);
   
-  const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading, getUniqueSingerNames } = useWaitlist(instanceId);
+  const { addToWaitlist, entries: waitlistEntries, loading: waitlistLoading } = useWaitlist(instanceId);
   const { performance } = useActivePerformance(instanceId);
   const { profile, loading: profileLoading, saveProfile, updateVotingPreference, acceptTerms } = useUserProfile();
   const { isRegistrationOpen, loading: settingsLoading } = useEventSettings(instanceId);
@@ -76,20 +74,14 @@ export default function Inscricao() {
   const [selectedVideo, setSelectedVideo] = useState<YouTubeVideo | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [registerForOther, setRegisterForOther] = useState(false);
   const [manualUrl, setManualUrl] = useState('');
   const [searchError, setSearchError] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  // Memoize singer suggestions fetcher for autocomplete
-  const fetchSingerSuggestions = useCallback(() => {
-    return getUniqueSingerNames();
-  }, [getUniqueSingerNames]);
-
   // Set singer name from participant when loaded
   useEffect(() => {
-    if (participant && !registerForOther && !singerName) {
+    if (participant && !singerName) {
       setSingerName(participant.name);
     }
   }, [participant?.name]); // Only depend on participant.name
@@ -117,15 +109,6 @@ export default function Inscricao() {
     }
     
     return result;
-  };
-
-  const handleRegisterForOtherChange = (checked: boolean) => {
-    setRegisterForOther(checked);
-    if (checked) {
-      setSingerName('');
-    } else if (participant) {
-      setSingerName(participant.name);
-    }
   };
 
   const extractVideoId = (url: string): string | null => {
@@ -283,15 +266,12 @@ export default function Inscricao() {
     setIsSubmitting(true);
     setShowConfirmDialog(false);
 
-    // If registering for someone else, pass the current user's name as registeredBy
-    const registeredBy = registerForOther && participant ? participant.name : undefined;
-
     // Pass the current voting preference
     const success = await addToWaitlist(
       singerName.trim(),
       selectedVideo.url,
       decodeHtmlEntities(selectedVideo.title),
-      registeredBy,
+      undefined,
       false, // insertFirst = false
       currentAllowVoting
     );
@@ -300,11 +280,6 @@ export default function Inscricao() {
 
     if (success) {
       // Reset form
-      if (registerForOther) {
-        setSingerName('');
-        setRegisterForOther(false);
-        if (participant) setSingerName(participant.name);
-      }
       setSearchQuery('');
       setVideos([]);
       setSelectedVideo(null);
@@ -418,18 +393,8 @@ export default function Inscricao() {
             <div className="space-y-2">
               <Label htmlFor="singer-name" className="text-lg flex items-center gap-2">
                 <Mic className="h-4 w-4" />
-                {registerForOther ? t('signup.newSingerName') : t('signup.yourName')}
+                {t('signup.yourName')}
               </Label>
-            {registerForOther ? (
-              <SingerNameAutocomplete
-                id="singer-name"
-                value={singerName}
-                onChange={setSingerName}
-                onFetchSuggestions={fetchSingerSuggestions}
-                placeholder={t('signup.newSingerPlaceholder')}
-                className="text-lg"
-              />
-            ) : (
               <Input
                 id="singer-name"
                 value={singerName}
@@ -438,34 +403,7 @@ export default function Inscricao() {
                 className="text-lg"
                 disabled={!!profile}
               />
-            )}
           </div>
-
-          {/* Register for another person */}
-          <div className="flex items-center space-x-2 p-3 rounded-lg bg-accent/20 border border-accent/30">
-            <Checkbox
-              id="register-other"
-              checked={registerForOther}
-              onCheckedChange={handleRegisterForOtherChange}
-            />
-            <Label 
-              htmlFor="register-other" 
-              className="flex items-center gap-2 cursor-pointer text-sm"
-            >
-              <UserPlus className="h-4 w-4" />
-              {t('signup.registerOther')}
-            </Label>
-          </div>
-
-          {registerForOther && (
-            <motion.p
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-muted-foreground"
-            >
-              {t('signup.registerOtherHint')}
-            </motion.p>
-          )}
 
           {/* Song Search */}
           <div className="space-y-2">
