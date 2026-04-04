@@ -936,6 +936,42 @@ export type Database = {
       }
     }
     Functions: {
+      get_participant_by_device: {
+        Args: { _device_id: string; _instance_id: string }
+        Returns: {
+          created_at: string
+          device_id: string
+          email: string
+          id: string
+          karaoke_instance_id: string
+          name: string
+          phone: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "participants"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_participant_by_email: {
+        Args: { _email: string; _instance_id: string }
+        Returns: {
+          created_at: string
+          device_id: string
+          email: string
+          id: string
+          karaoke_instance_id: string
+          name: string
+          phone: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "participants"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_user_email: { Args: never; Returns: string }
       get_user_instance_id: { Args: never; Returns: string }
       has_any_hosts: { Args: never; Returns: boolean }
